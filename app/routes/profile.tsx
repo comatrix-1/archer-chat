@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import localforage from "../utils/localforage";
 import { useAuth } from "../contexts/AuthContext";
+import ProfileComponent from "~/components/profile";
 
 export default function Profile() {
   const { user } = useAuth();
@@ -10,76 +10,44 @@ export default function Profile() {
 
   useEffect(() => {
     if (!user) return;
-    localforage.getItem(`profile_${user.id}`).then((data) => {
-      setProfile(data || { name: user.name, email: user.email, role: user.role });
-      setLoading(false);
-    });
+    fetch(`/api/profile?email=${encodeURIComponent(user.email)}`)
+      .then(async (res) => {
+        if (res.ok) return res.json();
+        // If not found, use default from user context
+        return { name: user.name, email: user.email, role: user.role };
+      })
+      .then((data) => {
+        setProfile(data);
+        setLoading(false);
+      });
   }, [user]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setProfile({ ...profile, [e.target.name]: e.target.value });
-  };
+  // TODO: implement methods
+  // const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  //   setProfile({ ...profile, [e.target.name]: e.target.value });
+  // };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!user) return;
-    await localforage.setItem(`profile_${user.id}`, profile);
-    setSuccess(true);
-    setTimeout(() => setSuccess(false), 2000);
-  };
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!user) return;
+  //   const method = profile.id ? "PUT" : "POST";
+  //   const res = await fetch("/api/profile", {
+  //     method,
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify(profile),
+  //   });
+  //   if (res.ok) {
+  //     setSuccess(true);
+  //     setTimeout(() => setSuccess(false), 2000);
+  //   }
+  // };
 
   if (!user) return <div className="p-8">Please login.</div>;
   if (loading) return <div className="p-8">Loading...</div>;
 
   return (
-    <div className="max-w-lg mx-auto p-8">
-      <h2 className="text-2xl font-bold mb-4">My Profile</h2>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          name="name"
-          value={profile.name}
-          onChange={handleChange}
-          className="input input-bordered w-full"
-          placeholder="Full Name"
-        />
-        <input
-          name="email"
-          value={profile.email}
-          disabled
-          className="input input-bordered w-full bg-gray-100"
-          placeholder="Email"
-        />
-        <input
-          name="role"
-          value={profile.role}
-          disabled
-          className="input input-bordered w-full bg-gray-100"
-          placeholder="Role"
-        />
-        <textarea
-          name="summary"
-          value={profile.summary || ""}
-          onChange={handleChange}
-          className="input input-bordered w-full"
-          placeholder="Professional Summary"
-        />
-        <input
-          name="location"
-          value={profile.location || ""}
-          onChange={handleChange}
-          className="input input-bordered w-full"
-          placeholder="Location"
-        />
-        <input
-          name="linkedin"
-          value={profile.linkedin || ""}
-          onChange={handleChange}
-          className="input input-bordered w-full"
-          placeholder="LinkedIn URL"
-        />
-        <button type="submit" className="btn btn-primary w-full">Save</button>
-        {success && <div className="text-green-600">Profile saved!</div>}
-      </form>
+    <div className="flex-1 overflow-y-auto py-8 px-4 md:px-8 max-w-3xl mx-auto">
+      <ProfileComponent initialProfile={profile} />
     </div>
   );
 }

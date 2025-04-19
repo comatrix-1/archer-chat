@@ -1,0 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id       String @id @default(cuid())
+  email    String @unique
+  password String
+  role     Role
+
+  profiles      Profile[]
+  conversations Conversation[]
+  CoverLetter   CoverLetter[]
+}
+
+model Profile {
+  id             String  @id @default(cuid())
+  userId         String
+  objective      String  @default("")
+  contactId      String  @unique
+  conversationId String?
+
+  experiences           Experience[] // One profile has many experiences
+  educations            Education[] // One profile has many educations
+  skills                Skill[] // One profile has many skills
+  honorsAwards          HonorsAwards[] // One profile has many honors/awards
+  licenseCertifications LicenseCertification[] // One profile has many licenses/certifications
+
+  contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Conversation Conversation?
+
+  @@unique([userId, conversationId]) // Composite unique key
+}
+
+model Contact {
+  id          String        @id @default(cuid())
+  phone       String        @default("")
+  email       String        @default("")
+  linkedin    String?
+  portfolio   String?
+  city        String        @default("")
+  country     String        @default("")
+  Profile     Profile?
+  CoverLetter CoverLetter[]
+}
+
+model Experience {
+  id             String    @id @default(cuid())
+  title          String
+  employmentType String
+  company        String
+  location       String
+  locationType   String
+  startDate      DateTime
+  endDate        DateTime?
+  description    String?
+
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Education {
+  id           String    @id @default(cuid())
+  school       String
+  degree       String
+  fieldOfStudy String
+  startDate    DateTime
+  endDate      DateTime?
+  gpa          Float?
+  gpaMax       Float?
+  location     String?
+  description  String?
+  profileId    String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Skill {
+  id          String @id @default(cuid())
+  name        String
+  proficiency String
+
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model LicenseCertification {
+  id           String    @id @default(cuid())
+  name         String
+  issuer       String
+  issueDate    DateTime
+  expiryDate   DateTime?
+  credentialId String?
+
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model HonorsAwards {
+  id          String   @id @default(cuid())
+  title       String
+  issuer      String
+  date        DateTime
+  description String?
+
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  status      Status    @default(PENDING)
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  messages    Message[]
+
+  user    User     @relation(fields: [userId], references: [id])
+  profile Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  profileId String? @unique
+}
+
+enum MessagePartContentType {
+  TEXT
+  ACTION
+  POST
+  GET
+}
+
+enum MessageContentType {
+  TEXT_AND_ACTION
+  TEXT
+}
+
+enum Status {
+  ACTIVE
+  PENDING
+  INTERVIEW
+  REJECTED
+  ACCEPTED
+}
+
+enum Role {
+  JOBSEEKER
+  RECRUITER
+}
+
+model MessagePart {
+  id          String                 @id @default(cuid())
+  content     String
+  contentType MessagePartContentType
+  actionUrl   String?
+  messageId   String?
+  message     Message?               @relation(fields: [messageId], references: [id])
+}
+
+model Message {
+  id             String              @id @default(cuid())
+  conversationId String
+  role           String
+  content        String
+  contentType    MessageContentType?
+  parts          MessagePart[]
+  createdAt      DateTime            @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model CoverLetter {
+  id        String   @id @default(cuid())
+  userId    String
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id])
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
