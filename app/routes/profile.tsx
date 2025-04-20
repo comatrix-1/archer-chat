@@ -1,26 +1,25 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import ProfileComponent from "~/components/profile";
+import { fetchWithAuth } from "../utils/fetchWithAuth";
 
 export default function Profile() {
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [success, setSuccess] = useState(false);
+  console.log('Profile() :: profile: ', profile);
+
 
   useEffect(() => {
     if (!user) return;
-    fetch(`/api/profile?email=${encodeURIComponent(user.email)}`)
-      .then(async (res) => {
-        if (res.ok) return res.json();
-        // If not found, use default from user context
-        return { name: user.name, email: user.email, role: user.role };
-      })
+    fetchWithAuth(`/api/profile?email=${encodeURIComponent(user.email)}`, { method: 'GET' })
+      .then((res) => res.data)
       .then((data) => {
-        setProfile(data);
-        setLoading(false);
+        setProfile(data.profile);
+      })
+      .catch(() => {
+        setProfile({ name: user.name, email: user.email, role: user.role });
       });
-  }, [user]);
+  }, []);
 
   // TODO: implement methods
   // const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -42,8 +41,8 @@ export default function Profile() {
   //   }
   // };
 
-  if (!user) return <div className="p-8">Please login.</div>;
-  if (loading) return <div className="p-8">Loading...</div>;
+  if (!isLoggedIn) return <div className="p-8">Please login.</div>;
+  if (!profile) return <div className="p-8">Loading...</div>;
 
   return (
     <div className="flex-1 overflow-y-auto py-8 px-4 md:px-8 max-w-3xl mx-auto">

@@ -2,70 +2,94 @@
 
 import React from 'react';
 import { Input } from '~/components/ui/input';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
 
 interface ContactSectionProps {
     register: any;
+    form: any;
 }
 
-const ContactSection: React.FC<ContactSectionProps> = ({ register }) => {
+const ContactSection: React.FC<ContactSectionProps> = ({ register, form }) => {
     return (
         <div className="space-y-4">
-            <div>
-                <label
-                    htmlFor="contact-email"
-                    className="text-sm font-medium block"
-                >
-                    Email
-                </label>
-                <Input
-                    id="contact-email"
-                    type="email"
-                    placeholder="Email address"
-                    {...register("contact.email")}
-                />
-            </div>
-            <div>
-                <label
-                    htmlFor="contact-phone"
-                    className="text-sm font-medium block"
-                >
-                    Phone
-                </label>
-                <Input
-                    id="contact-phone"
-                    type="tel"
-                    placeholder="Phone number"
-                    {...register("contact.phone")}
-                />
-            </div>
-            <div>
-                <label
-                    htmlFor="contact-city"
-                    className="text-sm font-medium block"
-                >
-                    City
-                </label>
-                <Input
-                    id="contact-city"
-                    type="text"
-                    placeholder="City"
-                    {...register("contact.city")}
-                />
-            </div>
-            <div>
-                <label
-                    htmlFor="contact-country"
-                    className="text-sm font-medium block"
-                >
-                    Country
-                </label>
-                <Input
-                    id="contact-country"
-                    type="text"
-                    placeholder="Country"
-                    {...register("contact.country")}
-                />
-            </div>
+            <FormField
+                control={form.control}
+                name="contact.email"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                            <Input type="email" placeholder="Email address" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="contact.phone"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Phone</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Phone number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="contact.linkedin"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>LinkedIn</FormLabel>
+                        <FormControl>
+                            <Input placeholder="LinkedIn profile URL" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="contact.portfolio"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Portfolio</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Portfolio URL" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="contact.city"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>City</FormLabel>
+                        <FormControl>
+                            <Input placeholder="City" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name="contact.country"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Country</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Country" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
         </div>
     );
 };

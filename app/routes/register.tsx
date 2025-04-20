@@ -7,13 +7,14 @@ export default function Register() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
-  const [role, setRole] = useState<"jobseeker" | "recruiter">("jobseeker");
+  const [role, setRole] = useState<"JOBSEEKER" | "RECRUITER">("JOBSEEKER");
   const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const ok = await register({ email, password, name, role });
+    const ok = await register({ email, password, name, role, confirmPassword });
     if (ok) {
       navigate("/profile");
     } else {
@@ -53,23 +54,31 @@ export default function Register() {
           onChange={e => setPassword(e.target.value)}
           required
         />
+        <input
+          type="password"
+          placeholder="Confirm Password"
+          className="input input-bordered w-full mb-4"
+          value={confirmPassword}
+          onChange={e => setConfirmPassword(e.target.value)}
+          required
+        />
         <div className="mb-4">
           <label className="mr-4">
             <input
               type="radio"
               name="role"
-              value="jobseeker"
-              checked={role === "jobseeker"}
-              onChange={() => setRole("jobseeker")}
+              value="JOBSEEKER"
+              checked={role === "JOBSEEKER"}
+              onChange={() => setRole("JOBSEEKER")}
             /> Jobseeker
           </label>
           <label>
             <input
               type="radio"
               name="role"
-              value="recruiter"
-              checked={role === "recruiter"}
-              onChange={() => setRole("recruiter")}
+              value="RECRUITER"
+              checked={role === "RECRUITER"}
+              onChange={() => setRole("RECRUITER")}
             /> Recruiter
           </label>
         </div>

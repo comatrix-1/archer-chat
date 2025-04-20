@@ -9,9 +9,11 @@ import type {
   Profile,
   Skill,
 } from "@prisma/client";
+import { Plus } from "lucide-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
+import { useBlocker } from "react-router";
 import CertificationSection from "~/components/profile/certification-section";
 import ContactSection from "~/components/profile/contact-section";
 import EducationSection from "~/components/profile/education-section";
@@ -24,23 +26,22 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "~/components/ui/accordion";
-import { Button, buttonVariants } from "~/components/ui/button";
-import { Form } from "~/components/ui/form";
-import { Textarea } from "~/components/ui/textarea";
-import { cn } from "~/lib/utils";
-import { generateUUID } from "~/utils/security";
-import { Plus } from "lucide-react";
 import {
-  AlertDialogHeader,
-  AlertDialogFooter,
-  AlertDialogDescription,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
-import { useBlocker } from "react-router";
+import { Button, buttonVariants } from "~/components/ui/button";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
+import { Textarea } from "~/components/ui/textarea";
+import { cn } from "~/lib/utils";
+import { generateUUID } from "~/utils/security";
+import { fetchWithAuth } from '../../utils/fetchWithAuth';
 
 function convertDatesToISO<T>(data: T): T {
   if (typeof data === "object" && data !== null) {
@@ -85,6 +86,7 @@ export default function ProfileComponent({
   };
 }>) {
   const [profile, setProfile] = useState(initialProfile);
+  console.log('ProfileComponent() :: profile: ', profile);
   const hasUnsavedChanges = React.useRef(false);
   const formRef = React.useRef<HTMLFormElement>(null);
 
@@ -230,43 +232,51 @@ export default function ProfileComponent({
     // TODO: prompt user for unsaved changes
   }, [form.formState.isDirty]);
 
+  useEffect(() => {
+    if (profile) {
+      console.log('resetting profile to: ', profile);
+      form.reset({
+        ...profile,
+        experiences: profile.experiences || [],
+        educations: profile.educations || [],
+        skills: profile.skills || [],
+        honorsAwards: profile.honorsAwards || [],
+        licenseCertifications: profile.licenseCertifications || [],
+        contact: profile.contact || {
+          email: "",
+          phone: "",
+          linkedin: "",
+          portfolio: "",
+          city: "",
+          country: "",
+        }
+      });
+    }
+  }, [profile]);
+
   const onSubmit = async (data: ProfileFormData) => {
     if (!formRef.current) return;
 
-    // Convert dates to ISO strings. This ensures compatibility and avoids issues with how JavaScript handles dates (like local timezone differences).
+    // Convert dates to ISO strings
     const isoProfileData = convertDatesToISO(data);
 
-    // Construct the payload to send as JSON
+    // Construct the payload to send as JSON (no user fields, just profile)
     const payload = {
-      intent: "update",
-      profile: isoProfileData, // Send profile data directly as JSON
+      profile: isoProfileData,
     };
 
-    console.log("sending payload", payload);
-
     try {
-      const response = await fetch(formRef.current.action, {
-        method: "POST", // Always 'POST' for updating data, or use formRef.current.method
-        headers: {
-          "Content-Type": "application/json", // Make sure to set content type to JSON
-        },
-        body: JSON.stringify(payload), // Send the data as a JSON string
-      });
+      const response = await fetchWithAuth('/api/profile', { method: 'POST', body: JSON.stringify(payload) });
 
-      console.log("response", response);
-
-      const result = await response.json();
-
-      console.log("result", result);
+      const result = await response.data;
 
       if (result.success) {
         alert("Profile updated successfully!");
         setProfile(result.profile);
         form.reset(result.profile);
-        hasUnsavedChanges.current = false; // Reset the flag after successful submission
+        hasUnsavedChanges.current = false;
       } else {
         alert(`Error updating profile: ${result.message}, ${result.error}`);
-        // TODO: Handle error (e.g., display an error message to the user)
       }
     } catch (error) {
       console.error("Error submitting form:", error);
@@ -286,260 +296,260 @@ export default function ProfileComponent({
 
   return (
     <>
+      <a onClick={() => console.log(form.getValues())}>check form</a>
       <Form {...form}>
-        <form
+        {/* <form
           id="profile-form"
           method="post"
           className="space-y-4"
           ref={formRef}
           onSubmit={form.handleSubmit(onSubmit)}
           action="/api/profile"
-        >
-          <input type="hidden" name="intent" value="update" />
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">Profile</h1>
-            <Button
-              variant={form.formState.isDirty ? "default" : "secondary"}
-              disabled={!form.formState.isDirty}
-              type="submit"
-            >
-              {form.formState.isDirty ? "Save Changes" : "No Changes"}
-            </Button>
-          </div>
-          <Accordion
-            type="single"
-            collapsible
-            defaultValue="contact"
-            className="w-full space-y-4"
+        > */}
+        <input type="hidden" name="intent" value="update" />
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold">Profile</h1>
+          <Button
+            variant={form.formState.isDirty ? "default" : "secondary"}
+            disabled={!form.formState.isDirty}
+            type="submit"
           >
-            {/* Contact Information Accordion Item */}
-            <AccordionItem value="contact" className="border rounded-lg px-6">
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-lg font-semibold">Contact Information</h2>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <ContactSection register={form.register} />
-              </AccordionContent>
-            </AccordionItem>
+            {form.formState.isDirty ? "Save Changes" : "No Changes"}
+          </Button>
+        </div>
+        <Accordion
+          type="single"
+          collapsible
+          defaultValue="contact"
+          className="w-full space-y-4"
+        >
+          {/* Contact Information Accordion Item */}
+          <AccordionItem value="contact" className="border rounded-lg px-6">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-lg font-semibold">Contact Information</h2>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <ContactSection register={form.register} form={form} />
+            </AccordionContent>
+          </AccordionItem>
 
-            {/* Professional Summary Accordion Item */}
-            <AccordionItem value="summary" className="border rounded-lg px-6">
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center space-x-2">
-                  <h2 className="text-lg font-semibold">
-                    Professional Summary
-                  </h2>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="py-4">
-                  <label
-                    htmlFor="profile-summary"
-                    className="text-sm font-medium block"
-                  >
-                    Summary
-                  </label>
-                  <Textarea
-                    id="profile-summary"
-                    className="min-h-[100px]"
-                    {...form.register("objective")}
-                  />
-                </div>
-              </AccordionContent>
-            </AccordionItem>
+          <AccordionItem value="summary" className="border rounded-lg px-6">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center space-x-2">
+                <h2 className="text-lg font-semibold">
+                  Objective
+                </h2>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <FormField
+                control={form.control}
+                name="objective"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Objective</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Objective" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </AccordionContent>
+          </AccordionItem>
 
-            {/* Skills Accordion Item */}
-            <AccordionItem value="skills" className="border rounded-lg px-6">
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center justify-between space-x-2 w-full mr-2">
-                  <h2 className="text-lg font-semibold">Skills</h2>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className={cn(
-                      buttonVariants({ variant: "ghost", size: "sm" })
-                    )}
-                    onClick={(e) => {
+          {/* Skills Accordion Item */}
+          <AccordionItem value="skills" className="border rounded-lg px-6">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center justify-between space-x-2 w-full mr-2">
+                <h2 className="text-lg font-semibold">Skills</h2>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" })
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
+                    handleAddSkill();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
                       handleAddSkill();
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
-                        handleAddSkill();
-                      }
-                    }}
-                  >
-                    <Plus />
-                  </div>
+                    }
+                  }}
+                >
+                  <Plus />
                 </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="py-4 space-y-4">
-                  <SkillsSection
-                    skills={skillFields}
-                    register={form.register}
-                    removeSkill={removeSkill}
-                  />
-                </div>
-              </AccordionContent>
-            </AccordionItem>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <div className="py-4 space-y-4">
+                <SkillsSection
+                  skills={skillFields}
+                  register={form.register}
+                  removeSkill={removeSkill}
+                />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
 
-            {/* Work Experience Accordion Item */}
-            <AccordionItem
-              value="experience"
-              className="border rounded-lg px-6"
-            >
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center justify-between space-x-2 w-full mr-2">
-                  <h2 className="text-lg font-semibold">Work Experience</h2>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className={cn(
-                      buttonVariants({ variant: "ghost", size: "sm" })
-                    )}
-                    onClick={(e) => {
+          {/* Work Experience Accordion Item */}
+          <AccordionItem
+            value="experience"
+            className="border rounded-lg px-6"
+          >
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center justify-between space-x-2 w-full mr-2">
+                <h2 className="text-lg font-semibold">Work Experience</h2>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" })
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
+                    handleAddExperience();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
                       handleAddExperience();
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
-                        handleAddExperience();
-                      }
-                    }}
-                  >
-                    <Plus />
-                  </div>
+                    }
+                  }}
+                >
+                  <Plus />
                 </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <ExperienceSection
-                  experienceSectionFields={experienceFields}
-                  register={form.register}
-                  removeExperience={removeExperience}
-                />
-              </AccordionContent>
-            </AccordionItem>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <ExperienceSection
+                experienceSectionFields={experienceFields}
+                register={form.register}
+                removeExperience={removeExperience}
+              />
+            </AccordionContent>
+          </AccordionItem>
 
-            {/* Education Accordion Item */}
-            <AccordionItem value="education" className="border rounded-lg px-6">
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center justify_between space-x-2 w-full mr-2">
-                  <h2 className="text-lg font-semibold">Education</h2>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className={cn(
-                      buttonVariants({ variant: "ghost", size: "sm" })
-                    )}
-                    onClick={(e) => {
+          {/* Education Accordion Item */}
+          <AccordionItem value="education" className="border rounded-lg px-6">
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center justify_between space-x-2 w-full mr-2">
+                <h2 className="text-lg font-semibold">Education</h2>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" })
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
+                    handleAddEducation();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
                       handleAddEducation();
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
-                        handleAddEducation();
-                      }
-                    }}
-                  >
-                    <Plus />
-                  </div>
+                    }
+                  }}
+                >
+                  <Plus />
                 </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <EducationSection
-                  educationFields={educationFields}
-                  setValue={form.setValue}
-                  register={form.register}
-                  removeEducation={removeEducation}
-                />
-              </AccordionContent>
-            </AccordionItem>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <EducationSection
+                educationFields={educationFields}
+                setValue={form.setValue}
+                register={form.register}
+                removeEducation={removeEducation}
+              />
+            </AccordionContent>
+          </AccordionItem>
 
-            {/* Certifications Accordion Item */}
-            <AccordionItem
-              value="certifications"
-              className="border rounded-lg px-6"
-            >
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center justify-between space-x-2 w-full mr-2">
-                  <h2 className="text-lg font-semibold">Certifications</h2>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className={cn(
-                      buttonVariants({ variant: "ghost", size: "sm" })
-                    )}
-                    onClick={(e) => {
+          {/* Certifications Accordion Item */}
+          <AccordionItem
+            value="certifications"
+            className="border rounded-lg px-6"
+          >
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center justify-between space-x-2 w-full mr-2">
+                <h2 className="text-lg font-semibold">Certifications</h2>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" })
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
+                    handleAddCertification();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
                       handleAddCertification();
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
-                        handleAddCertification();
-                      }
-                    }}
-                  >
-                    <Plus />
-                  </div>
+                    }
+                  }}
+                >
+                  <Plus />
                 </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <CertificationSection
-                  certificationFields={certificationFields}
-                  register={form.register}
-                  setValue={form.setValue}
-                  getValues={form.getValues}
-                  removeCertification={removeCertification}
-                />
-              </AccordionContent>
-            </AccordionItem>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <CertificationSection
+                certificationFields={certificationFields}
+                register={form.register}
+                setValue={form.setValue}
+                getValues={form.getValues}
+                removeCertification={removeCertification}
+              />
+            </AccordionContent>
+          </AccordionItem>
 
-            {/* Honors and Awards Accordion Item */}
-            <AccordionItem
-              value="honorsAwards"
-              className="border rounded-lg px-6"
-            >
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center justify-between space-x-2 w-full mr-2">
-                  <h2 className="text-lg font-semibold">Honors and Awards</h2>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className={cn(
-                      buttonVariants({ variant: "ghost", size: "sm" })
-                    )}
-                    onClick={(e) => {
+          {/* Honors and Awards Accordion Item */}
+          <AccordionItem
+            value="honorsAwards"
+            className="border rounded-lg px-6"
+          >
+            <AccordionTrigger className="hover:no-underline">
+              <div className="flex items-center justify-between space-x-2 w-full mr-2">
+                <h2 className="text-lg font-semibold">Honors and Awards</h2>
+                <div
+                  role="button"
+                  tabIndex={0}
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" })
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
+                    handleAddHonorsAward();
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
                       handleAddHonorsAward();
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        e.stopPropagation(); // Prevents the click from reaching AccordionTrigger
-                        handleAddHonorsAward();
-                      }
-                    }}
-                  >
-                    <Plus />
-                  </div>
+                    }
+                  }}
+                >
+                  <Plus />
                 </div>
-              </AccordionTrigger>
-              <AccordionContent>
-                <HonorsAwardsSection
-                  honorsAwardsFields={honorsAwardsFields}
-                  register={form.register}
-                  removeHonorsAward={removeHonorsAward}
-                />
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        </form>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+              <HonorsAwardsSection
+                honorsAwardsFields={honorsAwardsFields}
+                register={form.register}
+                removeHonorsAward={removeHonorsAward}
+              />
+            </AccordionContent>
+          </AccordionItem>
+        </Accordion>
+        {/* </form> */}
       </Form>
 
       {blocker.state === "blocked" ? (

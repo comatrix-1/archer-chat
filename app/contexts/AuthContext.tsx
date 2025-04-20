@@ -1,64 +1,99 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import localforage from "localforage";
 
 export type User = {
   id: string;
   email: string;
-  role: "jobseeker" | "recruiter";
+  role: "JOBSEEKER" | "RECRUITER";
   name: string;
+  password: string;
 };
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
-  register: (data: Omit<User, "id"> & { password: string }) => Promise<boolean>;
+  register: (data: Omit<User, "id"> & { password: string; confirmPassword: string }) => Promise<boolean>;
   logout: () => void;
+  isLoggedIn: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  // Always initialize to false for SSR safety
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    localforage.getItem<User>("user").then(setUser);
+    if (typeof window !== "undefined") {
+      setIsLoggedIn(!!localStorage.getItem('token'));
+    }
+    // Optionally, fetch user from session/cookie if implemented
+    // setUser(...)
   }, []);
 
   const login = async (email: string, password: string) => {
-    const users = (await localforage.getItem<User[]>("users")) || [];
-    const found = users.find(u => u.email === email);
-    if (found) {
-      setUser(found);
-      await localforage.setItem("user", found);
-      return true;
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok && data.user && data.token) {
+        setUser(data.user);
+        console.log('Login successful, user:', data.user);
+        console.log('Login successful, token:', data.token);
+        localStorage.setItem('token', data.token); // Store JWT
+        setIsLoggedIn(true);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
     }
-    return false;
   };
 
-  const register = async (data: Omit<User, "id"> & { password: string }) => {
-    const users = (await localforage.getItem<User[]>("users")) || [];
-    if (users.find(u => u.email === data.email)) return false;
-    const newUser: User = { ...data, id: Date.now().toString() };
-    await localforage.setItem("users", [...users, newUser]);
-    setUser(newUser);
-    await localforage.setItem("user", newUser);
-    return true;
+  const register = async (data: Omit<User, "id"> & { password: string; confirmPassword: string }) => {
+    try {
+      if (data.password !== data.confirmPassword) {
+        return false;
+      }
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      const resp = await res.json();
+      if (res.ok && resp.user) {
+        setUser(resp.user);
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
   };
 
-  const logout = async () => {
+  const logout = () => {
     setUser(null);
-    await localforage.removeItem("user");
+    localStorage.removeItem('token'); // Remove JWT
+    setIsLoggedIn(false);
+    // Optionally, clear cookie/session here
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoggedIn }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 }
