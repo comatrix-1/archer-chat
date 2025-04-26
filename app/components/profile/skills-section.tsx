@@ -5,6 +5,7 @@ import { Input } from '~/components/ui/input'; // Adjust the import path as nece
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~/components/ui/select'; // Adjust the import path as necessary
 import { Button } from '~/components/ui/button'; // Adjust the import path as necessary
 import { Trash2 } from 'lucide-react';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
 
 interface SkillField {
     id: string;
@@ -14,11 +15,11 @@ interface SkillField {
 
 interface SkillsSectionProps {
     skills: SkillField[];
-    register: any;
+    control: any;
     removeSkill: (index: number) => void;
 }
 
-const SkillsSection: React.FC<SkillsSectionProps> = ({ skills, register, removeSkill }) => {
+const SkillsSection: React.FC<SkillsSectionProps> = ({ skills, control, removeSkill }) => {
     return (
         <div className="space-y-4">
             {skills.map((field, index) => (
@@ -27,25 +28,48 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({ skills, register, removeS
                     className="group flex items-end justify-between w-full gap-2 px-3 py-1 rounded-lg text-sm"
                 >
                     <div className="w-3/5">
-                        <label htmlFor={`skills.${index}.name`} className="text-sm font-medium block">Skill Name</label>
-                        <Input
-                            placeholder="Skill name"
-                            {...register(`skills.${index}.name`)}
+                        <FormField
+                            control={control}
+                            name={`skills.${index}.name`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Skill Name</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="Skill name" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
                         />
                     </div>
                     <div className="w-2/5">
-                        <label htmlFor={`skills.${index}.proficiency`} className="text-sm font-medium block">Proficiency Level</label>
-                        <Select {...register(`skills.${index}.proficiency`)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Proficiency level" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Beginner">Beginner</SelectItem>
-                                <SelectItem value="Intermediate">Intermediate</SelectItem>
-                                <SelectItem value="Advanced">Advanced</SelectItem>
-                                <SelectItem value="Expert">Expert</SelectItem>
-                            </SelectContent>
-                        </Select>
+                        <FormField
+                            control={control}
+                            name={`skills.${index}.proficiency`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Proficiency Level</FormLabel>
+                                    <FormControl>
+                                        <Select
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                            defaultValue={field.value}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Proficiency level" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="Beginner">Beginner</SelectItem>
+                                                <SelectItem value="Intermediate">Intermediate</SelectItem>
+                                                <SelectItem value="Advanced">Advanced</SelectItem>
+                                                <SelectItem value="Expert">Expert</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </div>
                     <Button type="button" variant="destructive" onClick={() => removeSkill(index)}>
                         <Trash2 size={16} />

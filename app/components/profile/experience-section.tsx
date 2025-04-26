@@ -1,39 +1,76 @@
 'use client'
 
 import React from 'react';
-import { Input } from '~/components/ui/input'; // Adjust the import path as per your UI components
+import { Input } from '~/components/ui/input'; 
 import { Button } from '~/components/ui/button';
 import { Textarea } from '~/components/ui/textarea';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
 import type { Experience } from '@prisma/client';
 import { Trash2 } from 'lucide-react';
 
 interface ExperienceSectionProps {
     experienceSectionFields: Omit<Experience, "profileId" | "createdAt" | "updatedAt">[];
-    register: any;
+    control: any;
     removeExperience: (index: number) => void;
 }
 
-const ExperienceSection: React.FC<ExperienceSectionProps> = ({ experienceSectionFields: experienceFields, register, removeExperience }) => {
+const ExperienceSection: React.FC<ExperienceSectionProps> = ({ experienceSectionFields: experienceFields, control, removeExperience }) => {
     return (
         <div className="space-y-4">
             {experienceFields.map((field, index) => (
                 <div key={field.id} className="space-y-4 border p-4 rounded-lg">
-                    <div>
-                        <label htmlFor={`exp-title-${field.id}`} className="text-sm font-medium block">Title</label>
-                        <Input id={`exp-title-${field.id}`} {...register(`experiences.${index}.title`)} placeholder="Job title" />
-                    </div>
-                    <div>
-                        <label htmlFor={`exp-type-${field.id}`} className="text-sm font-medium block">Employment Type</label>
-                        <Input id={`exp-type-${field.id}`} {...register(`experiences.${index}.employmentType`)} placeholder="Full-time, Part-time, Contract, etc." />
-                    </div>
-                    <div>
-                        <label htmlFor={`exp-company-${field.id}`} className="text-sm font-medium block">Company</label>
-                        <Input id={`exp-company-${field.id}`} {...register(`experiences.${index}.company`)} placeholder="Company name" />
-                    </div>
-                    <div>
-                        <label htmlFor={`exp-desc-${field.id}`} className="text-sm font-medium block">Description</label>
-                        <Textarea id={`exp-desc-${field.id}`} {...register(`experiences.${index}.description`)} placeholder="Describe your responsibilities and achievements" />
-                    </div>
+                    <FormField
+                        control={control}
+                        name={`experiences.${index}.title`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Title</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Job title" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={control}
+                        name={`experiences.${index}.employmentType`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Employment Type</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Full-time, Part-time, Contract, etc." {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={control}
+                        name={`experiences.${index}.company`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Company</FormLabel>
+                                <FormControl>
+                                    <Input placeholder="Company name" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={control}
+                        name={`experiences.${index}.description`}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>Description</FormLabel>
+                                <FormControl>
+                                    <Textarea placeholder="Describe your responsibilities and achievements" {...field} />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
                     <Button type="button" variant="destructive" onClick={() => removeExperience(index)}>
                         <Trash2 size={16} />
                     </Button>

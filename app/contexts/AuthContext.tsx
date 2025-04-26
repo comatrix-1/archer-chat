@@ -27,8 +27,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (typeof window !== "undefined") {
       setIsLoggedIn(!!localStorage.getItem('token'));
     }
-    // Optionally, fetch user from session/cookie if implemented
-    // setUser(...)
   }, []);
 
   const login = async (email: string, password: string) => {

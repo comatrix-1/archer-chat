@@ -296,16 +296,15 @@ export default function ProfileComponent({
 
   return (
     <>
-      <a onClick={() => console.log(form.getValues())}>check form</a>
       <Form {...form}>
-        {/* <form
+        <form
           id="profile-form"
           method="post"
           className="space-y-4"
           ref={formRef}
           onSubmit={form.handleSubmit(onSubmit)}
           action="/api/profile"
-        > */}
+        >
         <input type="hidden" name="intent" value="update" />
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold">Profile</h1>
@@ -331,7 +330,7 @@ export default function ProfileComponent({
               </div>
             </AccordionTrigger>
             <AccordionContent>
-              <ContactSection register={form.register} form={form} />
+              <ContactSection form={form} />
             </AccordionContent>
           </AccordionItem>
 
@@ -390,7 +389,7 @@ export default function ProfileComponent({
               <div className="py-4 space-y-4">
                 <SkillsSection
                   skills={skillFields}
-                  register={form.register}
+                  control={form.control}
                   removeSkill={removeSkill}
                 />
               </div>
@@ -429,7 +428,7 @@ export default function ProfileComponent({
             <AccordionContent>
               <ExperienceSection
                 experienceSectionFields={experienceFields}
-                register={form.register}
+                control={form.control}
                 removeExperience={removeExperience}
               />
             </AccordionContent>
@@ -438,7 +437,7 @@ export default function ProfileComponent({
           {/* Education Accordion Item */}
           <AccordionItem value="education" className="border rounded-lg px-6">
             <AccordionTrigger className="hover:no-underline">
-              <div className="flex items-center justify_between space-x-2 w-full mr-2">
+              <div className="flex items-center justify-between space-x-2 w-full mr-2">
                 <h2 className="text-lg font-semibold">Education</h2>
                 <div
                   role="button"
@@ -464,8 +463,8 @@ export default function ProfileComponent({
             <AccordionContent>
               <EducationSection
                 educationFields={educationFields}
+                control={form.control}
                 setValue={form.setValue}
-                register={form.register}
                 removeEducation={removeEducation}
               />
             </AccordionContent>
@@ -503,7 +502,7 @@ export default function ProfileComponent({
             <AccordionContent>
               <CertificationSection
                 certificationFields={certificationFields}
-                register={form.register}
+                control={form.control}
                 setValue={form.setValue}
                 getValues={form.getValues}
                 removeCertification={removeCertification}
@@ -543,13 +542,13 @@ export default function ProfileComponent({
             <AccordionContent>
               <HonorsAwardsSection
                 honorsAwardsFields={honorsAwardsFields}
-                register={form.register}
+                control={form.control}
                 removeHonorsAward={removeHonorsAward}
               />
             </AccordionContent>
           </AccordionItem>
         </Accordion>
-        {/* </form> */}
+        </form>
       </Form>
 
       {blocker.state === "blocked" ? (

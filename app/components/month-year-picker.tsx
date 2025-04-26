@@ -9,7 +9,7 @@ import {
 } from "~/components/ui/select";
 
 interface MonthYearPickerProps {
-  date: Date;
+  date: Date | null;
   onSelect: (date: Date | null) => void;
 }
 

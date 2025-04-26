@@ -5,11 +5,10 @@ import { Input } from '~/components/ui/input';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
 
 interface ContactSectionProps {
-    register: any;
     form: any;
 }
 
-const ContactSection: React.FC<ContactSectionProps> = ({ register, form }) => {
+const ContactSection: React.FC<ContactSectionProps> = ({ form }) => {
     return (
         <div className="space-y-4">
             <FormField

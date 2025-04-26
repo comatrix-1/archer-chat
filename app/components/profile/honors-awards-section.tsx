@@ -6,6 +6,7 @@ import { Trash2 } from 'lucide-react';
 import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
 import { Button } from '~/components/ui/button';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
 
 interface HonorsAwardField {
     id: string;
@@ -17,33 +18,68 @@ interface HonorsAwardField {
 
 interface HonorsAwardsSectionProps {
     honorsAwardsFields: Omit<HonorsAwards, "profileId" | "createdAt" | "updatedAt">[];
-    register: any;
+    control: any;
     removeHonorsAward: (index: number) => void;
 }
 
-const HonorsAwardsSection: React.FC<HonorsAwardsSectionProps> = ({ honorsAwardsFields, register, removeHonorsAward }) => {
+const HonorsAwardsSection: React.FC<HonorsAwardsSectionProps> = ({ honorsAwardsFields, control, removeHonorsAward }) => {
     return (
         <div className="space-y-4">
             {honorsAwardsFields.map((field, index) => (
                 <div key={field.id} className="group relative space-y-2 p-4 border rounded-lg">
-
                     <div className="space-y-4 flex-1">
-                        <div>
-                            <label htmlFor={`award-title-${field.id}`} className="text-sm font-medium block">Title</label>
-                            <Input id={`award-title-${field.id}`} className="font-medium text-lg" {...register(`honorsAwards.${index}.title`)} placeholder="e.g. Best Project Award" />
-                        </div>
-                        <div>
-                            <label htmlFor={`award-issuer-${field.id}`} className="text-sm font-medium block">Issuer</label>
-                            <Input id={`award-issuer-${field.id}`} {...register(`honorsAwards.${index}.issuer`)} placeholder="e.g. University of California" />
-                        </div>
-                        <div>
-                            <label htmlFor={`award-date-${field.id}`} className="text-sm font-medium block">Date</label>
-                            <Input id={`award-date-${field.id}`} {...register(`honorsAwards.${index}.date`)} type="date" />
-                        </div>
-                        <div>
-                            <label htmlFor={`award-desc-${field.id}`} className="text-sm font-medium block">Description</label>
-                            <Textarea id={`award-desc-${field.id}`} {...register(`honorsAwards.${index}.description`)} placeholder="Describe the honors and awards" />
-                        </div>
+                        <FormField
+                            control={control}
+                            name={`honorsAwards.${index}.title`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Title</FormLabel>
+                                    <FormControl>
+                                        <Input className="font-medium text-lg" placeholder="e.g. Best Project Award" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={control}
+                            name={`honorsAwards.${index}.issuer`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Issuer</FormLabel>
+                                    <FormControl>
+                                        <Input placeholder="e.g. University of California" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={control}
+                            name={`honorsAwards.${index}.date`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Date</FormLabel>
+                                    <FormControl>
+                                        <Input type="date" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                        <FormField
+                            control={control}
+                            name={`honorsAwards.${index}.description`}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl>
+                                        <Textarea placeholder="Describe the honors and awards" {...field} />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
                     </div>
                     <Button type="button" variant="destructive" onClick={() => removeHonorsAward(index)}>
                         <Trash2 size={16} />
