@@ -1,7 +1,6 @@
-import prisma from '~/utils/prisma';
-import jwt from 'jsonwebtoken';
-import app from 'server/router';
 import { Hono } from 'hono';
+import jwt from 'jsonwebtoken';
+import prisma from '~/utils/prisma';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_here';
 

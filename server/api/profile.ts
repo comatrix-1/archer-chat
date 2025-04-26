@@ -1,10 +1,8 @@
+import type { Education, Experience, HonorsAwards, LicenseCertification, Skill } from '@prisma/client';
 import { Hono, type Context } from 'hono';
+import type { JwtVariables } from 'hono/jwt';
+import { jwt as honoJwt } from 'hono/jwt';
 import prisma from '~/utils/prisma';
-import jwt from 'jsonwebtoken';
-import { jwt as honoJwt } from 'hono/jwt'
-import app from 'server/router';
-import type { JwtVariables } from 'hono/jwt'
-import type { Experience, Education, Skill, HonorsAwards, LicenseCertification } from '@prisma/client';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your_secret_here';
 
@@ -277,5 +275,3 @@ export const profileRoute = new Hono<{ Variables: JwtVariables }>()
     });
     return c.json(updated);
   });
-
-export default profileRoute;
