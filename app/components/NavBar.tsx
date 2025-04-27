@@ -6,6 +6,7 @@ const navItems = [
   { to: "/chats", label: "Chats" },
   { to: "/profile", label: "Profile" },
   { to: "/charts", label: "Charts" },
+  { to: "/resume-generator", label: "Resume Generator" },
 ];
 
 export function NavBar() {
