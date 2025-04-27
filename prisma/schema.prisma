@@ -17,6 +17,7 @@ model User {
   profiles      Profile[]
   conversations Conversation[]
   CoverLetter   CoverLetter[]
+  Resume        Resume[]
 }
 
 model Profile {
@@ -188,4 +189,15 @@ model CoverLetter {
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Resume {
+  id           String   @id @default(cuid())
+  userId       String
+  title        String
+  jobDescription String
+  resume       Json
+  coverLetter  String
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id])
 }

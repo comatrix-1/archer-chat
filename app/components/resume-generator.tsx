@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -13,6 +13,22 @@ export interface ResumeItem {
   jobDescription: string;
   resume: string;
   coverLetter: string;
+  Conversation?: {
+    id: string;
+    title: string;
+    description?: string;
+    status?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    profileId?: string;
+    userId?: string;
+  };
+}
+
+function safeNavigateToDetail(id: string) {
+  if (typeof window !== 'undefined') {
+    window.location.href = `/resume-generator-detail?id=${id}`;
+  }
 }
 
 export default function ResumeGenerator() {
@@ -53,6 +69,17 @@ ByteDance is committed to creating an inclusive space where employees are valued
     }
   });
 
+  // Fetch resumes from API on mount (if not adding)
+  useEffect(() => {
+    if (!adding) {
+      fetchWithAuth('/api/resume/list').then(res => {
+        if (res.data && res.data.profiles) {
+          setResumes(res.data.profiles);
+        }
+      });
+    }
+  }, [adding]);
+
   const onSubmit = async (data: { title: string; jobDescription: string }) => {
     const res = await fetchWithAuth('/api/resume/generate', {
       method: 'POST',
@@ -60,23 +87,18 @@ ByteDance is committed to creating an inclusive space where employees are valued
       body: JSON.stringify(data),
     });
     const result = await res.data;
-    setResumes((prev) => [
-      { id: Date.now().toString(), title: data.title, jobDescription: data.jobDescription, resume: result.resume, coverLetter: result.coverLetter },
-      ...prev,
-    ]);
     setAdding(false);
-    form.reset();
+    // Optionally, reload list after adding
   };
 
-  return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Resume Generator</h1>
-        <Button onClick={() => setAdding(true)}>Add New</Button>
-      </div>
-      {adding && (
+  if (adding) {
+    return (
+      <div className="p-4 max-w-2xl mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h1 className="text-2xl font-bold">Resume Generator</h1>
+          <Button onClick={() => setAdding(false)}>Back to List</Button>
+        </div>
         <Form {...form}>
-          <a onClick={() => console.log(form.getValues())}>check form</a>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 bg-white p-4 rounded shadow mb-6">
             <FormField
               control={form.control}
@@ -110,24 +132,27 @@ ByteDance is committed to creating an inclusive space where employees are valued
             </div>
           </form>
         </Form>
-      )}
+      </div>
+    );
+  }
+
+  // List view
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Resume Generator</h1>
+        <Button onClick={() => setAdding(true)}>Add New</Button>
+      </div>
       <div className="space-y-4">
         {resumes.length === 0 && <div className="text-gray-500">No resumes generated yet.</div>}
         {resumes.map((resume) => (
-          <div key={resume.id} className="bg-white rounded shadow p-4">
-            <div className="font-semibold text-lg mb-1">{resume.title}</div>
-            <div className="mb-2 text-gray-600">{resume.jobDescription}</div>
-            <div className="mb-2">
-              <strong>Resume:</strong>
-              {resume.resume && typeof resume.resume === 'object' ? (
-                <ProfileComponent initialProfile={resume.resume} />
-              ) : (
-                <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">{resume.resume}</pre>
-              )}
-            </div>
-            <div>
-              <strong>Cover Letter:</strong>
-              <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">{resume.coverLetter}</pre>
+          <div
+            key={resume.id}
+            className="bg-white rounded shadow p-4 cursor-pointer hover:bg-gray-50"
+            onClick={() => safeNavigateToDetail(resume.id)}
+          >
+            <div className="font-semibold text-lg mb-1">
+              {resume.Conversation?.title || 'Untitled Conversation'}
             </div>
           </div>
         ))}
