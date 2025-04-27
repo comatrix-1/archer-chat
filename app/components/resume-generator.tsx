@@ -5,6 +5,7 @@ import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from './ui/form';
 import { fetchWithAuth } from '~/utils/fetchWithAuth';
+import ProfileComponent from './profile'; // Use the correct import path for ProfileComponent
 
 export interface ResumeItem {
   id: string;
@@ -17,7 +18,40 @@ export interface ResumeItem {
 export default function ResumeGenerator() {
   const [resumes, setResumes] = useState<ResumeItem[]>([]);
   const [adding, setAdding] = useState(false);
-  const form = useForm<{ title: string; jobDescription: string }>();
+  const form = useForm<{ title: string; jobDescription: string }>({
+    defaultValues: {
+      title: 'Product Expert - Video Cloud at ByteDance',
+      jobDescription: `Responsibilities
+Team Introduction
+Multimedia middle platform (Video Cloud) is one of the world's leading video platforms, providing media storage, transcoding and streaming services. We are committed to building the next generation video processing platform and the largest live broadcast network to provide an excellent experience for billions of users around the world. The role of the Solutions Expert requires in-depth understanding of video cloud business architecture, helping internal/external business parties to deepen product awareness, promote product optimization, and output the best solution in combination with product capabilities.
+
+As a Video Cloud Product Expert, you will be responsible for
+
+1. Planning and implementation of Video Cloud's overseas products and solutions to promote the achievement of business goals, with basic products involving Live/VOD/RTC, etc.
+2. Analyze and insight into international market/regional opportunities, based on markets/competitors/clients, analyze cutting-edge trends in the video field, and complete product strategy formulation;
+3. Lead the product and solution design, coordinate all resources as the product owner, promote the Product R&D process, and ensure high-quality implementation and delivery;
+4. Make a clear portrait of the market/clients, combine with the product plan, provide sales kits, support the front-end team to do a good job in product GTM, and promote revenue growth.
+
+Qualifications
+Minimum Qualifications:
+Proven years of experience in Cloud Services related products, familiar with Video Cloud PaaS/SaaS and other related products
+Understand Video Cloud product services and market competition landscape, possess product comprehension, design and monetization capabilities; be sensitive to industry changes and passionate about researching cutting-edge technologies;
+Strong initiative and product ownership, strong teamwork and communication skills, active thinking, active learning, able to work under pressure;
+
+Preferred Qualifications:
+Experience with international market product and management experience are preferred.
+
+About Us
+Founded in 2012, ByteDance's mission is to inspire creativity and enrich life. With a suite of more than a dozen products, including TikTok, Lemon8, CapCut and Pico as well as platforms specific to the China market, including Toutiao, Douyin, and Xigua, ByteDance has made it easier and more fun for people to connect with, consume, and create content.
+
+
+Why Join ByteDance
+Inspiring creativity is at the core of ByteDance's mission. Our innovative products are built to help people authentically express themselves, discover and connect – and our global, diverse teams make that possible. Together, we create value for our communities, inspire creativity and enrich life - a mission we work towards every day.
+As ByteDancers, we strive to do great things with great people. We lead with curiosity, humility, and a desire to make impact in a rapidly growing tech company. By constantly iterating and fostering an "Always Day 1" mindset, we achieve meaningful breakthroughs for ourselves, our Company, and our users. When we create and grow together, the possibilities are limitless. Join us.
+Diversity & Inclusion
+ByteDance is committed to creating an inclusive space where employees are valued for their skills, experiences, and unique perspectives. Our platform connects people from across the globe and so does our workplace. At ByteDance, our mission is to inspire creativity and enrich life. To achieve that goal, we are committed to celebrating our diverse voices and to creating an environment that reflects the many communities we reach. We are passionate about this and hope you are too.`
+    }
+  });
 
   const onSubmit = async (data: { title: string; jobDescription: string }) => {
     const res = await fetchWithAuth('/api/resume/generate', {
@@ -85,7 +119,11 @@ export default function ResumeGenerator() {
             <div className="mb-2 text-gray-600">{resume.jobDescription}</div>
             <div className="mb-2">
               <strong>Resume:</strong>
-              <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">{resume.resume}</pre>
+              {resume.resume && typeof resume.resume === 'object' ? (
+                <ProfileComponent initialProfile={resume.resume} />
+              ) : (
+                <pre className="bg-gray-100 p-2 rounded whitespace-pre-wrap">{resume.resume}</pre>
+              )}
             </div>
             <div>
               <strong>Cover Letter:</strong>
