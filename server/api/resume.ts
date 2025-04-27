@@ -155,7 +155,13 @@ export const resumeRoute = new Hono()
     const userId = payload.userId;
     // Fetch profiles and include their conversations
     const profiles = await prisma.profile.findMany({
-      where: { userId },
+      where: {
+        userId,
+        conversationId: {
+          not: null,
+          notIn: [""]
+        },
+      },
       orderBy: { id: 'desc' },
       include: {
         contact: true,
