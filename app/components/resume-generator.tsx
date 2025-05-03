@@ -6,7 +6,6 @@ import { Textarea } from './ui/textarea';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from './ui/form';
 import { Trash2 } from 'lucide-react';
 import { fetchWithAuth } from '~/utils/fetchWithAuth';
-import ProfileComponent from './profile'; // Use the correct import path for ProfileComponent
 
 export interface ResumeItem {
   id: string;
@@ -21,7 +20,7 @@ export interface ResumeItem {
     status?: string;
     createdAt?: string;
     updatedAt?: string;
-    profileId?: string;
+    resumeId?: string;
     userId?: string;
   };
 }
@@ -75,8 +74,8 @@ ByteDance is committed to creating an inclusive space where employees are valued
   useEffect(() => {
     if (!adding) {
       fetchWithAuth('/api/resume/list').then(res => {
-        if (res.data && res.data.profiles) {
-          setResumes(res.data.profiles);
+        if (res.data && res.data.resumes) {
+          setResumes(res.data.resumes);
         }
       });
     }
@@ -102,8 +101,8 @@ ByteDance is committed to creating an inclusive space where employees are valued
         });
         // Refresh the list after deletion
         const res = await fetchWithAuth('/api/resume/list');
-        if (res.data && res.data.profiles) {
-          setResumes(res.data.profiles);
+        if (res.data && res.data.resumes) {
+          setResumes(res.data.resumes);
         }
       } catch (error) {
         console.error('Error deleting resume:', error);

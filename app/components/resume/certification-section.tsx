@@ -9,7 +9,7 @@ import { MonthYearPicker } from '~/components/month-year-picker';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
 
 interface CertificationSectionProps {
-    certificationFields: Omit<LicenseCertification, "profileId" | "createdAt" | "updatedAt">[];
+    certificationFields: Omit<LicenseCertification, "resumeId" | "createdAt" | "updatedAt">[];
     control: any;
     setValue: any;
     getValues: any;

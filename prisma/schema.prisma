@@ -14,13 +14,12 @@ model User {
   name     String
   role     Role
 
-  profiles      Profile[]
+  resumes       Resume[]
   conversations Conversation[]
   CoverLetter   CoverLetter[]
-  Resume        Resume[]
 }
 
-model Profile {
+model Resume {
   id             String  @id @default(cuid())
   userId         String
   objective      String  @default("")
@@ -35,7 +34,7 @@ model Profile {
 
   contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  Conversation Conversation?
+  conversation Conversation?
 
   @@unique([userId, conversationId]) // Composite unique key
 }
@@ -48,7 +47,7 @@ model Contact {
   portfolio   String?
   city        String        @default("")
   country     String        @default("")
-  Profile     Profile?
+  Resume      Resume?
   CoverLetter CoverLetter[]
 }
 
@@ -63,8 +62,8 @@ model Experience {
   endDate        DateTime?
   description    String?
 
-  profileId String
-  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model Education {
@@ -78,11 +77,11 @@ model Education {
   gpaMax       Float?
   location     String?
   description  String?
-  profileId    String
+  resumeId     String
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
-  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  resume Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model Skill {
@@ -90,8 +89,8 @@ model Skill {
   name        String
   proficiency String
 
-  profileId String
-  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model LicenseCertification {
@@ -102,8 +101,8 @@ model LicenseCertification {
   expiryDate   DateTime?
   credentialId String?
 
-  profileId String
-  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model HonorsAwards {
@@ -113,8 +112,8 @@ model HonorsAwards {
   date        DateTime
   description String?
 
-  profileId String
-  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model Conversation {
@@ -127,9 +126,9 @@ model Conversation {
   updatedAt   DateTime  @updatedAt
   messages    Message[]
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  profile     Profile?  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  resume      Resume?   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
-  profileId String? @unique
+  resumeId String? @unique
 }
 
 enum MessagePartContentType {
@@ -188,15 +187,4 @@ model CoverLetter {
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model Resume {
-  id             String   @id @default(cuid())
-  userId         String
-  title          String
-  jobDescription String
-  resume         Json
-  coverLetter    String
-  createdAt      DateTime @default(now())
-  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

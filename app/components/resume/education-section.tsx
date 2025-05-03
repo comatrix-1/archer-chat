@@ -10,7 +10,7 @@ import { Trash2 } from 'lucide-react';
 import { MonthYearPicker } from '~/components/month-year-picker';
 
 interface EducationSectionProps {
-    educationFields: Omit<Education, "profileId" | "createdAt" | "updatedAt">[];
+    educationFields: Omit<Education, "resumeId" | "createdAt" | "updatedAt">[];
     control: any;
     setValue: any;
     removeEducation: (index: number) => void;

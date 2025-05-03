@@ -44,7 +44,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ form }) => {
                     <FormItem>
                         <FormLabel>LinkedIn</FormLabel>
                         <FormControl>
-                            <Input placeholder="LinkedIn profile URL" {...field} />
+                            <Input placeholder="LinkedIn resume URL" {...field} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>

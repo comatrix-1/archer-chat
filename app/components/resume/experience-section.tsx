@@ -9,7 +9,7 @@ import type { Experience } from '@prisma/client';
 import { Trash2 } from 'lucide-react';
 
 interface ExperienceSectionProps {
-    experienceSectionFields: Omit<Experience, "profileId" | "createdAt" | "updatedAt">[];
+    experienceSectionFields: Omit<Experience, "resumeId" | "createdAt" | "updatedAt">[];
     control: any;
     removeExperience: (index: number) => void;
 }

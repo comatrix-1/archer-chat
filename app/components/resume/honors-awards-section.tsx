@@ -17,7 +17,7 @@ interface HonorsAwardField {
 }
 
 interface HonorsAwardsSectionProps {
-    honorsAwardsFields: Omit<HonorsAwards, "profileId" | "createdAt" | "updatedAt">[];
+    honorsAwardsFields: Omit<HonorsAwards, "resumeId" | "createdAt" | "updatedAt">[];
     control: any;
     removeHonorsAward: (index: number) => void;
 }

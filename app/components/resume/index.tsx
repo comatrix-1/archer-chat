@@ -6,7 +6,7 @@ import type {
   Experience,
   HonorsAwards,
   LicenseCertification,
-  Profile,
+  Resume,
   Skill,
 } from "@prisma/client";
 import { Plus } from "lucide-react";
@@ -14,12 +14,12 @@ import * as React from "react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useBlocker } from "react-router";
-import CertificationSection from "~/components/profile/certification-section";
-import ContactSection from "~/components/profile/contact-section";
-import EducationSection from "~/components/profile/education-section";
-import ExperienceSection from "~/components/profile/experience-section";
-import HonorsAwardsSection from "~/components/profile/honors-awards-section";
-import SkillsSection from "~/components/profile/skills-section";
+import CertificationSection from "~/components/resume/certification-section";
+import ContactSection from "~/components/resume/contact-section";
+import EducationSection from "~/components/resume/education-section";
+import ExperienceSection from "~/components/resume/experience-section";
+import HonorsAwardsSection from "~/components/resume/honors-awards-section";
+import SkillsSection from "~/components/resume/skills-section";
 import {
   Accordion,
   AccordionContent,
@@ -60,23 +60,23 @@ function convertDatesToISO<T>(data: T): T {
   return data;
 }
 
-type ProfileFormData = {
+type ResumeFormData = {
   objective: string;
   contact: Contact;
-  experiences: Omit<Experience, "profileId" | "createdAt" | "updatedAt">[];
-  educations: Omit<Education, "profileId" | "createdAt" | "updatedAt">[];
-  skills: Omit<Skill, "profileId" | "createdAt" | "updatedAt">[];
+  experiences: Omit<Experience, "resumeId" | "createdAt" | "updatedAt">[];
+  educations: Omit<Education, "resumeId" | "createdAt" | "updatedAt">[];
+  skills: Omit<Skill, "resumeId" | "createdAt" | "updatedAt">[];
   licenseCertifications: Omit<
     LicenseCertification,
-    "profileId" | "createdAt" | "updatedAt"
+    "resumeId" | "createdAt" | "updatedAt"
   >[];
-  honorsAwards: Omit<HonorsAwards, "profileId" | "createdAt" | "updatedAt">[];
+  honorsAwards: Omit<HonorsAwards, "resumeId" | "createdAt" | "updatedAt">[];
 };
 
-export default function ProfileComponent({
-  initialProfile,
+export default function ResumeComponent({
+  initialResume,
 }: Readonly<{
-  initialProfile: Profile & {
+  initialResume: Resume & {
     contact: Contact;
     experiences: Experience[];
     educations: Education[];
@@ -85,42 +85,42 @@ export default function ProfileComponent({
     licenseCertifications: LicenseCertification[];
   };
 }>) {
-  const [profile, setProfile] = useState(initialProfile);
-  console.log('ProfileComponent() :: profile: ', profile);
+  const [resume, setResume] = useState(initialResume);
+  console.log('ResumeComponent() :: resume: ', resume);
   const hasUnsavedChanges = React.useRef(false);
   const formRef = React.useRef<HTMLFormElement>(null);
 
   const defaultValues = React.useMemo(
     () => ({
-      ...profile,
+      ...resume,
       experiences:
-        profile.experiences?.map((exp: Experience) => ({
+        resume.experiences?.map((exp: Experience) => ({
           ...exp,
           startDate: exp.startDate ? new Date(exp.startDate) : undefined,
           endDate: exp.endDate ? new Date(exp.endDate) : undefined,
         })) || [],
       educations:
-        profile.educations?.map((edu: Education) => ({
+        resume.educations?.map((edu: Education) => ({
           ...edu,
           startDate: edu.startDate ? new Date(edu.startDate) : undefined,
           endDate: edu.endDate ? new Date(edu.endDate) : undefined,
         })) || [],
       licenseCertifications:
-        profile.licenseCertifications?.map((cert: LicenseCertification) => ({
+        resume.licenseCertifications?.map((cert: LicenseCertification) => ({
           ...cert,
           issueDate: cert.issueDate ? new Date(cert.issueDate) : undefined,
           expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : undefined,
         })) || [],
       honorsAwards:
-        profile.honorsAwards?.map((award: HonorsAwards) => ({
+        resume.honorsAwards?.map((award: HonorsAwards) => ({
           ...award,
           date: award.date ? new Date(award.date) : undefined,
         })) || [],
     }),
-    [profile]
+    [resume]
   );
 
-  const form = useForm<ProfileFormData>({
+  const form = useForm<ResumeFormData>({
     defaultValues,
   });
 
@@ -233,16 +233,16 @@ export default function ProfileComponent({
   }, [form.formState.isDirty]);
 
   useEffect(() => {
-    if (profile) {
-      console.log('resetting profile to: ', profile);
+    if (resume) {
+      console.log('resetting resume to: ', resume);
       form.reset({
-        ...profile,
-        experiences: profile.experiences || [],
-        educations: profile.educations || [],
-        skills: profile.skills || [],
-        honorsAwards: profile.honorsAwards || [],
-        licenseCertifications: profile.licenseCertifications || [],
-        contact: profile.contact || {
+        ...resume,
+        experiences: resume.experiences || [],
+        educations: resume.educations || [],
+        skills: resume.skills || [],
+        honorsAwards: resume.honorsAwards || [],
+        licenseCertifications: resume.licenseCertifications || [],
+        contact: resume.contact || {
           email: "",
           phone: "",
           linkedin: "",
@@ -252,35 +252,35 @@ export default function ProfileComponent({
         }
       });
     }
-  }, [profile]);
+  }, [resume]);
 
-  const onSubmit = async (data: ProfileFormData) => {
+  const onSubmit = async (data: ResumeFormData) => {
     if (!formRef.current) return;
 
     // Convert dates to ISO strings
-    const isoProfileData = convertDatesToISO(data);
+    const isoResumeData = convertDatesToISO(data);
 
-    // Construct the payload to send as JSON (no user fields, just profile)
+    // Construct the payload to send as JSON (no user fields, just resume)
     const payload = {
-      profile: isoProfileData,
+      resume: isoResumeData,
     };
 
     try {
-      const response = await fetchWithAuth('/api/profile', { method: 'POST', body: JSON.stringify(payload) });
+      const response = await fetchWithAuth('/api/resume', { method: 'POST', body: JSON.stringify(payload) });
 
       const result = await response.data;
 
       if (result.success) {
-        alert("Profile updated successfully!");
-        setProfile(result.profile);
-        form.reset(result.profile);
+        alert("resume updated successfully!");
+        setResume(result.resume);
+        form.reset(result.resume);
         hasUnsavedChanges.current = false;
       } else {
-        alert(`Error updating profile: ${result.message}, ${result.error}`);
+        alert(`Error updating resume: ${result.message}, ${result.error}`);
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("An error occurred while updating the profile. Please try again.");
+      alert("An error occurred while updating the resume. Please try again.");
     }
   };
 
@@ -290,7 +290,7 @@ export default function ProfileComponent({
       currentLocation.pathname !== nextLocation.pathname
   );
 
-  if (!profile) {
+  if (!resume) {
     return <p>Loading...</p>;
   }
 
@@ -298,16 +298,16 @@ export default function ProfileComponent({
     <>
       <Form {...form}>
         <form
-          id="profile-form"
+          id="resume-form"
           method="post"
           className="space-y-4"
           ref={formRef}
           onSubmit={form.handleSubmit(onSubmit)}
-          action="/api/profile"
+          action="/api/resume"
         >
         <input type="hidden" name="intent" value="update" />
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Profile</h1>
+          <h1 className="text-2xl font-bold">resume</h1>
           <Button
             variant={form.formState.isDirty ? "default" : "secondary"}
             disabled={!form.formState.isDirty}

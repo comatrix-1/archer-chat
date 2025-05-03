@@ -16,7 +16,7 @@ export default function Register() {
     e.preventDefault();
     const ok = await register({ email, password, name, role, confirmPassword });
     if (ok) {
-      navigate("/profile");
+      navigate("/resume");
     } else {
       setError("Email already registered");
     }

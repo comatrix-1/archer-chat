@@ -4,7 +4,7 @@ import { FaUserCircle, FaSignOutAlt, FaSignInAlt } from "react-icons/fa";
 
 const navItems = [
   { to: "/chats", label: "Chats" },
-  { to: "/profile", label: "Profile" },
+  { to: "/resume", label: "Resume" },
   { to: "/charts", label: "Charts" },
   { to: "/resume-generator", label: "Resume Generator" },
 ];
