@@ -197,6 +197,41 @@ export const resumeRoute = new Hono()
       return c.json({ error: 'Not found' }, 404);
     }
     return c.json({ profile });
+  })
+
+  // Delete a generated resume/profile by ID
+  .delete('/:id', async (c: Context) => {
+    const payload = c.get('jwtPayload') as { userId: string };
+    const userId = payload.userId;
+    const id = c.req.param('id');
+
+    try {
+      // First check if the profile exists and belongs to the user
+      const profile = await prisma.profile.findUnique({
+        where: { id },
+        include: { Conversation: true },
+      });
+
+      console.log('profile:', profile);
+
+      if (!profile || profile.userId !== userId) {
+        return c.json({ error: 'Not found' }, 404);
+      }
+
+      // Delete the profile. Prisma will handle cascading deletes for related
+      // records (Experience, Education, Contact, Conversation, etc.)
+      // based on the onDelete rules defined in your schema.prisma.
+      await prisma.$transaction(async (tx) => {
+        // Only delete the profile; cascades handle the rest.
+        console.log(`Attempting to delete profile with ID: ${id}`);
+        await tx.profile.delete({ where: { id } });
+      });
+
+      return c.json({ message: 'Resume deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting resume:', error);
+      return c.json({ error: 'Failed to delete resume' }, 500);
+    }
   });
 
 export default resumeRoute;

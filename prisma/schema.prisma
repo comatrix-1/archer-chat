@@ -126,9 +126,8 @@ model Conversation {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   messages    Message[]
-
-  user    User     @relation(fields: [userId], references: [id])
-  profile Profile? @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profile     Profile?  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   profileId String? @unique
 }
@@ -182,22 +181,22 @@ model Message {
 model CoverLetter {
   id        String   @id @default(cuid())
   userId    String
-  contactId String
-  contact   Contact  @relation(fields: [contactId], references: [id])
   content   String   @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  contactId String
+  contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Resume {
-  id           String   @id @default(cuid())
-  userId       String
-  title        String
+  id             String   @id @default(cuid())
+  userId         String
+  title          String
   jobDescription String
-  resume       Json
-  coverLetter  String
-  createdAt    DateTime @default(now())
-  user         User     @relation(fields: [userId], references: [id])
+  resume         Json
+  coverLetter    String
+  createdAt      DateTime @default(now())
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

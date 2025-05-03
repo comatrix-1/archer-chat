@@ -4,6 +4,7 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from './ui/form';
+import { Trash2 } from 'lucide-react';
 import { fetchWithAuth } from '~/utils/fetchWithAuth';
 import ProfileComponent from './profile'; // Use the correct import path for ProfileComponent
 
@@ -34,6 +35,7 @@ function safeNavigateToDetail(id: string) {
 export default function ResumeGenerator() {
   const [resumes, setResumes] = useState<ResumeItem[]>([]);
   const [adding, setAdding] = useState(false);
+  const [loading, setLoading] = useState(false);
   const form = useForm<{ title: string; jobDescription: string }>({
     defaultValues: {
       title: 'Product Expert - Video Cloud at ByteDance',
@@ -89,6 +91,26 @@ ByteDance is committed to creating an inclusive space where employees are valued
     const result = await res.data;
     setAdding(false);
     // Optionally, reload list after adding
+  };
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm('Are you sure you want to delete this resume?')) {
+      setLoading(true);
+      try {
+        await fetchWithAuth(`/api/resume/${id}`, {
+          method: 'DELETE',
+        });
+        // Refresh the list after deletion
+        const res = await fetchWithAuth('/api/resume/list');
+        if (res.data && res.data.profiles) {
+          setResumes(res.data.profiles);
+        }
+      } catch (error) {
+        console.error('Error deleting resume:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
   };
 
   if (adding) {
@@ -148,11 +170,24 @@ ByteDance is committed to creating an inclusive space where employees are valued
         {resumes.map((resume) => (
           <div
             key={resume.id}
-            className="bg-white rounded shadow p-4 cursor-pointer hover:bg-gray-50"
+            className="bg-white rounded shadow p-4 hover:bg-gray-50"
             onClick={() => safeNavigateToDetail(resume.id)}
           >
-            <div className="font-semibold text-lg mb-1">
-              {resume.Conversation?.title || 'Untitled Conversation'}
+            <div className="flex justify-between items-center">
+              <div className="font-semibold text-lg mb-1">
+                {resume.Conversation?.title || 'Untitled Conversation'}
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDelete(resume.id);
+                }}
+                disabled={loading}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
           </div>
         ))}
