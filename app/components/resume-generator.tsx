@@ -1,29 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from './ui/form';
-import { Trash2 } from 'lucide-react';
 import { fetchWithAuth } from '~/utils/fetchWithAuth';
 
-export interface ResumeItem {
-  id: string;
-  title: string;
-  jobDescription: string;
-  resume: string;
-  coverLetter: string;
-  Conversation?: {
-    id: string;
-    title: string;
-    description?: string;
-    status?: string;
-    createdAt?: string;
-    updatedAt?: string;
-    resumeId?: string;
-    userId?: string;
-  };
-}
+// Removed ResumeItem interface as it's not needed here anymore
 
 function safeNavigateToDetail(id: string) {
   if (typeof window !== 'undefined') {
@@ -32,9 +16,7 @@ function safeNavigateToDetail(id: string) {
 }
 
 export default function ResumeGenerator() {
-  const [resumes, setResumes] = useState<ResumeItem[]>([]);
-  const [adding, setAdding] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const form = useForm<{ title: string; jobDescription: string }>({
     defaultValues: {
       title: 'Product Expert - Video Cloud at ByteDance',
@@ -70,17 +52,6 @@ ByteDance is committed to creating an inclusive space where employees are valued
     }
   });
 
-  // Fetch resumes from API on mount (if not adding)
-  useEffect(() => {
-    if (!adding) {
-      fetchWithAuth('/api/resume/list').then(res => {
-        if (res.data && res.data.resumes) {
-          setResumes(res.data.resumes);
-        }
-      });
-    }
-  }, [adding]);
-
   const onSubmit = async (data: { title: string; jobDescription: string }) => {
     const res = await fetchWithAuth('/api/resume/generate', {
       method: 'POST',
@@ -88,109 +59,53 @@ ByteDance is committed to creating an inclusive space where employees are valued
       body: JSON.stringify(data),
     });
     const result = await res.data;
-    setAdding(false);
-    // Optionally, reload list after adding
+    // Navigate back to the list view after successful generation
+    navigate('/resume-list');
   };
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this resume?')) {
-      setLoading(true);
-      try {
-        await fetchWithAuth(`/api/resume/${id}`, {
-          method: 'DELETE',
-        });
-        // Refresh the list after deletion
-        const res = await fetchWithAuth('/api/resume/list');
-        if (res.data && res.data.resumes) {
-          setResumes(res.data.resumes);
-        }
-      } catch (error) {
-        console.error('Error deleting resume:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  if (adding) {
-    return (
-      <div className="p-4 max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h1 className="text-2xl font-bold">Resume Generator</h1>
-          <Button onClick={() => setAdding(false)}>Back to List</Button>
-        </div>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 bg-white p-4 rounded shadow mb-6">
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Title (e.g. Software Engineer at Meta)" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="jobDescription"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Job Description</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Paste the job description here" rows={5} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex gap-2">
-              <Button type="submit" disabled={form.formState.isSubmitting}>Generate</Button>
-              <Button type="button" variant="secondary" onClick={() => setAdding(false)}>Cancel</Button>
-            </div>
-          </form>
-        </Form>
-      </div>
-    );
-  }
-
-  // List view
+  // This component now only renders the form view
   return (
     <div className="p-4 max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Resume Generator</h1>
-        <Button onClick={() => setAdding(true)}>Add New</Button>
+        <h1 className="text-2xl font-bold">Generate New Resume</h1>
+        {/* Navigate back to the list */}
+        <Button variant="outline" onClick={() => navigate('/resume-list')}>Back to List</Button>
       </div>
-      <div className="space-y-4">
-        {resumes.length === 0 && <div className="text-gray-500">No resumes generated yet.</div>}
-        {resumes.map((resume) => (
-          <div
-            key={resume.id}
-            className="bg-white rounded shadow p-4 hover:bg-gray-50"
-            onClick={() => safeNavigateToDetail(resume.id)}
-          >
-            <div className="flex justify-between items-center">
-              <div className="font-semibold text-lg mb-1">
-                {resume.Conversation?.title || 'Untitled Conversation'}
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleDelete(resume.id);
-                }}
-                disabled={loading}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 bg-white p-4 rounded shadow mb-6">
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Title (e.g. Software Engineer at Meta)" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="jobDescription"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Job Description</FormLabel>
+                <FormControl>
+                  <Textarea placeholder="Paste the job description here" rows={5} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex gap-2">
+            <Button type="submit" disabled={form.formState.isSubmitting}>Generate</Button>
+            {/* Navigate back to the list on cancel */}
+            <Button type="button" variant="secondary" onClick={() => navigate('/resume-list')}>Cancel</Button>
           </div>
-        ))}
-      </div>
+        </form>
+      </Form>
     </div>
   );
 }

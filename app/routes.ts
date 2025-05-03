@@ -16,5 +16,6 @@ export default [
     route(":chatId", "./routes/chats/[chatId].tsx"),
   ]),
   route("resume-generator", "./routes/resume-generator.tsx"),
+  route("resume-list", "./routes/resume-list.tsx"),
   route("resume-generator-detail", "./routes/resume-generator-detail.tsx"),
 ] satisfies RouteConfig;

@@ -6,6 +6,7 @@ const navItems = [
   { to: "/chats", label: "Chats" },
   { to: "/resume", label: "Resume" },
   { to: "/charts", label: "Charts" },
+  { to: "/resume-list", label: "Resume List" },
   { to: "/resume-generator", label: "Resume Generator" },
 ];
 
@@ -22,7 +23,7 @@ export function NavBar() {
             key={item.to}
             to={item.to}
             className={`px-3 py-1 rounded hover:bg-blue-600 transition-colors ${
-              location.pathname.startsWith(item.to) ? "bg-blue-700 font-semibold" : ""
+              location.pathname == item.to ? "bg-blue-700 font-semibold" : ""
             }`}
           >
             {item.label}
