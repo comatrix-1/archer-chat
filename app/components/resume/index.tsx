@@ -6,6 +6,7 @@ import type {
   Experience,
   HonorsAwards,
   LicenseCertification,
+  Project, // Import Project type
   Resume,
   Skill,
 } from "@prisma/client";
@@ -19,6 +20,7 @@ import ContactSection from "~/components/resume/contact-section";
 import EducationSection from "~/components/resume/education-section";
 import ExperienceSection from "~/components/resume/experience-section";
 import HonorsAwardsSection from "~/components/resume/honors-awards-section";
+import ProjectSection from "~/components/resume/project-section"; // Import ProjectSection
 import SkillsSection from "~/components/resume/skills-section";
 import {
   Accordion,
@@ -81,6 +83,7 @@ type ResumeFormData = {
     "resumeId" | "createdAt" | "updatedAt"
   >[];
   honorsAwards: Omit<HonorsAwards, "resumeId" | "createdAt" | "updatedAt">[];
+  projects: Omit<Project, "resumeId">[]; // Add projects type
 };
 
 export default function ResumeComponent({
@@ -93,6 +96,7 @@ export default function ResumeComponent({
     skills: Skill[];
     honorsAwards: HonorsAwards[];
     licenseCertifications: LicenseCertification[];
+    projects: Project[]; // Add projects to initial type
   };
 }>) {
   const [resume, setResume] = useState(initialResume);
@@ -125,6 +129,13 @@ export default function ResumeComponent({
         resume.honorsAwards?.map((award: HonorsAwards) => ({
           ...award,
           date: award.date ? new Date(award.date) : undefined,
+        })) || [],
+      // Add projects default values
+      projects:
+        resume.projects?.map((proj: Project) => ({
+          ...proj,
+          startDate: proj.startDate ? new Date(proj.startDate) : undefined,
+          endDate: proj.endDate ? new Date(proj.endDate) : undefined,
         })) || [],
     }),
     [resume]
@@ -179,6 +190,15 @@ export default function ResumeComponent({
     name: "honorsAwards",
   });
 
+  // Add useFieldArray for projects
+  const {
+    fields: projectFields,
+    append: appendProject,
+    remove: removeProject,
+  } = useFieldArray({
+    control: form.control,
+    name: "projects",
+  });
   const handleAddSkill = () => {
     appendSkill({
       id: generateUUID(),
@@ -238,6 +258,17 @@ export default function ResumeComponent({
     });
   };
 
+  // Add handler for projects
+  const handleAddProject = () => {
+    appendProject({
+      id: generateUUID(),
+      title: "",
+      startDate: new Date(),
+      endDate: null,
+      description: "",
+    });
+  };
+
   useEffect(() => {
     hasUnsavedChanges.current = form.formState.isDirty;
   }, [form.formState.isDirty]);
@@ -252,6 +283,7 @@ export default function ResumeComponent({
         skills: resume.skills || [],
         honorsAwards: resume.honorsAwards || [],
         licenseCertifications: resume.licenseCertifications || [],
+        projects: resume.projects || [], // Add projects reset
         contact: resume.contact || {
           email: "",
           phone: "",
@@ -490,6 +522,40 @@ export default function ResumeComponent({
                   control={form.control}
                   setValue={form.setValue}
                   removeEducation={removeEducation}
+                />
+              </AccordionContent>
+            </AccordionItem>
+
+            {/* Projects Accordion Item */}
+            <AccordionItem value="projects" className="border rounded-lg px-6">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center justify-between space-x-2 w-full mr-2">
+                  <h2 className="text-lg font-semibold">Projects</h2>
+                  <Button
+                    type="button"
+                    className={cn("p-1 h-auto")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddProject();
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.stopPropagation();
+                        handleAddProject();
+                      }
+                    }}
+                  >
+                    <Plus size={16} />
+                  </Button>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <ProjectSection
+                  projectFields={projectFields}
+                  control={form.control}
+                  setValue={form.setValue}
+                  getValues={form.getValues}
+                  removeProject={removeProject}
                 />
               </AccordionContent>
             </AccordionItem>

@@ -31,6 +31,7 @@ model Resume {
   skills                Skill[] // One profile has many skills
   honorsAwards          HonorsAwards[] // One profile has many honors/awards
   licenseCertifications LicenseCertification[] // One profile has many licenses/certifications
+  projects              Project[] // One profile has many projects
 
   contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -90,6 +91,17 @@ model Skill {
   name        String
   proficiency String
   category    String @default("Technical") // Add category field
+
+  resumeId String
+  resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+}
+
+model Project {
+  id          String    @id @default(cuid())
+  title       String
+  startDate   DateTime
+  endDate     DateTime?
+  description String? // For Rich Text Editor HTML
 
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)

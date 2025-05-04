@@ -4,6 +4,7 @@ import type {
   Experience,
   HonorsAwards,
   LicenseCertification,
+  Project,
   Skill,
 } from "@prisma/client";
 import {
@@ -32,6 +33,7 @@ type ResumeFormData = {
     "resumeId" | "createdAt" | "updatedAt"
   >[];
   honorsAwards: Omit<HonorsAwards, "resumeId" | "createdAt" | "updatedAt">[];
+  projects: Omit<Project, "resumeId">[];
 };
 
 // --- Helper function to create styled paragraphs ---
@@ -39,7 +41,7 @@ const createSectionHeading = (text: string) => {
   return new Paragraph({
     children: [new TextRun({ text: text, bold: true, allCaps: true })],
     heading: HeadingLevel.HEADING_2,
-    spacing: { before: 240, after: 120 }, // Add some spacing
+    spacing: { before: 240, after: 0 }, // Add some spacing
     border: {
       bottom: {
         color: "auto",
@@ -55,18 +57,23 @@ const createParagraph = (text: string | (TextRun | string)[], options = {}) => {
   const children = Array.isArray(text)
     ? text.map((t) => (typeof t === "string" ? new TextRun(t) : t))
     : [new TextRun(text)];
-  return new Paragraph({ children, spacing: { after: 120 }, ...options });
+  // Remove default 'after' spacing, apply only if passed in options
+  return new Paragraph({ children, ...options });
 };
 
 const createBullet = (text: string) => {
   return new Paragraph({
     text: text,
     bullet: { level: 0 },
-    spacing: { after: 60 },
+    spacing: { after: 0 },
   });
 };
 
+const NAME_FONT_SIZE = 32; // 16pt
 const TAB_STOP_POSITION = 11520;
+const FIRST_PARAGRAPH_BEFORE_SPACING = 12; // 12 twips = 0.008 inches
+const AFTER_SPACING = 0;
+const MARGIN = 720; // 720 twips = 0.5 inches
 
 export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
   console.log("Exporting data:", resumeData);
@@ -80,12 +87,12 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
       children: [
         new TextRun({
           text: resumeData.contact.name ?? "Your Name",
-          size: 32,
+          size: NAME_FONT_SIZE,
           bold: true,
         }),
       ],
       alignment: AlignmentType.CENTER,
-      spacing: { after: 60 },
+      spacing: { after: 0 },
     }),
     (() => {
       // Build contact details conditionally
@@ -128,7 +135,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
 
       return createParagraph(contactDetails, {
         alignment: AlignmentType.CENTER,
-        spacing: { after: 240 },
+        spacing: { after: AFTER_SPACING },
       });
     })()
   );
@@ -162,7 +169,10 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
             new TextRun(`\t${exp.location || ""} (${exp.locationType || ""})`),
           ],
           {
-            spacing: { after: 0 },
+            spacing: {
+              before: FIRST_PARAGRAPH_BEFORE_SPACING,
+              after: AFTER_SPACING,
+            },
             tabStops: [
               {
                 type: TabStopType.RIGHT,
@@ -247,7 +257,10 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
             new TextRun(`\t${edu.location ?? ""}`),
           ],
           {
-            spacing: { after: 0 },
+            spacing: {
+              before: FIRST_PARAGRAPH_BEFORE_SPACING,
+              after: AFTER_SPACING,
+            },
             tabStops: [
               {
                 type: TabStopType.RIGHT,
@@ -307,6 +320,76 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     });
   }
 
+  // Projects Section
+  if (resumeData.projects?.length) {
+    sections.push(createSectionHeading("Education"));
+    resumeData.projects.forEach((project) => {
+      const startDate = project.startDate
+        ? new Date(project.startDate).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+          })
+        : "N/A";
+      const endDate = project.endDate
+        ? new Date(project.endDate).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+          })
+        : "Present";
+      sections.push(
+        createParagraph(
+          [
+            new TextRun({ text: project.title, bold: true }),
+            new TextRun(`\t${startDate} - ${endDate}`),
+          ],
+          {
+            spacing: {
+              before: FIRST_PARAGRAPH_BEFORE_SPACING,
+              after: AFTER_SPACING,
+            },
+            tabStops: [
+              {
+                type: TabStopType.RIGHT,
+                position: TAB_STOP_POSITION,
+              },
+            ],
+          }
+        )
+      );
+      if (project.description) {
+        // Parse HTML description for DOCX
+        try {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(project.description, "text/html");
+
+          // Iterate through direct children of the body (usually paragraphs or lists)
+          doc.body.childNodes.forEach((node) => {
+            if (node.nodeName === "P") {
+              const text = node.textContent || "";
+              if (text.trim()) {
+                sections.push(createParagraph(text)); // Use createParagraph helper
+              }
+            } else if (node.nodeName === "UL") {
+              // Handle unordered lists
+              node.childNodes.forEach((listItem) => {
+                if (listItem.nodeName === "LI") {
+                  const text = listItem.textContent || "";
+                  if (text.trim()) {
+                    sections.push(createBullet(text.trim())); // Use createBullet helper
+                  }
+                }
+              });
+            }
+          });
+        } catch (e) {
+          console.error("Error parsing project description HTML:", e);
+          // Fallback: add raw text if parsing fails
+          sections.push(createParagraph(project.description));
+        }
+      }
+    });
+  }
+
   // Skills Section
   if (resumeData.skills?.length) {
     sections.push(createSectionHeading("Skills")); // Keep the main heading
@@ -340,7 +423,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
                 .join(", ") + "." // Join skills with comma, end with period
             ),
           ],
-          { spacing: { after: 60 } }
+          { spacing: { after: AFTER_SPACING } }
         ) // Add space after each category line
       );
     });
@@ -372,7 +455,10 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
             ),
           ],
           {
-            spacing: { after: 0 },
+            spacing: {
+              before: FIRST_PARAGRAPH_BEFORE_SPACING,
+              after: AFTER_SPACING,
+            },
             tabStops: [
               { type: TabStopType.RIGHT, position: TAB_STOP_POSITION },
             ],
@@ -397,7 +483,10 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         : "";
       sections.push(
         createParagraph([new TextRun({ text: award.title, bold: true })], {
-          spacing: { after: 0 },
+          spacing: {
+            before: FIRST_PARAGRAPH_BEFORE_SPACING,
+            after: AFTER_SPACING,
+          },
         }), // Award title, reduce space after
         createParagraph([
           new TextRun(`Issued by: ${award.issuer || ""}`),
@@ -414,10 +503,10 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         properties: {
           page: {
             margin: {
-              top: 720,
-              right: 720,
-              bottom: 720,
-              left: 720, // 720 twips = 0.5 inches
+              top: MARGIN,
+              right: MARGIN,
+              bottom: MARGIN,
+              left: MARGIN,
             },
           },
         },
@@ -435,7 +524,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           quickFormat: true,
           run: { size: 22, font: "Times New Roman" }, // 11pt
           paragraph: {
-            spacing: { line: 276, after: 120 }, // 1.15 line spacing, 6pt after
+            spacing: { line: 276, after: AFTER_SPACING }, // Set 'after' spacing to 0
           },
         },
         {
@@ -446,7 +535,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           quickFormat: true,
           run: { size: 24, bold: true, allCaps: true, font: "Times New Roman" }, // 12pt
           paragraph: {
-            spacing: { before: 240, after: 60 },
+            spacing: { before: 240, after: AFTER_SPACING },
           },
         },
       ],

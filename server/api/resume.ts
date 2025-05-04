@@ -9,6 +9,7 @@ import type {
   Skill,
   HonorsAwards,
   LicenseCertification,
+  Project,
   Resume,
 } from "@prisma/client";
 
@@ -35,6 +36,7 @@ export const resumeRoute = new Hono()
         skills: true,
         honorsAwards: true,
         licenseCertifications: true,
+        projects: true, // Include projects
       },
     });
     if (resume) {
@@ -68,6 +70,7 @@ export const resumeRoute = new Hono()
         skills: true,
         honorsAwards: true,
         licenseCertifications: true,
+        projects: true, // Include projects
       },
     });
 
@@ -160,6 +163,20 @@ export const resumeRoute = new Hono()
               });
             }
 
+            // Update projects
+            await prisma.project.deleteMany({
+              where: { resumeId: resumeData.id },
+            });
+            if (resumeData.projects?.length) {
+              await prisma.project.createMany({
+                data: resumeData.projects.map((proj: Project) => ({
+                  ...proj,
+                  resumeId: resumeData.id,
+                  startDate: new Date(proj.startDate),
+                  endDate: proj.endDate ? new Date(proj.endDate) : null,
+                })),
+              });
+            }
             // Update license certifications
             await prisma.licenseCertification.deleteMany({
               where: { resumeId: resumeData.id },
@@ -196,6 +213,7 @@ export const resumeRoute = new Hono()
                 skills: true,
                 honorsAwards: true,
                 licenseCertifications: true,
+                projects: true, // Include projects
               },
             });
           });
@@ -294,6 +312,7 @@ export const resumeRoute = new Hono()
         skills: true,
         honorsAwards: true,
         licenseCertifications: true,
+        projects: true, // Include projects
       },
     });
     console.log("Base resume template:", baseResumeTemplate);
@@ -322,6 +341,7 @@ export const resumeRoute = new Hono()
         Array.isArray((generatedResume as any).skills) &&
         Array.isArray((generatedResume as any).honorsAwards) &&
         Array.isArray((generatedResume as any).licenseCertifications)
+        // Add check for projects if Gemini might generate them
       ) {
         const r = generatedResume as any;
 
@@ -369,6 +389,7 @@ export const resumeRoute = new Hono()
         r.educations = r.educations.map(sanitizeDates);
         r.honorsAwards = r.honorsAwards.map(sanitizeDates);
         r.licenseCertifications = r.licenseCertifications.map(sanitizeDates);
+        // Sanitize projects if Gemini generates them
 
         // Step 1: Create conversation
         const createdConversation = await prisma.conversation.create({
@@ -403,6 +424,9 @@ export const resumeRoute = new Hono()
             licenseCertifications: {
               create: r.licenseCertifications,
             },
+            projects: { // Add projects create
+              create: r.projects || [], // Use empty array if not generated
+            },
           },
           include: {
             contact: true,
@@ -411,6 +435,7 @@ export const resumeRoute = new Hono()
             skills: true,
             honorsAwards: true,
             licenseCertifications: true,
+            projects: true, // Include projects
             conversation: true,
           },
         });
@@ -453,6 +478,7 @@ export const resumeRoute = new Hono()
         skills: true,
         honorsAwards: true,
         licenseCertifications: true,
+        projects: true, // Include projects
         conversation: true,
       },
     });
@@ -473,6 +499,7 @@ export const resumeRoute = new Hono()
         skills: true,
         honorsAwards: true,
         licenseCertifications: true,
+        projects: true, // Include projects
         conversation: true,
       },
     });
