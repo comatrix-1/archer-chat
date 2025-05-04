@@ -296,7 +296,6 @@ export default function ResumeComponent({
 
   return (
     <>
-    <a onClick={() => console.log(form.getValues())}>check form</a>
       <Form {...form}>
         <form
           id="resume-form"
@@ -308,7 +307,7 @@ export default function ResumeComponent({
         >
         <input type="hidden" name="intent" value="update" />
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">resume</h1>
+          <h1 className="text-2xl font-bold">Master resume</h1>
           <Button
             variant={form.formState.isDirty ? "default" : "secondary"}
             disabled={!form.formState.isDirty}
