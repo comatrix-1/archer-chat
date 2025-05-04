@@ -59,7 +59,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({ skills, control, removeSk
                                             onValueChange={field.onChange}
                                             defaultValue={field.value}
                                         >
-                                            <SelectTrigger>
+                                            <SelectTrigger className="w-full">
                                                 <SelectValue placeholder="Proficiency level" />
                                             </SelectTrigger>
                                             <SelectContent>
