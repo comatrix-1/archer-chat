@@ -296,6 +296,7 @@ export default function ResumeComponent({
 
   return (
     <>
+    <a onClick={() => console.log(form.getValues())}>check form</a>
       <Form {...form}>
         <form
           id="resume-form"
