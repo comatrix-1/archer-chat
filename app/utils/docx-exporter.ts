@@ -99,17 +99,17 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
       }
 
       if (resumeData.contact.phone) {
-        if (contactDetails.length > 0) contactDetails.push(new TextRun(" | "));
+        if (contactDetails.length > 0) contactDetails.push(new TextRun(" • "));
         contactDetails.push(new TextRun(resumeData.contact.phone));
       }
 
       if (resumeData.contact.email) {
-        if (contactDetails.length > 0) contactDetails.push(new TextRun(" | "));
+        if (contactDetails.length > 0) contactDetails.push(new TextRun(" • "));
         contactDetails.push(new TextRun(resumeData.contact.email));
       }
 
       if (resumeData.contact.linkedin) {
-        if (contactDetails.length > 0) contactDetails.push(new TextRun(" | "));
+        if (contactDetails.length > 0) contactDetails.push(new TextRun(" • "));
         contactDetails.push(
           new TextRun({ text: resumeData.contact.linkedin, style: "Hyperlink" })
         );
