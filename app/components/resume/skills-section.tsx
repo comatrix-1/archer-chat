@@ -6,6 +6,7 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '~
 import { Button } from '~/components/ui/button'; // Adjust the import path as necessary
 import { Trash2 } from 'lucide-react';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
+import { NO_ITEMS_DESCRIPTION } from '~/lib/constants';
 
 interface SkillField {
     id: string;
@@ -20,6 +21,9 @@ interface SkillsSectionProps {
 }
 
 const SkillsSection: React.FC<SkillsSectionProps> = ({ skills, control, removeSkill }) => {
+    if (!skills || skills.length === 0) {
+        return <p>{NO_ITEMS_DESCRIPTION}</p>
+    }
     return (
         <div className="space-y-4">
             {skills.map((field, index) => (

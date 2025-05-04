@@ -8,6 +8,7 @@ import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/comp
 import type { Education } from '@prisma/client';
 import { Trash2 } from 'lucide-react';
 import { MonthYearPicker } from '~/components/month-year-picker';
+import { NO_ITEMS_DESCRIPTION } from '~/lib/constants';
 
 interface EducationSectionProps {
     educationFields: Omit<Education, "resumeId" | "createdAt" | "updatedAt">[];
@@ -18,6 +19,10 @@ interface EducationSectionProps {
 
 const EducationSection: React.FC<EducationSectionProps> = ({ educationFields, control, setValue, removeEducation }) => {
     console.log('EducationSection()')
+
+    if (!educationFields || educationFields.length === 0) {
+        return <p>{NO_ITEMS_DESCRIPTION}</p>;
+    }
     return (
         <div className="space-y-4">
             {educationFields.map((field, index) => (

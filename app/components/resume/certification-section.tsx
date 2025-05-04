@@ -15,6 +15,7 @@ import {
 } from "~/components/ui/form";
 import { useWatch } from "react-hook-form";
 import { Checkbox } from "~/components/ui/checkbox";
+import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
 
 interface CertificationSectionProps {
   certificationFields: Omit<
@@ -35,6 +36,10 @@ const CertificationSection: React.FC<CertificationSectionProps> = ({
   getValues,
 }) => {
   console.log("CertificationSection()");
+
+  if (!certificationFields || certificationFields.length === 0) {
+    return <p>{NO_ITEMS_DESCRIPTION}</p>;
+  }
   return (
     <div className="space-y-4">
       {certificationFields.map((field, index) => {

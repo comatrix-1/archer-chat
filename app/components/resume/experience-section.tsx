@@ -7,6 +7,7 @@ import { Textarea } from '~/components/ui/textarea';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
 import type { Experience } from '@prisma/client';
 import { Trash2 } from 'lucide-react';
+import { NO_ITEMS_DESCRIPTION } from '~/lib/constants';
 
 interface ExperienceSectionProps {
     experienceSectionFields: Omit<Experience, "resumeId" | "createdAt" | "updatedAt">[];
@@ -15,6 +16,9 @@ interface ExperienceSectionProps {
 }
 
 const ExperienceSection: React.FC<ExperienceSectionProps> = ({ experienceSectionFields: experienceFields, control, removeExperience }) => {
+    if (!experienceFields || experienceFields.length === 0) {
+        return <p>{NO_ITEMS_DESCRIPTION}</p>;
+    }
     return (
         <div className="space-y-4">
             {experienceFields.map((field, index) => (

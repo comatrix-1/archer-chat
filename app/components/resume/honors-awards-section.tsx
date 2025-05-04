@@ -7,6 +7,7 @@ import { Input } from '~/components/ui/input';
 import { Textarea } from '~/components/ui/textarea';
 import { Button } from '~/components/ui/button';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
+import { NO_ITEMS_DESCRIPTION } from '~/lib/constants';
 
 interface HonorsAwardField {
     id: string;
@@ -23,6 +24,9 @@ interface HonorsAwardsSectionProps {
 }
 
 const HonorsAwardsSection: React.FC<HonorsAwardsSectionProps> = ({ honorsAwardsFields, control, removeHonorsAward }) => {
+    if (!honorsAwardsFields || honorsAwardsFields.length === 0) {
+        return <p>{NO_ITEMS_DESCRIPTION}</p>
+    }
     return (
         <div className="space-y-4">
             {honorsAwardsFields.map((field, index) => (
