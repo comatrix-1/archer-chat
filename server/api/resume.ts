@@ -16,7 +16,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_secret_here";
 
 export const resumeRoute = new Hono()
   .use(honoJwt({ secret: JWT_SECRET }))
-  .get(async (c: Context) => {
+  .get("/", async (c: Context) => {
     const payload = c.get("jwtPayload") as { userId: string };
     const userId = payload.userId;
 
@@ -74,7 +74,7 @@ export const resumeRoute = new Hono()
     console.log("Returning new base resume template", newResume);
     return c.json({ resume: newResume });
   })
-  .post(async (c: Context) => {
+  .post("/", async (c: Context) => {
     // Extract JWT from Authorization header
     const authHeader = c.req.header("Authorization");
     let userId;
@@ -88,12 +88,12 @@ export const resumeRoute = new Hono()
       console.log("POST /api/resume :: resume payload:", resume);
       const payload = c.get("jwtPayload") as { userId: string };
       userId = payload.userId;
-      console.log("POST /api/profile :: userId:", userId);
+      console.log("POST /api/resume :: userId:", userId);
 
       try {
         const resumeData = resume;
 
-        try {
+        // try { // Removed inner try for Prisma transaction
           const updatedResume = await prisma.$transaction(async (prisma) => {
             const { id, ...contactData } = resumeData.contact;
             await prisma.contact.update({
@@ -206,25 +206,13 @@ export const resumeRoute = new Hono()
             message: "Resume updated successfully",
             resume: updatedResume,
           });
-        } catch (error: unknown) {
-          if (error instanceof Error) {
-            console.error("Prisma Transaction Error:", error); // Log the error
-            return c.json({
-              success: false, // TODO: Should return 500 status code
-              message: "Failed to update profile",
-              error: error.message || "Unknown database error", // Provide more specific error info
-            });
-          } else {
-            console.error("An unknown error occurred.");
-          }
-        }
       } catch (error: unknown) {
         if (error instanceof Error) {
-          console.error("JSON Parsing Error:", error);
+          console.error("Error updating resume:", error); // More generic error log
           return c.json({
-            success: false, // TODO: Should return 400 status code
-            message: "Invalid profile data",
-            error: error.message || "Unknown JSON parsing error",
+            success: false,
+            message: "Failed to update resume", // More generic message
+            error: error.message || "An unknown error occurred",
           });
         } else {
           console.error("An unknown error occurred.");
@@ -245,7 +233,7 @@ export const resumeRoute = new Hono()
       //     conversationId: ""
       //   }
       // });
-      console.log("POST /api/resume :: updatedResume:", updatedResume);
+      // console.log("POST /api/resume :: updatedResume:", updatedResume); // This log might not be reached on success now
     } catch (error) {
       console.error("POST /api/resume :: error:", error);
       return c.json(
@@ -257,11 +245,8 @@ export const resumeRoute = new Hono()
         500
       );
     }
-
-    return c.json({ success: true, resume: updatedResume });
   })
-  // PUT /api/profile
-  .put(async (c) => {
+  .put("/", async (c) => {
     const { email, name, role, contactId } = await c.req.json();
     if (!email || !contactId)
       return c.json({ error: "Email and contactId are required" }, 400);

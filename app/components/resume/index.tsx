@@ -307,7 +307,7 @@ export default function ResumeComponent({
         >
         <input type="hidden" name="intent" value="update" />
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Master resume</h1>
+          <h1 className="text-2xl font-bold">Resume</h1>
           <Button
             variant={form.formState.isDirty ? "default" : "secondary"}
             disabled={!form.formState.isDirty}
@@ -430,6 +430,8 @@ export default function ResumeComponent({
                 experienceSectionFields={experienceFields}
                 control={form.control}
                 removeExperience={removeExperience}
+                setValue={form.setValue}
+                getValues={form.getValues}
               />
             </AccordionContent>
           </AccordionItem>
