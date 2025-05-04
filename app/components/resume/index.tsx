@@ -184,6 +184,7 @@ export default function ResumeComponent({
       id: generateUUID(),
       name: "",
       proficiency: "",
+      category: "Technical", // Add default category
     });
   };
 

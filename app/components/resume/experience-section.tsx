@@ -3,7 +3,7 @@
 import React, { memo } from 'react'; // Import memo
 import { useWatch, type Control, type UseFormGetValues, type UseFormSetValue } from 'react-hook-form';
 import { Input } from '~/components/ui/input';
-import { Button } from '~/components/ui/button';
+import { Button } from '~/components/ui/button'; // Keep Button import
 import { Textarea } from '~/components/ui/textarea';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
 import type { Experience } from '@prisma/client';
@@ -11,6 +11,7 @@ import { Trash2 } from 'lucide-react';
 import { NO_ITEMS_DESCRIPTION } from '~/lib/constants';
 import { MonthYearPicker } from '~/components/month-year-picker'; // Import MonthYearPicker
 import { Checkbox } from '~/components/ui/checkbox'; // Import Checkbox
+import { RichTextEditor } from '../rich-text-editor'; // Import RichTextEditor
 
 // Define a more specific type for the form data if possible, otherwise use a generic
 // type FormData = { experiences: Omit<Experience, "resumeId" | "createdAt" | "updatedAt">[] };
@@ -170,7 +171,11 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({ fieldId, index, co
                             <FormItem>
                                 <FormLabel>Description (Optional)</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="Describe your responsibilities and achievements" {...field} value={field.value ?? ''} />
+                                    {/* Replace Textarea with RichTextEditor */}
+                                    <RichTextEditor
+                                        content={field.value}
+                                        onChange={field.onChange} // Pass the onChange handler from RHF
+                                        placeholder="Describe your responsibilities and achievements..." />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>

@@ -79,7 +79,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     new Paragraph({
       children: [
         new TextRun({
-          text: resumeData.contact.name || "Your Name",
+          text: resumeData.contact.name ?? "Your Name",
           size: 32,
           bold: true,
         }),
@@ -90,9 +90,10 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     (() => {
       // Build contact details conditionally
       const contactDetails: (TextRun | string)[] = [];
-      const location = `${resumeData.contact.city || ""}, ${
-        resumeData.contact.country || ""
-      }`;
+      const city = resumeData.contact.city ?? "";
+      const country = resumeData.contact.country ?? "";
+      const location =
+        city && country ? `${city}, ${country}` : city || country;
 
       if (location.trim() !== ",") {
         contactDetails.push(new TextRun(location));
@@ -106,6 +107,16 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
       if (resumeData.contact.email) {
         if (contactDetails.length > 0) contactDetails.push(new TextRun(" • "));
         contactDetails.push(new TextRun(resumeData.contact.email));
+      }
+
+      if (resumeData.contact.portfolio) {
+        if (contactDetails.length > 0) contactDetails.push(new TextRun(" • "));
+        contactDetails.push(
+          new TextRun({
+            text: resumeData.contact.portfolio,
+            style: "Hyperlink",
+          })
+        );
       }
 
       if (resumeData.contact.linkedin) {
@@ -176,14 +187,35 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         )
       );
       if (exp.description) {
-        exp.description
-          .split("\n")
-          .filter((line) => line.trim())
-          .forEach((line) => {
-            sections.push(createBullet(line.trim()));
+        // Parse HTML description for DOCX
+        try {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(exp.description, "text/html");
+
+          // Iterate through direct children of the body (usually paragraphs or lists)
+          doc.body.childNodes.forEach((node) => {
+            if (node.nodeName === "P") {
+              const text = node.textContent || "";
+              if (text.trim()) {
+                sections.push(createParagraph(text)); // Use createParagraph helper
+              }
+            } else if (node.nodeName === "UL") {
+              // Handle unordered lists
+              node.childNodes.forEach((listItem) => {
+                if (listItem.nodeName === "LI") {
+                  const text = listItem.textContent || "";
+                  if (text.trim()) {
+                    sections.push(createBullet(text.trim())); // Use createBullet helper
+                  }
+                }
+              });
+            }
           });
+        } catch (e) {
+          console.error("Error parsing experience description HTML:", e);
+          sections.push(createParagraph(exp.description));
+        }
       }
-      sections.push(createParagraph("")); // Add space after the entire entry
     });
   }
 
@@ -216,6 +248,12 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           ],
           {
             spacing: { after: 0 },
+            tabStops: [
+              {
+                type: TabStopType.RIGHT,
+                position: TAB_STOP_POSITION,
+              },
+            ],
           }
         ),
         createParagraph(
@@ -236,27 +274,76 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         )
       );
       if (edu.description) {
-        edu.description
-          .split("\n")
-          .filter((line) => line.trim())
-          .forEach((line) => {
-            sections.push(createBullet(line.trim()));
+        // Parse HTML description for DOCX
+        try {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(edu.description, "text/html");
+
+          // Iterate through direct children of the body (usually paragraphs or lists)
+          doc.body.childNodes.forEach((node) => {
+            if (node.nodeName === "P") {
+              const text = node.textContent || "";
+              if (text.trim()) {
+                sections.push(createParagraph(text)); // Use createParagraph helper
+              }
+            } else if (node.nodeName === "UL") {
+              // Handle unordered lists
+              node.childNodes.forEach((listItem) => {
+                if (listItem.nodeName === "LI") {
+                  const text = listItem.textContent || "";
+                  if (text.trim()) {
+                    sections.push(createBullet(text.trim())); // Use createBullet helper
+                  }
+                }
+              });
+            }
           });
+        } catch (e) {
+          console.error("Error parsing education description HTML:", e);
+          // Fallback: add raw text if parsing fails
+          sections.push(createParagraph(edu.description));
+        }
       }
-      sections.push(createParagraph(""));
     });
   }
 
   // Skills Section
   if (resumeData.skills?.length) {
-    sections.push(createSectionHeading("Skills"));
-    const skillsText = resumeData.skills
-      .map(
-        (skill) =>
-          `${skill.name}${skill.proficiency ? ` (${skill.proficiency})` : ""}`
-      )
-      .join(", ");
-    sections.push(createParagraph(skillsText));
+    sections.push(createSectionHeading("Skills")); // Keep the main heading
+
+    // Group skills by category
+    const groupedSkills = resumeData.skills.reduce((acc, skill) => {
+      const category = skill.category || "Other";
+      if (!acc[category]) {
+        acc[category] = [];
+      }
+      acc[category].push(skill);
+      return acc;
+    }, {} as Record<string, typeof resumeData.skills>);
+
+    // Create a paragraph for each category
+    Object.entries(groupedSkills).forEach(([category, categorySkills]) => {
+      sections.push(
+        createParagraph(
+          [
+            new TextRun({ text: `${category}: `, bold: true }), // Category name bold
+            new TextRun(
+              categorySkills
+                .map(
+                  (skill) =>
+                    `${skill.name}${
+                      skill.proficiency && skill.proficiency !== "N/A"
+                        ? ` (${skill.proficiency})`
+                        : ""
+                    }`
+                )
+                .join(", ") + "." // Join skills with comma, end with period
+            ),
+          ],
+          { spacing: { after: 60 } }
+        ) // Add space after each category line
+      );
+    });
   }
 
   // Certifications Section
@@ -276,17 +363,16 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           })}`
         : "No Expiry";
       sections.push(
-        createParagraph([new TextRun({ text: cert.name, bold: true })], {
-          spacing: { after: 0 },
-        }), // Cert name, reduce space after
         createParagraph(
           [
-            new TextRun(`Issued by: ${cert.issuer || ""}`),
+            new TextRun({ text: cert.name, bold: true }),
+            new TextRun(`${cert.issuer ? ` – ${cert.issuer}` : ""}`),
             new TextRun(
               `\t${issueDate}${expiryDate ? " - " + expiryDate : ""}`
             ),
           ],
           {
+            spacing: { after: 0 },
             tabStops: [
               { type: TabStopType.RIGHT, position: TAB_STOP_POSITION },
             ],
@@ -296,7 +382,6 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           ? [createParagraph(`Credential ID: ${cert.credentialId}`)]
           : [])
       );
-      sections.push(createParagraph(""));
     });
   }
 
@@ -320,7 +405,6 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         ]),
         ...(award.description ? [createParagraph(award.description)] : [])
       );
-      sections.push(createParagraph(""));
     });
   }
 
@@ -373,7 +457,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
   try {
     const blob = await Packer.toBlob(doc);
     const filename = `Resume - ${
-      resumeData.contact.email || "User"
+      resumeData.contact.name ?? "User" // Use name from contact
     } - ${new Date().toLocaleDateString()}.docx`;
     saveAs(blob, filename);
     console.log("Document generated and download initiated.");

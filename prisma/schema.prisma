@@ -89,6 +89,7 @@ model Skill {
   id          String @id @default(cuid())
   name        String
   proficiency String
+  category    String @default("Technical") // Add category field
 
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
