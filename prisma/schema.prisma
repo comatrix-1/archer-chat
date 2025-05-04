@@ -43,6 +43,7 @@ model Contact {
   id          String        @id @default(cuid())
   phone       String        @default("")
   email       String        @default("")
+  name        String        @default("")
   linkedin    String?
   portfolio   String?
   city        String        @default("")

@@ -65,8 +65,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({ skills, control, removeSk
                                             <SelectContent>
                                                 <SelectItem value="Beginner">Beginner</SelectItem>
                                                 <SelectItem value="Intermediate">Intermediate</SelectItem>
-                                                <SelectItem value="Advanced">Advanced</SelectItem>
-                                                <SelectItem value="Expert">Expert</SelectItem>
+                                                <SelectItem value="Experienced">Experienced</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </FormControl>

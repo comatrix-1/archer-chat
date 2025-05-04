@@ -13,6 +13,19 @@ const ContactSection: React.FC<ContactSectionProps> = ({ form }) => {
         <div className="space-y-4">
             <FormField
                 control={form.control}
+                name="contact.name"
+                render={({ field }) => (
+                    <FormItem>
+                        <FormLabel>Full Name</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Full name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
                 name="contact.email"
                 render={({ field }) => (
                     <FormItem>

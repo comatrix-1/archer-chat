@@ -66,6 +66,8 @@ const createBullet = (text: string) => {
   });
 };
 
+const TAB_STOP_POSITION = 11520;
+
 export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
   console.log("Exporting data:", resumeData);
 
@@ -76,32 +78,48 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
   sections.push(
     new Paragraph({
       children: [
-        new TextRun({ text: resumeData.contact.email, size: 32, bold: true }),
+        new TextRun({
+          text: resumeData.contact.name || "Your Name",
+          size: 32,
+          bold: true,
+        }),
       ],
       alignment: AlignmentType.CENTER,
       spacing: { after: 60 },
     }),
-    createParagraph(
-      [
-        new TextRun(
-          `${resumeData.contact.city || ""}, ${
-            resumeData.contact.country || ""
-          }`
-        ),
-        new TextRun(` | ${resumeData.contact.phone || ""}`),
-        new TextRun(` | ${resumeData.contact.email || ""}`),
-        ...(resumeData.contact.linkedin
-          ? [
-              new TextRun(" | "),
-              new TextRun({
-                text: resumeData.contact.linkedin,
-                style: "Hyperlink",
-              }),
-            ]
-          : []),
-      ],
-      { alignment: AlignmentType.CENTER, spacing: { after: 240 } }
-    )
+    (() => {
+      // Build contact details conditionally
+      const contactDetails: (TextRun | string)[] = [];
+      const location = `${resumeData.contact.city || ""}, ${
+        resumeData.contact.country || ""
+      }`;
+
+      if (location.trim() !== ",") {
+        contactDetails.push(new TextRun(location));
+      }
+
+      if (resumeData.contact.phone) {
+        if (contactDetails.length > 0) contactDetails.push(new TextRun(" | "));
+        contactDetails.push(new TextRun(resumeData.contact.phone));
+      }
+
+      if (resumeData.contact.email) {
+        if (contactDetails.length > 0) contactDetails.push(new TextRun(" | "));
+        contactDetails.push(new TextRun(resumeData.contact.email));
+      }
+
+      if (resumeData.contact.linkedin) {
+        if (contactDetails.length > 0) contactDetails.push(new TextRun(" | "));
+        contactDetails.push(
+          new TextRun({ text: resumeData.contact.linkedin, style: "Hyperlink" })
+        );
+      }
+
+      return createParagraph(contactDetails, {
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 240 },
+      });
+    })()
   );
 
   // Objective Section
@@ -127,14 +145,35 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           })
         : "Present";
       sections.push(
-        createParagraph([
-          new TextRun({ text: exp.title, bold: true }),
-          new TextRun({ text: ` | ${exp.company}`, bold: true }),
-        ]),
-        createParagraph([
-          new TextRun(`${exp.location || ""} (${exp.locationType || ""})`),
-          new TextRun(`\t${startDate} - ${endDate}`),
-        ])
+        createParagraph(
+          [
+            new TextRun({ text: exp.title, bold: true }),
+            new TextRun(`\t${exp.location || ""} (${exp.locationType || ""})`),
+          ],
+          {
+            spacing: { after: 0 },
+            tabStops: [
+              {
+                type: TabStopType.RIGHT,
+                position: TAB_STOP_POSITION,
+              },
+            ],
+          }
+        ),
+        createParagraph(
+          [
+            new TextRun({ text: `${exp.company}`, bold: true }),
+            new TextRun(`\t${startDate} - ${endDate}`),
+          ],
+          {
+            tabStops: [
+              {
+                type: TabStopType.RIGHT,
+                position: TAB_STOP_POSITION,
+              },
+            ],
+          }
+        )
       );
       if (exp.description) {
         exp.description
@@ -144,7 +183,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
             sections.push(createBullet(line.trim()));
           });
       }
-      sections.push(createParagraph(""));
+      sections.push(createParagraph("")); // Add space after the entire entry
     });
   }
 
@@ -170,15 +209,40 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         if (edu.gpaMax) gpaString += `/${edu.gpaMax}`;
       }
       sections.push(
-        createParagraph([new TextRun({ text: edu.school, bold: true })]),
-        createParagraph([
-          new TextRun(`${edu.degree || ""}, ${edu.fieldOfStudy || ""}`),
-          new TextRun(edu.location ? `${edu.location}` : ""),
-          new TextRun(`\t${startDate} - ${endDate}`),
-        ]),
-        ...(gpaString ? [createParagraph(gpaString)] : []),
-        ...(edu.description ? [createParagraph(edu.description)] : [])
+        createParagraph(
+          [
+            new TextRun({ text: edu.school, bold: true }),
+            new TextRun(`\t${edu.location ?? ""}`),
+          ],
+          {
+            spacing: { after: 0 },
+          }
+        ),
+        createParagraph(
+          [
+            new TextRun(
+              `${edu.degree || ""}, ${edu.fieldOfStudy || ""}, ${gpaString}`
+            ),
+            new TextRun(`\t${startDate} - ${endDate}`),
+          ],
+          {
+            tabStops: [
+              {
+                type: TabStopType.RIGHT,
+                position: TAB_STOP_POSITION,
+              },
+            ],
+          }
+        )
       );
+      if (edu.description) {
+        edu.description
+          .split("\n")
+          .filter((line) => line.trim())
+          .forEach((line) => {
+            sections.push(createBullet(line.trim()));
+          });
+      }
       sections.push(createParagraph(""));
     });
   }
@@ -212,12 +276,22 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           })}`
         : "No Expiry";
       sections.push(
-        createParagraph([new TextRun({ text: cert.name, bold: true })]),
-        createParagraph([
-          new TextRun(`Issued by: ${cert.issuer || ""}`),
-          new TextRun(`\t|\tIssued: ${issueDate}`),
-          new TextRun(`\t|\t${expiryDate}`),
-        ]),
+        createParagraph([new TextRun({ text: cert.name, bold: true })], {
+          spacing: { after: 0 },
+        }), // Cert name, reduce space after
+        createParagraph(
+          [
+            new TextRun(`Issued by: ${cert.issuer || ""}`),
+            new TextRun(
+              `\t${issueDate}${expiryDate ? " - " + expiryDate : ""}`
+            ),
+          ],
+          {
+            tabStops: [
+              { type: TabStopType.RIGHT, position: TAB_STOP_POSITION },
+            ],
+          }
+        ),
         ...(cert.credentialId
           ? [createParagraph(`Credential ID: ${cert.credentialId}`)]
           : [])
@@ -237,7 +311,9 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           })
         : "";
       sections.push(
-        createParagraph([new TextRun({ text: award.title, bold: true })]),
+        createParagraph([new TextRun({ text: award.title, bold: true })], {
+          spacing: { after: 0 },
+        }), // Award title, reduce space after
         createParagraph([
           new TextRun(`Issued by: ${award.issuer || ""}`),
           new TextRun(awardDate ? `\t${awardDate}` : ""),
@@ -248,23 +324,20 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     });
   }
 
-  // --- Create Document ---
-  // (Document creation logic remains the same as before)
   const doc = new Document({
     sections: [
       {
         properties: {
-          // Standard 1-inch margins
           page: {
             margin: {
-              top: 1440,
-              right: 1440,
-              bottom: 1440,
-              left: 1440, // 1440 twips = 1 inch
+              top: 720,
+              right: 720,
+              bottom: 720,
+              left: 720, // 720 twips = 0.5 inches
             },
           },
         },
-        children: sections, // Use the populated sections array
+        children: sections,
       },
     ],
     styles: {
@@ -277,7 +350,9 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           next: "Normal",
           quickFormat: true,
           run: { size: 22, font: "Times New Roman" }, // 11pt
-          paragraph: { spacing: { line: 276, after: 120 } }, // 1.15 line spacing, 6pt after
+          paragraph: {
+            spacing: { line: 276, after: 120 }, // 1.15 line spacing, 6pt after
+          },
         },
         {
           id: "Heading2",
