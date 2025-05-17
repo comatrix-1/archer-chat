@@ -1,4 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
+import { readFileSync } from 'fs';
+import path from 'path';
 
 interface GenerateResumeParams {
   title: string;
@@ -24,14 +26,18 @@ export async function generateResumeWithGemini({
   while (attempt < MAX_RETRIES) {
     const ai = new GoogleGenAI({ apiKey: apiKey });
 
+    const prismaSchema = readFileSync(path.resolve(__dirname, '../../prisma/schema.prisma'), 'utf-8');
+
     // Refined prompt to request a JSON resume matching the Prisma Profile schema
     const prompt = `
     You are a professional resume generator. Given the following information (job title, job description, master resume), tailor the following master resume for the job into a resume of approximately 1-2 pages, in JSON format.
-    The output JSON structure should closely match the structure of the provided 'Master Resume' example below.
-  
-    Job Title: ${title}\n-
-    Job Description: ${jobDescription}\n-
-    Master Resume: ${JSON.stringify(resume, null, 2)}
+    You may re-word and re-phrase the content to make it more suitable for the job title and description.
+    The output JSON structure should closely match the structure of the provided prisma schema example below. All parameters such as job title, job description, master resume and schema are wrapped in <> brackets.
+
+    <schema>${prismaSchema}</schema>\n
+    <job-title>${title}</job-title>\n-
+    <job-description>${jobDescription}</job-description>\n-
+    <master-resume>${JSON.stringify(resume, null, 2)}</master-resume>/n
     
     Please ensure the resume is professional, highlights relevant skills and experiences, and is suitable for the specified job title.
     Please ensure the output is a single, valid JSON object with no syntax errors. Pay close attention to commas required between elements in arrays and properties in objects.`;
