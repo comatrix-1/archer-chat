@@ -19,7 +19,7 @@ import {
 import { Plus } from "lucide-react";
 import * as React from "react";
 import { useEffect, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { useBlocker } from "react-router";
 import CertificationSection from "~/components/resume/certification-section";
 import ContactSection from "~/components/resume/contact-section";
@@ -161,12 +161,14 @@ export default function ResumeComponent({
     // resolver: zodResolver(resumeSchema) // If you were using Zod
   });
 
+  const { control } = form;
+
   const {
     fields: skillFields,
     append: appendSkill,
     remove: removeSkill,
   } = useFieldArray({
-    control: form.control,
+    control,
     name: "skills",
   });
 
@@ -175,7 +177,7 @@ export default function ResumeComponent({
     append: appendExperience,
     remove: removeExperience,
   } = useFieldArray({
-    control: form.control,
+    control,
     name: "experiences",
   });
 
@@ -184,7 +186,7 @@ export default function ResumeComponent({
     append: appendEducation,
     remove: removeEducation,
   } = useFieldArray({
-    control: form.control,
+    control,
     name: "educations",
   });
 
@@ -193,7 +195,7 @@ export default function ResumeComponent({
     append: appendCertification,
     remove: removeCertification,
   } = useFieldArray({
-    control: form.control,
+    control,
     name: "licenseCertifications",
   });
 
@@ -202,19 +204,19 @@ export default function ResumeComponent({
     append: appendHonorsAward,
     remove: removeHonorsAward,
   } = useFieldArray({
-    control: form.control,
+    control,
     name: "honorsAwards",
   });
 
-  // Add useFieldArray for projects
   const {
     fields: projectFields,
     append: appendProject,
     remove: removeProject,
   } = useFieldArray({
-    control: form.control,
+    control,
     name: "projects",
   });
+
   const handleAddSkill = () => {
     appendSkill({
       id: generateUUID(),
@@ -359,114 +361,71 @@ export default function ResumeComponent({
     }
   }, [form, resume]);
 
-  const onSubmit = async (data: ResumeFormData) => {
-    if (!formRef.current) return;
-
-    // Convert dates to ISO strings
-    const isoResumeData = convertDatesToISO(data);
-
-    // Construct the payload to send as JSON (no user fields, just resume)
-    const payload = {
-      resume: isoResumeData,
-    };
-
+  const handleSubmit = async (data: ResumeFormData) => {
     try {
+      // Convert dates to ISO format
+      const processedData = convertDatesToISO(data);
+      
       const response = await fetchWithAuth("/api/resume", {
         method: "POST",
-        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(processedData),
       });
 
-      const result = await response.data;
-
-      if (result.success) {
-        alert("resume updated successfully!");
-        const apiResume = result.resume; // This is the resume data from the API
-        setResume(apiResume); // Update state, which will trigger the useEffect for a comprehensive reset
-
-        // Prepare data for immediate reset to ensure UI consistency,
-        // especially converting date strings from API to Date objects.
-        const formDataForReset: ResumeFormData = {
-          objective: apiResume.objective ?? "",
-          contact: { ...apiResume.contact }, // Assuming apiResume.contact is never null
-          experiences: apiResume.experiences?.map((exp: Experience) => ({
-            ...exp, // Spreads Prisma Experience (strict enums)
-            id: exp.id ?? generateUUID(),
-            startDate: exp.startDate ? new Date(exp.startDate) : new Date(), // Convert date string
-            endDate: exp.endDate ? new Date(exp.endDate) : null, // Convert date string
-          })) ?? [],
-          educations: apiResume.educations?.map((edu: Education) => ({
-            ...edu,
-            id: edu.id ?? generateUUID(),
-            startDate: edu.startDate ? new Date(edu.startDate) : new Date(),
-            endDate: edu.endDate ? new Date(edu.endDate) : null,
-            gpa: edu.gpa ?? null,
-            gpaMax: edu.gpaMax ?? null,
-          })) ?? [],
-          skills: apiResume.skills?.map((skill: Skill) => ({
-            ...skill, // Spreads Prisma Skill (strict enums)
-            id: skill.id ?? generateUUID(),
-          })) ?? [],
-          licenseCertifications:
-            apiResume.licenseCertifications?.map(
-              (cert: LicenseCertification) => ({
-                ...cert,
-                id: cert.id ?? generateUUID(),
-                issueDate: cert.issueDate
-                  ? new Date(cert.issueDate)
-                  : new Date(),
-                expiryDate: cert.expiryDate
-                  ? new Date(cert.expiryDate)
-                  : null,
-                credentialId: cert.credentialId ?? null,
-              })
-            ) ?? [],
-          honorsAwards:
-            apiResume.honorsAwards?.map((award: HonorsAwards) => ({
-              ...award,
-              id: award.id ?? generateUUID(),
-              date: award.date ? new Date(award.date) : new Date(),
-            })) ?? [],
-          projects:
-            apiResume.projects?.map((proj: Project) => ({
-              ...proj,
-              id: proj.id ?? generateUUID(),
-              startDate: proj.startDate
-                ? new Date(proj.startDate)
-                : new Date(),
-              endDate: proj.endDate ? new Date(proj.endDate) : null,
-            })) ?? [],
-        };
-
-        // Ensure the object passed to reset matches the form's expected structure,
-        // especially if defaultValues was more strictly typed initially.
-        // The `formDataForReset` should be compatible with `ResumeFormData`.
-        // If TS2345 persists here, it means the structure of `formDataForReset`
-        // is still seen as incompatible with what `form.reset` expects based on
-        // its initial `defaultValues`.
-        // One way to ensure stricter alignment if needed is to cast, but it's better
-        // if the constructed object naturally aligns.
-        // For example, if `defaultValues` never had `string` in the union for enums,
-        // then `form.reset` would expect the strict enum type.
-        // `apiResume` *should* have strict enum types.
-
-        form.reset(formDataForReset as ResumeFormData); // Using 'as' can suppress if confident, but ensure types truly match.
-                                                     // The issue is more likely that the form's internal state
-                                                     // expects a more specific version of ResumeFormData.
-        hasUnsavedChanges.current = false;
-      } else {
-        alert(`Error updating resume: ${result.message}, ${result.error}`);
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Failed to update resume");
       }
+
+      // Reset unsaved changes flag after successful save
+      hasUnsavedChanges.current = false;
+      
+      // Reset the form to the saved state
+      form.reset(processedData);
+      
+      alert("Resume updated successfully!");
     } catch (error) {
-      console.error("Error submitting form:", error);
-      alert("An error occurred while updating the resume. Please try again.");
+      if (error instanceof Error) {
+        alert(`Error updating resume: ${error.message}`);
+      } else {
+        alert("An error occurred while updating the resume. Please try again.");
+      }
     }
   };
 
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      hasUnsavedChanges.current &&
-      currentLocation.pathname !== nextLocation.pathname
-  );
+  const blocker = useBlocker((to) => {
+    if (hasUnsavedChanges.current) {
+      // Show confirmation dialog
+      const confirmed = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave?"
+      );
+      
+      if (confirmed) {
+        // User wants to proceed with navigation
+        return true;
+      } else {
+        // User wants to stay
+        return false;
+      }
+    }
+    return true;
+  });
+
+  useEffect(() => {
+    if (blocker.state === "blocked") {
+      // Show confirmation dialog
+      const confirmed = window.confirm(
+        "You have unsaved changes. Are you sure you want to leave?"
+      );
+      
+      if (confirmed) {
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker]);
 
   if (!resume) {
     return <p>Loading...</p>;
@@ -480,7 +439,7 @@ export default function ResumeComponent({
           method="post"
           className="space-y-4"
           ref={formRef}
-          onSubmit={form.handleSubmit(onSubmit)}
+          onSubmit={form.handleSubmit(handleSubmit)}
           action="/api/resume"
         >
           <input type="hidden" name="intent" value="update" />
