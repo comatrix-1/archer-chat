@@ -97,133 +97,133 @@ export const resumeRoute = new Hono()
         const resumeData = resume;
 
         // try { // Removed inner try for Prisma transaction
-          const updatedResume = await prisma.$transaction(async (prisma) => {
-            const { id, ...contactData } = resumeData.contact;
-            await prisma.contact.update({
-              where: { id },
-              data: {
-                ...contactData,
-              },
-            });
-
-            // Update experience records
-            await prisma.experience.deleteMany({
-              where: { resumeId: resumeData.id },
-            });
-            if (resumeData.experiences?.length) {
-              await prisma.experience.createMany({
-                data: resumeData.experiences.map((exp: Experience) => ({
-                  ...exp,
-                  resumeId: resumeData.id,
-                  startDate: new Date(exp.startDate),
-                  endDate: exp.endDate ? new Date(exp.endDate) : null,
-                })),
-              });
-            }
-
-            // Update education records
-            await prisma.education.deleteMany({
-              where: { resumeId: resumeData.id },
-            });
-            if (resumeData.educations?.length) {
-              await prisma.education.createMany({
-                data: resumeData.educations.map((edu: Education) => ({
-                  ...edu,
-                  resumeId: resumeData.id,
-                  startDate: new Date(edu.startDate),
-                  endDate: edu.endDate ? new Date(edu.endDate) : null,
-                })),
-              });
-            }
-
-            // Update skills
-            await prisma.skill.deleteMany({
-              where: { resumeId: resumeData.id },
-            });
-            if (resumeData.skills?.length) {
-              await prisma.skill.createMany({
-                data: resumeData.skills.map((skill: Skill) => ({
-                  ...skill,
-                  resumeId: resumeData.id,
-                })),
-              });
-            }
-
-            // Update honors and awards
-            await prisma.honorsAwards.deleteMany({
-              where: { resumeId: resumeData.id },
-            });
-            if (resumeData.honorsAwards?.length) {
-              await prisma.honorsAwards.createMany({
-                data: resumeData.honorsAwards.map((award: HonorsAwards) => ({
-                  ...award,
-                  resumeId: resumeData.id,
-                  date: new Date(award.date),
-                })),
-              });
-            }
-
-            // Update projects
-            await prisma.project.deleteMany({
-              where: { resumeId: resumeData.id },
-            });
-            if (resumeData.projects?.length) {
-              await prisma.project.createMany({
-                data: resumeData.projects.map((proj: Project) => ({
-                  ...proj,
-                  resumeId: resumeData.id,
-                  startDate: new Date(proj.startDate),
-                  endDate: proj.endDate ? new Date(proj.endDate) : null,
-                })),
-              });
-            }
-            // Update license certifications
-            await prisma.licenseCertification.deleteMany({
-              where: { resumeId: resumeData.id },
-            });
-            if (resumeData.licenseCertifications?.length) {
-              await prisma.licenseCertification.createMany({
-                data: resumeData.licenseCertifications.map(
-                  (cert: LicenseCertification) => ({
-                    ...cert,
-                    resumeId: resumeData.id,
-                    issueDate: new Date(cert.issueDate),
-                    expiryDate: cert.expiryDate
-                      ? new Date(cert.expiryDate)
-                      : null,
-                  })
-                ),
-              });
-            }
-
-            return prisma.resume.update({
-              where: {
-                userId_conversationId: {
-                  userId: resumeData.userId,
-                  conversationId: resumeData.conversationId,
-                },
-              },
-              data: {
-                objective: resumeData.objective,
-              },
-              include: {
-                contact: true,
-                experiences: true,
-                educations: true,
-                skills: true,
-                honorsAwards: true,
-                licenseCertifications: true,
-                projects: true, // Include projects
-              },
-            });
+        const updatedResume = await prisma.$transaction(async (prisma) => {
+          const { id, ...contactData } = resumeData.contact;
+          await prisma.contact.update({
+            where: { id },
+            data: {
+              ...contactData,
+            },
           });
 
-          console.log("Resume updated successfully");
-          return c.json({
-            success: true,
-            message: "Resume updated successfully",
-            resume: updatedResume,
+          // Update experience records
+          await prisma.experience.deleteMany({
+            where: { resumeId: resumeData.id },
           });
+          if (resumeData.experiences?.length) {
+            await prisma.experience.createMany({
+              data: resumeData.experiences.map((exp: Experience) => ({
+                ...exp,
+                resumeId: resumeData.id,
+                startDate: new Date(exp.startDate),
+                endDate: exp.endDate ? new Date(exp.endDate) : null,
+              })),
+            });
+          }
+
+          // Update education records
+          await prisma.education.deleteMany({
+            where: { resumeId: resumeData.id },
+          });
+          if (resumeData.educations?.length) {
+            await prisma.education.createMany({
+              data: resumeData.educations.map((edu: Education) => ({
+                ...edu,
+                resumeId: resumeData.id,
+                startDate: new Date(edu.startDate),
+                endDate: edu.endDate ? new Date(edu.endDate) : null,
+              })),
+            });
+          }
+
+          // Update skills
+          await prisma.skill.deleteMany({
+            where: { resumeId: resumeData.id },
+          });
+          if (resumeData.skills?.length) {
+            await prisma.skill.createMany({
+              data: resumeData.skills.map((skill: Skill) => ({
+                ...skill,
+                resumeId: resumeData.id,
+              })),
+            });
+          }
+
+          // Update honors and awards
+          await prisma.honorsAwards.deleteMany({
+            where: { resumeId: resumeData.id },
+          });
+          if (resumeData.honorsAwards?.length) {
+            await prisma.honorsAwards.createMany({
+              data: resumeData.honorsAwards.map((award: HonorsAwards) => ({
+                ...award,
+                resumeId: resumeData.id,
+                date: new Date(award.date),
+              })),
+            });
+          }
+
+          // Update projects
+          await prisma.project.deleteMany({
+            where: { resumeId: resumeData.id },
+          });
+          if (resumeData.projects?.length) {
+            await prisma.project.createMany({
+              data: resumeData.projects.map((proj: Project) => ({
+                ...proj,
+                resumeId: resumeData.id,
+                startDate: new Date(proj.startDate),
+                endDate: proj.endDate ? new Date(proj.endDate) : null,
+              })),
+            });
+          }
+          // Update license certifications
+          await prisma.licenseCertification.deleteMany({
+            where: { resumeId: resumeData.id },
+          });
+          if (resumeData.licenseCertifications?.length) {
+            await prisma.licenseCertification.createMany({
+              data: resumeData.licenseCertifications.map(
+                (cert: LicenseCertification) => ({
+                  ...cert,
+                  resumeId: resumeData.id,
+                  issueDate: new Date(cert.issueDate),
+                  expiryDate: cert.expiryDate
+                    ? new Date(cert.expiryDate)
+                    : null,
+                })
+              ),
+            });
+          }
+
+          return prisma.resume.update({
+            where: {
+              userId_conversationId: {
+                userId: resumeData.userId,
+                conversationId: resumeData.conversationId,
+              },
+            },
+            data: {
+              objective: resumeData.objective,
+            },
+            include: {
+              contact: true,
+              experiences: true,
+              educations: true,
+              skills: true,
+              honorsAwards: true,
+              licenseCertifications: true,
+              projects: true, // Include projects
+            },
+          });
+        });
+
+        console.log("Resume updated successfully");
+        return c.json({
+          success: true,
+          message: "Resume updated successfully",
+          resume: updatedResume,
+        });
       } catch (error: unknown) {
         if (error instanceof Error) {
           console.error("Error updating resume:", error); // More generic error log
@@ -306,7 +306,6 @@ export const resumeRoute = new Hono()
         },
       },
       include: {
-        contact: true,
         experiences: true,
         educations: true,
         skills: true,
@@ -316,6 +315,15 @@ export const resumeRoute = new Hono()
       },
     });
     console.log("Base resume template:", baseResumeTemplate);
+    if (!baseResumeTemplate) {
+      return c.json({ error: "Resume not found" }, 404);
+    }
+    const existingContact = await prisma.contact.findUnique({
+      where: { id: baseResumeTemplate.contactId },
+    });
+    if (!existingContact) {
+      return c.json({ error: "Contact not found" }, 404);
+    }
 
     // Use Gemini LLM to generate resume and cover letter
     let generatedResume = "",
@@ -325,7 +333,7 @@ export const resumeRoute = new Hono()
       const result = await generateResumeWithGemini({
         title,
         jobDescription,
-        profile: baseResumeTemplate, // Pass the template to Gemini
+        resume: baseResumeTemplate, // Pass the template to Gemini
       });
       generatedResume = result.resume;
       coverLetter = result.coverLetter;
@@ -335,11 +343,11 @@ export const resumeRoute = new Hono()
         generatedResume &&
         typeof generatedResume === "object" &&
         (generatedResume as any).objective &&
-        (generatedResume as any).contact &&
         Array.isArray((generatedResume as any).experiences) &&
         Array.isArray((generatedResume as any).educations) &&
         Array.isArray((generatedResume as any).skills) &&
         Array.isArray((generatedResume as any).honorsAwards) &&
+        Array.isArray((generatedResume as any).projects) &&
         Array.isArray((generatedResume as any).licenseCertifications)
         // Add check for projects if Gemini might generate them
       ) {
@@ -384,6 +392,17 @@ export const resumeRoute = new Hono()
           return obj;
         }
 
+        // Create a new Contact record by copying the existing one
+        const { id: oldContactId, ...contactDataToCopy } = existingContact; // Exclude the old ID
+        const newContact = await prisma.contact.create({
+          data: {
+            ...contactDataToCopy,
+            // Ensure default values are handled if any fields were null in the original
+            // (though your schema has defaults, this is safer)
+            email: contactDataToCopy.email ?? "",
+            phone: contactDataToCopy.phone ?? "",
+          },
+        });
         // Sanitize all nested date fields
         r.experiences = r.experiences.map(sanitizeDates);
         r.educations = r.educations.map(sanitizeDates);
@@ -391,7 +410,6 @@ export const resumeRoute = new Hono()
         r.licenseCertifications = r.licenseCertifications.map(sanitizeDates);
         // Sanitize projects if Gemini generates them
 
-        // Step 1: Create conversation
         const createdConversation = await prisma.conversation.create({
           data: {
             userId,
@@ -399,33 +417,37 @@ export const resumeRoute = new Hono()
             status: "PENDING",
           },
         });
-        // Step 2: Create contact
-        const createdContact = await prisma.contact.create({ data: r.contact });
-        // Step 3: Create profile with userId + conversationId composite key
+
         savedResume = await prisma.resume.create({
           data: {
             // Nested writes for related models
             userId,
             conversationId: createdConversation.id,
             objective: r.objective || "",
-            contactId: createdContact.id,
+            contactId: newContact.id, // Use the ID of the newly created contact
             experiences: {
-              create: r.experiences,
+              // Remove resumeId from nested create data
+              create: r.experiences.map(({ id, resumeId, ...exp }: Experience) => exp), // Also remove id
             },
             educations: {
-              create: r.educations,
+              // Remove resumeId from nested create data
+              create: r.educations.map(({ id, resumeId, ...edu }: Education) => edu), // Also remove id
             },
             skills: {
-              create: r.skills,
+              // Remove resumeId from nested create data
+              create: r.skills.map(({ id, resumeId, ...skill }: Skill) => skill), // Also remove id
             },
             honorsAwards: {
-              create: r.honorsAwards,
+              // Remove resumeId from nested create data
+              create: r.honorsAwards.map(({ id, resumeId, ...award }: HonorsAwards) => award), // Also remove id
             },
             licenseCertifications: {
-              create: r.licenseCertifications,
+              // Remove resumeId from nested create data
+              create: r.licenseCertifications.map(({ id, resumeId, ...cert }: LicenseCertification) => cert), // Also remove id
             },
-            projects: { // Add projects create
-              create: r.projects || [], // Use empty array if not generated
+            projects: {
+              // Remove resumeId from nested create data
+              create: (r.projects || []).map(({ id, resumeId, ...proj }: Project) => proj), // Also remove id
             },
           },
           include: {
@@ -435,11 +457,10 @@ export const resumeRoute = new Hono()
             skills: true,
             honorsAwards: true,
             licenseCertifications: true,
-            projects: true, // Include projects
+            projects: true,
             conversation: true,
           },
         });
-        // Step 4: Link profileId to conversation
         await prisma.conversation.update({
           where: { id: createdConversation.id },
           data: { resumeId: savedResume.id },
