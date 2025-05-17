@@ -13,6 +13,14 @@ import type {
   Resume,
 } from "@prisma/client";
 
+// Import enum values separately
+import {
+  EmploymentType as EmploymentTypeValue,
+  LocationType as LocationTypeValue,
+  SkillCategory as SkillCategoryValue,
+  SkillProficiency as SkillProficiencyValue,
+} from "@prisma/client";
+
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_here";
 
 export const resumeRoute = new Hono()
@@ -325,6 +333,56 @@ export const resumeRoute = new Hono()
       return c.json({ error: "Contact not found" }, 404);
     }
 
+    // Helper functions to map strings to enums, providing a default or throwing an error
+    function mapToEmploymentType(type: string | undefined): EmploymentTypeValue {
+      if (type && Object.values(EmploymentTypeValue).includes(type as EmploymentTypeValue)) {
+        return type as EmploymentTypeValue;
+      }
+      // Handle common string variations or default
+      const upperType = type?.toUpperCase().replace(/-/g, "_");
+      if (upperType && Object.values(EmploymentTypeValue).includes(upperType as EmploymentTypeValue)) {
+        return upperType as EmploymentTypeValue;
+      }
+      console.warn(`Invalid employment type received: ${type}, defaulting to FULL_TIME`);
+      return EmploymentTypeValue.FULL_TIME; // Or throw an error
+    }
+
+    function mapToLocationType(type: string | undefined): LocationTypeValue {
+      if (type && Object.values(LocationTypeValue).includes(type as LocationTypeValue)) {
+        return type as LocationTypeValue;
+      }
+      const upperType = type?.toUpperCase().replace(/-/g, "_");
+      if (upperType && Object.values(LocationTypeValue).includes(upperType as LocationTypeValue)) {
+        return upperType as LocationTypeValue;
+      }
+      console.warn(`Invalid location type received: ${type}, defaulting to ON_SITE`);
+      return LocationTypeValue.ON_SITE; // Or throw an error
+    }
+
+    function mapToSkillCategory(category: string | undefined): SkillCategoryValue {
+      if (category && Object.values(SkillCategoryValue).includes(category as SkillCategoryValue)) {
+        return category as SkillCategoryValue;
+      }
+      const upperCategory = category?.toUpperCase();
+      if (upperCategory && Object.values(SkillCategoryValue).includes(upperCategory as SkillCategoryValue)) {
+        return upperCategory as SkillCategoryValue;
+      }
+      console.warn(`Invalid skill category received: ${category}, defaulting to TECHNICAL`);
+      return SkillCategoryValue.TECHNICAL;
+    }
+
+    function mapToSkillProficiency(proficiency: string | undefined): SkillProficiencyValue {
+      if (proficiency && Object.values(SkillProficiencyValue).includes(proficiency as SkillProficiencyValue)) {
+        return proficiency as SkillProficiencyValue;
+      }
+      const upperProficiency = proficiency?.toUpperCase();
+      if (upperProficiency && Object.values(SkillProficiencyValue).includes(upperProficiency as SkillProficiencyValue)) {
+        return upperProficiency as SkillProficiencyValue;
+      }
+      console.warn(`Invalid skill proficiency received: ${proficiency}, defaulting to BEGINNER`);
+      return SkillProficiencyValue.BEGINNER;
+    }
+
     // Use Gemini LLM to generate resume and cover letter
     let generatedResume = "",
       coverLetter = "";
@@ -338,20 +396,28 @@ export const resumeRoute = new Hono()
       generatedResume = result.resume;
       coverLetter = result.coverLetter;
 
-      // Only save if resume is an object with expected fields
+      // Validate the structure of generatedResume before attempting to save
       if (
         generatedResume &&
         typeof generatedResume === "object" &&
-        (generatedResume as any).objective &&
-        Array.isArray((generatedResume as any).experiences) &&
+        typeof (generatedResume as any).objective === 'string' && // Check type
+        Array.isArray((generatedResume as any).experiences) && // Ensure arrays exist
         Array.isArray((generatedResume as any).educations) &&
-        Array.isArray((generatedResume as any).skills) &&
-        Array.isArray((generatedResume as any).honorsAwards) &&
-        Array.isArray((generatedResume as any).projects) &&
-        Array.isArray((generatedResume as any).licenseCertifications)
-        // Add check for projects if Gemini might generate them
+        Array.isArray((generatedResume as any).skills)
+        // Optional fields can be checked if necessary, or rely on Prisma defaults/optionality
       ) {
-        const r = generatedResume as any;
+        // Cast to a more specific (but still flexible) type for processing
+        // This helps with intellisense but doesn't guarantee Gemini followed it perfectly
+        const r = generatedResume as {
+          objective?: string;
+          experiences?: Partial<Experience>[];
+          educations?: Partial<Education>[];
+          skills?: Partial<Skill>[];
+          // Add other sections if Gemini is expected to generate them
+          honorsAwards?: Partial<HonorsAwards>[];
+          licenseCertifications?: Partial<LicenseCertification>[];
+          projects?: Partial<Project>[];
+        };
 
         // Sanitize date fields to ensure valid ISO-8601 strings or null
         function sanitizeDates(obj: any) {
@@ -370,15 +436,16 @@ export const resumeRoute = new Hono()
               let val = obj[key];
               if (
                 !val ||
-                typeof val !== "string" ||
-                val.trim() === "" ||
-                isNaN(Date.parse(val))
+                (typeof val === "string" && (val.trim() === "" || val.toLowerCase() === "present")) || // Handle "Present"
+                (typeof val === "string" && isNaN(Date.parse(val))) // Check if string is a valid date
               ) {
                 obj[key] = null;
               } else {
-                // If string is YYYY-MM-DD, convert to full ISO string
-                if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {
+                // Ensure val is a string before regex test
+                if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
                   obj[key] = new Date(val + "T00:00:00.000Z").toISOString();
+                } else if (typeof val === "string" && /^\d{4}-\d{2}$/.test(val)) { // Handle YYYY-MM
+                  obj[key] = new Date(val + "-01T00:00:00.000Z").toISOString();
                 } else {
                   obj[key] = new Date(val).toISOString();
                 }
@@ -404,11 +471,11 @@ export const resumeRoute = new Hono()
           },
         });
         // Sanitize all nested date fields
-        r.experiences = r.experiences.map(sanitizeDates);
-        r.educations = r.educations.map(sanitizeDates);
-        r.honorsAwards = r.honorsAwards.map(sanitizeDates);
-        r.licenseCertifications = r.licenseCertifications.map(sanitizeDates);
-        // Sanitize projects if Gemini generates them
+        r.experiences = r.experiences?.map(sanitizeDates) ?? [];
+        r.educations = r.educations?.map(sanitizeDates) ?? [];
+        r.honorsAwards = r.honorsAwards?.map(sanitizeDates) ?? [];
+        r.licenseCertifications = r.licenseCertifications?.map(sanitizeDates) ?? [];
+        r.projects = r.projects?.map(sanitizeDates) ?? [];
 
         const createdConversation = await prisma.conversation.create({
           data: {
@@ -426,28 +493,61 @@ export const resumeRoute = new Hono()
             objective: r.objective || "",
             contactId: newContact.id, // Use the ID of the newly created contact
             experiences: {
-              // Remove resumeId from nested create data
-              create: r.experiences.map(({ id, resumeId, ...exp }: Experience) => exp), // Also remove id
+              create: r.experiences?.map((exp) => ({
+                title: exp.title || "Untitled Experience", // Default for required field
+                employmentType: mapToEmploymentType(exp.employmentType as string | undefined),
+                company: exp.company || "Unknown Company",
+                location: exp.location || "Unknown Location",
+                locationType: mapToLocationType(exp.locationType as string | undefined),
+                startDate: exp.startDate ? new Date(exp.startDate) : new Date(), // Default if null
+                endDate: exp.endDate ? new Date(exp.endDate) : null,
+                description: exp.description,
+              })),
             },
             educations: {
-              // Remove resumeId from nested create data
-              create: r.educations.map(({ id, resumeId, ...edu }: Education) => edu), // Also remove id
+              create: r.educations?.map((edu) => ({
+                school: edu.school || "Unknown School",
+                degree: edu.degree || "N/A",
+                fieldOfStudy: edu.fieldOfStudy || "N/A",
+                startDate: edu.startDate ? new Date(edu.startDate) : new Date(),
+                endDate: edu.endDate ? new Date(edu.endDate) : null,
+                gpa: typeof edu.gpa === 'number' ? edu.gpa : null,
+                gpaMax: typeof edu.gpaMax === 'number' ? edu.gpaMax : null,
+                location: edu.location,
+                description: edu.description,
+              })),
             },
             skills: {
-              // Remove resumeId from nested create data
-              create: r.skills.map(({ id, resumeId, ...skill }: Skill) => skill), // Also remove id
+              create: r.skills?.map((skill) => ({
+                name: skill.name || "Unnamed Skill",
+                proficiency: mapToSkillProficiency(skill.proficiency as string | undefined),
+                category: mapToSkillCategory(skill.category as string | undefined),
+              })),
             },
             honorsAwards: {
-              // Remove resumeId from nested create data
-              create: r.honorsAwards.map(({ id, resumeId, ...award }: HonorsAwards) => award), // Also remove id
+              create: r.honorsAwards?.map((award) => ({
+                title: award.title || "Untitled Award",
+                issuer: award.issuer || "Unknown Issuer",
+                date: award.date ? new Date(award.date) : new Date(),
+                description: award.description,
+              })),
             },
             licenseCertifications: {
-              // Remove resumeId from nested create data
-              create: r.licenseCertifications.map(({ id, resumeId, ...cert }: LicenseCertification) => cert), // Also remove id
+              create: r.licenseCertifications?.map((cert) => ({
+                name: cert.name || "Untitled Certification",
+                issuer: cert.issuer || "Unknown Issuer",
+                issueDate: cert.issueDate ? new Date(cert.issueDate) : new Date(),
+                expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : null,
+                credentialId: cert.credentialId,
+              })),
             },
             projects: {
-              // Remove resumeId from nested create data
-              create: (r.projects || []).map(({ id, resumeId, ...proj }: Project) => proj), // Also remove id
+              create: r.projects?.map((proj) => ({
+                title: proj.title || "Untitled Project",
+                startDate: proj.startDate ? new Date(proj.startDate) : new Date(),
+                endDate: proj.endDate ? new Date(proj.endDate) : null,
+                description: proj.description,
+              })),
             },
           },
           include: {
@@ -465,6 +565,10 @@ export const resumeRoute = new Hono()
           where: { id: createdConversation.id },
           data: { resumeId: savedResume.id },
         });
+      } else {
+        // Log or handle the case where Gemini's output is not as expected
+        console.error("Gemini output did not match expected resume structure:", generatedResume);
+        throw new Error("Failed to parse generated resume into the required structure.");
       }
     } catch (error) {
       console.error("Gemini LLM generation error:", error);

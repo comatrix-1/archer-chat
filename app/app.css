@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
@@ -152,4 +151,28 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.ProseMirror ul {
+  @apply list-disc pl-5;
+}
+
+.ProseMirror ol {
+  @apply list-decimal pl-5;
+}
+
+.ProseMirror li {
+  @apply my-1;
+}
+
+.ProseMirror p {
+  @apply mb-2;
+}
+
+.ProseMirror h1 {
+  @apply text-xl font-bold mb-2;
+}
+
+.ProseMirror h2 {
+  @apply text-lg font-semibold mb-2;
 }

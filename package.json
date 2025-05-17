@@ -63,7 +63,6 @@
   },
   "devDependencies": {
     "@react-router/dev": "^7.5.1",
-    "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.0.0",
     "@types/file-saver": "^2.0.7",
     "@types/jsonwebtoken": "^9.0.9",
