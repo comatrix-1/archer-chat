@@ -92,6 +92,22 @@ const FIRST_PARAGRAPH_BEFORE_SPACING = 12; // 12 twips = 0.008 inches
 const AFTER_SPACING = 0;
 const MARGIN = 720; // 720 twips = 0.5 inches
 
+// Helper function to convert enum values to sentence case
+const toSentenceCase = (value: string): string => {
+  // Special cases for employment types
+  if (value === "FULL_TIME") return "Full-time";
+  if (value === "PART_TIME") return "Part-time";
+  if (value === "CONTRACT") return "Contract";
+  if (value === "TEMPORARY") return "Temporary";
+  if (value === "INTERNSHIP") return "Internship";
+  if (value === "REMOTE") return "Remote";
+  if (value === "HYBRID") return "Hybrid";
+  if (value === "ON_SITE") return "On-site";
+  
+  // Convert other values to sentence case
+  return value.toLowerCase().replace(/\b./g, (match) => match.toUpperCase());
+};
+
 export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
   console.log("Exporting data:", resumeData);
 
@@ -183,7 +199,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         createParagraph(
           [
             new TextRun({ text: exp.title, bold: true }),
-            new TextRun(`\t${exp.location || ""} (${exp.locationType || ""})`),
+            new TextRun(`\t${exp.location || ""} (${toSentenceCase(exp.locationType || "")})`),
           ],
           {
             spacing: {
@@ -426,14 +442,14 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
       sections.push(
         createParagraph(
           [
-            new TextRun({ text: `${category}: `, bold: true }), // Category name bold
+            new TextRun({ text: `${toSentenceCase(category)}: `, bold: true }), // Convert category to sentence case
             new TextRun(
               categorySkills
                 .map(
                   (skill) =>
                     `${skill.name}${
                       skill.proficiency && skill.proficiency !== "N/A"
-                        ? ` (${skill.proficiency})`
+                        ? ` (${toSentenceCase(skill.proficiency)})`
                         : ""
                     }`
                 )
