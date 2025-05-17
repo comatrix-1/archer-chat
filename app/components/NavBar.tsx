@@ -12,7 +12,8 @@ const navItems = [
 
 export function NavBar() {
   const location = useLocation();
-  const { user, logout } = useAuth();
+  const { user, logout, loading } = useAuth();
+  console.log('NavBar auth state:', { user, loading });
 
   return (
     <nav className="flex items-center gap-4 p-4 bg-gradient-to-r from-indigo-500 to-blue-400 shadow sticky top-0 z-10 text-white">
@@ -31,7 +32,12 @@ export function NavBar() {
         ))}
       </div>
       <div className="flex items-center gap-3">
-        {user ? (
+        {loading ? (
+          <span className="flex items-center gap-1 px-3 py-1 rounded bg-yellow-500 text-white">
+            <FaUserCircle className="inline text-xl" />
+            <span className="hidden sm:inline">Loading...</span>
+          </span>
+        ) : user ? (
           <>
             <span className="flex items-center gap-2 px-2 py-1 bg-white/10 rounded text-white">
               <FaUserCircle className="inline text-xl" />
