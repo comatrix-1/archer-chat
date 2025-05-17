@@ -1,11 +1,16 @@
 import type {
   Contact,
   Education,
-  Experience,
+  Experience as PrismaExperience, // Alias to avoid conflict with local types if any
   HonorsAwards,
   LicenseCertification,
   Project,
-  Skill,
+  Skill as PrismaSkill, // Alias
+  // Import the enum types themselves
+  EmploymentType,
+  LocationType,
+  SkillCategory,
+  SkillProficiency,
 } from "@prisma/client";
 import {
   Document,
@@ -25,15 +30,27 @@ const { saveAs } = pkg;
 type ResumeFormData = {
   objective: string;
   contact: Contact;
-  experiences: Omit<Experience, "resumeId" | "createdAt" | "updatedAt">[];
+  experiences: (Omit<
+    PrismaExperience,
+    "resumeId" | "createdAt" | "updatedAt" | "employmentType" | "locationType"
+  > & {
+    employmentType: EmploymentType | string;
+    locationType: LocationType | string;
+  })[];
   educations: Omit<Education, "resumeId" | "createdAt" | "updatedAt">[];
-  skills: Omit<Skill, "resumeId" | "createdAt" | "updatedAt">[];
+  skills: (Omit<
+    PrismaSkill,
+    "resumeId" | "createdAt" | "updatedAt" | "category" | "proficiency"
+  > & {
+    category: SkillCategory | string;
+    proficiency: SkillProficiency | string;
+  })[];
   licenseCertifications: Omit<
     LicenseCertification,
     "resumeId" | "createdAt" | "updatedAt"
   >[];
   honorsAwards: Omit<HonorsAwards, "resumeId" | "createdAt" | "updatedAt">[];
-  projects: Omit<Project, "resumeId">[];
+  projects: Omit<Project, "resumeId" | "createdAt" | "updatedAt">[]; // Assuming Project might have these too
 };
 
 // --- Helper function to create styled paragraphs ---

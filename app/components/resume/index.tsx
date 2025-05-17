@@ -6,9 +6,15 @@ import type {
   Experience,
   HonorsAwards,
   LicenseCertification,
-  Project, // Import Project type
+  Project,
   Resume,
   Skill,
+} from "@prisma/client";
+import {
+  SkillCategory,
+  SkillProficiency,
+  EmploymentType,
+  LocationType,
 } from "@prisma/client";
 import { Plus } from "lucide-react";
 import * as React from "react";
@@ -37,8 +43,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "~/components/ui/alert-dialog";
-import { Button, buttonVariants } from "~/components/ui/button";
+} from "~/components/ui/alert-dialog"; // Keep this
+import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
@@ -75,9 +81,21 @@ function convertDatesToISO<T>(data: T): T {
 type ResumeFormData = {
   objective: string;
   contact: Contact;
-  experiences: Omit<Experience, "resumeId" | "createdAt" | "updatedAt">[];
+  experiences: (Omit<
+    Experience,
+    "resumeId" | "createdAt" | "updatedAt" | "employmentType" | "locationType"
+  > & {
+    employmentType: EmploymentType | string;
+    locationType: LocationType | string;
+  })[];
   educations: Omit<Education, "resumeId" | "createdAt" | "updatedAt">[];
-  skills: Omit<Skill, "resumeId" | "createdAt" | "updatedAt">[];
+  skills: (Omit<
+    Skill,
+    "resumeId" | "createdAt" | "updatedAt" | "category" | "proficiency"
+  > & {
+    category: SkillCategory | string;
+    proficiency: SkillProficiency | string;
+  })[];
   licenseCertifications: Omit<
     LicenseCertification,
     "resumeId" | "createdAt" | "updatedAt"
@@ -107,42 +125,40 @@ export default function ResumeComponent({
   const defaultValues = React.useMemo(
     () => ({
       ...resume,
-      experiences:
-        resume.experiences?.map((exp: Experience) => ({
+      experiences: resume.experiences?.map((exp: Experience) => ({
           ...exp,
           startDate: exp.startDate ? new Date(exp.startDate) : undefined,
           endDate: exp.endDate ? new Date(exp.endDate) : undefined,
-        })) || [],
-      educations:
-        resume.educations?.map((edu: Education) => ({
+        })) ?? [],
+      educations: resume.educations?.map((edu: Education) => ({
           ...edu,
           startDate: edu.startDate ? new Date(edu.startDate) : undefined,
           endDate: edu.endDate ? new Date(edu.endDate) : undefined,
-        })) || [],
-      licenseCertifications:
-        resume.licenseCertifications?.map((cert: LicenseCertification) => ({
+        })) ?? [],
+      licenseCertifications: resume.licenseCertifications?.map(
+        (cert: LicenseCertification) => ({
           ...cert,
           issueDate: cert.issueDate ? new Date(cert.issueDate) : undefined,
           expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : undefined,
-        })) || [],
-      honorsAwards:
-        resume.honorsAwards?.map((award: HonorsAwards) => ({
+        })
+      ) ?? [],
+      honorsAwards: resume.honorsAwards?.map((award: HonorsAwards) => ({
           ...award,
           date: award.date ? new Date(award.date) : undefined,
-        })) || [],
+        })) ?? [],
       // Add projects default values
-      projects:
-        resume.projects?.map((proj: Project) => ({
+      projects: resume.projects?.map((proj: Project) => ({
           ...proj,
           startDate: proj.startDate ? new Date(proj.startDate) : undefined,
           endDate: proj.endDate ? new Date(proj.endDate) : undefined,
-        })) || [],
+        })) ?? [],
     }),
     [resume]
   );
 
   const form = useForm<ResumeFormData>({
     defaultValues,
+    // resolver: zodResolver(resumeSchema) // If you were using Zod
   });
 
   const {
@@ -203,8 +219,8 @@ export default function ResumeComponent({
     appendSkill({
       id: generateUUID(),
       name: "",
-      proficiency: "",
-      category: "Technical", // Add default category
+      proficiency: SkillProficiency.BEGINNER, // Use enum default
+      category: SkillCategory.TECHNICAL, // Use enum default
     });
   };
 
@@ -212,12 +228,12 @@ export default function ResumeComponent({
     appendExperience({
       id: generateUUID(),
       title: "",
-      employmentType: "",
+      employmentType: EmploymentType.FULL_TIME, // Use enum default
       company: "",
       startDate: new Date(),
       endDate: null,
       location: "",
-      locationType: "",
+      locationType: LocationType.ON_SITE, // Use enum default
       description: "",
     });
   };
@@ -276,25 +292,72 @@ export default function ResumeComponent({
   useEffect(() => {
     if (resume) {
       console.log("resetting resume to: ", resume);
-      form.reset({
-        ...resume,
-        experiences: resume.experiences || [],
-        educations: resume.educations || [],
-        skills: resume.skills || [],
-        honorsAwards: resume.honorsAwards || [],
-        licenseCertifications: resume.licenseCertifications || [],
-        projects: resume.projects || [], // Add projects reset
-        contact: resume.contact || {
-          email: "",
-          phone: "",
-          linkedin: "",
-          portfolio: "",
-          city: "",
-          country: "",
-        },
-      });
+      // Process resume data for form reset, ensuring Date objects
+      const processedResumeForEffectReset: ResumeFormData = { // Explicitly type parameters in .map
+        objective: resume.objective ?? "",
+        contact: resume.contact
+          ? { ...resume.contact }
+          : {
+              id: generateUUID(),
+              phone: "",
+              email: "",
+              name: "",
+              linkedin: null,
+              portfolio: null,
+              city: "",
+              country: "",
+            },
+        experiences: resume.experiences?.map((exp: Experience) => ({
+          ...exp, // Spreads Prisma Experience (strict enums, potentially date strings if 'resume' came from API without processing)
+          id: exp.id ?? generateUUID(),
+          startDate: exp.startDate ? new Date(exp.startDate) : new Date(),
+          endDate: exp.endDate ? new Date(exp.endDate) : null,
+        })) ?? [],
+        educations: resume.educations?.map((edu: Education) => ({
+          ...edu,
+          id: edu.id ?? generateUUID(),
+          startDate: edu.startDate ? new Date(edu.startDate) : new Date(),
+          endDate: edu.endDate ? new Date(edu.endDate) : null,
+          gpa: edu.gpa ?? null,
+          gpaMax: edu.gpaMax ?? null,
+        })) ?? [],
+        skills: resume.skills?.map((skill: Skill) => ({
+          ...skill, // Spreads Prisma Skill (strict enums)
+          id: skill.id ?? generateUUID(),
+        })) ?? [],
+        licenseCertifications:
+          resume.licenseCertifications?.map(
+            (cert: LicenseCertification) => ({
+              ...cert,
+              id: cert.id ?? generateUUID(),
+              issueDate: cert.issueDate
+                ? new Date(cert.issueDate)
+                : new Date(),
+              expiryDate: cert.expiryDate
+                ? new Date(cert.expiryDate)
+                : null,
+              credentialId: cert.credentialId ?? null,
+            })
+          ) ?? [],
+        honorsAwards:
+          resume.honorsAwards?.map((award: HonorsAwards) => ({
+            ...award,
+            id: award.id ?? generateUUID(),
+            date: award.date ? new Date(award.date) : new Date(),
+          })) ?? [],
+        projects:
+          resume.projects?.map((proj: Project) => ({
+            ...proj,
+            id: proj.id ?? generateUUID(),
+            startDate: proj.startDate
+              ? new Date(proj.startDate)
+              : new Date(),
+            endDate: proj.endDate ? new Date(proj.endDate) : null,
+          })) ?? [],
+      };
+      form.reset(processedResumeForEffectReset);
     }
-  }, [resume]);
+  }, [form, resume]);
 
   const onSubmit = async (data: ResumeFormData) => {
     if (!formRef.current) return;
@@ -317,8 +380,78 @@ export default function ResumeComponent({
 
       if (result.success) {
         alert("resume updated successfully!");
-        setResume(result.resume);
-        form.reset(result.resume);
+        const apiResume = result.resume; // This is the resume data from the API
+        setResume(apiResume); // Update state, which will trigger the useEffect for a comprehensive reset
+
+        // Prepare data for immediate reset to ensure UI consistency,
+        // especially converting date strings from API to Date objects.
+        const formDataForReset: ResumeFormData = {
+          objective: apiResume.objective ?? "",
+          contact: { ...apiResume.contact }, // Assuming apiResume.contact is never null
+          experiences: apiResume.experiences?.map((exp: Experience) => ({
+            ...exp, // Spreads Prisma Experience (strict enums)
+            id: exp.id ?? generateUUID(),
+            startDate: exp.startDate ? new Date(exp.startDate) : new Date(), // Convert date string
+            endDate: exp.endDate ? new Date(exp.endDate) : null, // Convert date string
+          })) ?? [],
+          educations: apiResume.educations?.map((edu: Education) => ({
+            ...edu,
+            id: edu.id ?? generateUUID(),
+            startDate: edu.startDate ? new Date(edu.startDate) : new Date(),
+            endDate: edu.endDate ? new Date(edu.endDate) : null,
+            gpa: edu.gpa ?? null,
+            gpaMax: edu.gpaMax ?? null,
+          })) ?? [],
+          skills: apiResume.skills?.map((skill: Skill) => ({
+            ...skill, // Spreads Prisma Skill (strict enums)
+            id: skill.id ?? generateUUID(),
+          })) ?? [],
+          licenseCertifications:
+            apiResume.licenseCertifications?.map(
+              (cert: LicenseCertification) => ({
+                ...cert,
+                id: cert.id ?? generateUUID(),
+                issueDate: cert.issueDate
+                  ? new Date(cert.issueDate)
+                  : new Date(),
+                expiryDate: cert.expiryDate
+                  ? new Date(cert.expiryDate)
+                  : null,
+                credentialId: cert.credentialId ?? null,
+              })
+            ) ?? [],
+          honorsAwards:
+            apiResume.honorsAwards?.map((award: HonorsAwards) => ({
+              ...award,
+              id: award.id ?? generateUUID(),
+              date: award.date ? new Date(award.date) : new Date(),
+            })) ?? [],
+          projects:
+            apiResume.projects?.map((proj: Project) => ({
+              ...proj,
+              id: proj.id ?? generateUUID(),
+              startDate: proj.startDate
+                ? new Date(proj.startDate)
+                : new Date(),
+              endDate: proj.endDate ? new Date(proj.endDate) : null,
+            })) ?? [],
+        };
+
+        // Ensure the object passed to reset matches the form's expected structure,
+        // especially if defaultValues was more strictly typed initially.
+        // The `formDataForReset` should be compatible with `ResumeFormData`.
+        // If TS2345 persists here, it means the structure of `formDataForReset`
+        // is still seen as incompatible with what `form.reset` expects based on
+        // its initial `defaultValues`.
+        // One way to ensure stricter alignment if needed is to cast, but it's better
+        // if the constructed object naturally aligns.
+        // For example, if `defaultValues` never had `string` in the union for enums,
+        // then `form.reset` would expect the strict enum type.
+        // `apiResume` *should* have strict enum types.
+
+        form.reset(formDataForReset as ResumeFormData); // Using 'as' can suppress if confident, but ensure types truly match.
+                                                     // The issue is more likely that the form's internal state
+                                                     // expects a more specific version of ResumeFormData.
         hasUnsavedChanges.current = false;
       } else {
         alert(`Error updating resume: ${result.message}, ${result.error}`);
