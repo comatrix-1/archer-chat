@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<boolean>;
   register: (
-    data: Omit<User, "id"> & { password: string; confirmPassword: string }
+    data: Omit<User, "id" | "role"> & { password: string; confirmPassword: string }
   ) => Promise<boolean>;
   logout: () => void;
   isLoggedIn: boolean;
@@ -188,7 +188,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const register = async (
-    data: Omit<User, "id"> & { password: string; confirmPassword: string }
+    data: Omit<User, "id" | "role"> & { password: string; confirmPassword: string }
   ) => {
     try {
       if (data.password !== data.confirmPassword) {
