@@ -1,8 +1,19 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router";
-import { Button } from "./ui/button";
 import { Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "~/components/ui/alert-dialog";
 import { fetchWithAuth } from "~/utils/fetchWithAuth";
+import { Button } from "./ui/button";
+
 export interface ResumeItem {
   id: string;
   title: string;
@@ -28,6 +39,9 @@ function safeNavigateToDetail(id: string) {
 export default function ResumeList() {
   const [resumes, setResumes] = useState<ResumeItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const fetchResumes = async () => {
     setLoading(true);
@@ -45,18 +59,25 @@ export default function ResumeList() {
   useEffect(() => {
     fetchResumes();
   }, []);
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this resume?")) {
-      setLoading(true);
-      try {
-        await fetchWithAuth(`/api/resume/${id}`, {
-          method: "DELETE",
-        });
-        await fetchResumes();
-      } catch (error) {
-        console.error("Error deleting resume:", error);
-        setLoading(false);
-      }
+  const openDeleteDialog = (id: string) => {
+    setResumeToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!resumeToDelete) return;
+    setLoading(true);
+    try {
+      await fetchWithAuth(`/api/resume/${resumeToDelete}`, {
+        method: "DELETE",
+      });
+      await fetchResumes(); // Refetch resumes to update the list
+    } catch (error) {
+      console.error("Error deleting resume:", error);
+    } finally {
+      setLoading(false);
+      setIsDeleteDialogOpen(false);
+      setResumeToDelete(null);
     }
   };
   return (
@@ -75,10 +96,7 @@ export default function ResumeList() {
       )}
       <div className="space-y-4">
         {resumes.map((resume) => (
-          <div
-            key={resume.id}
-            className="bg-white rounded shadow p-4"
-          >
+          <div key={resume.id} className="bg-white rounded shadow p-4">
             <div className="flex justify-between items-center">
               <div className="font-semibold text-lg mb-1">
                 {resume.conversation?.title ?? "Untitled Conversation"}
@@ -99,7 +117,7 @@ export default function ResumeList() {
                   size="icon"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDelete(resume.id);
+                    openDeleteDialog(resume.id);
                   }}
                   disabled={loading}
                 >
@@ -110,6 +128,30 @@ export default function ResumeList() {
           </div>
         ))}
       </div>
+      {isDeleteDialogOpen && (
+        <AlertDialog
+          open={isDeleteDialogOpen}
+          onOpenChange={setIsDeleteDialogOpen}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the
+                resume.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel onClick={() => setResumeToDelete(null)}>
+                Cancel
+              </AlertDialogCancel>
+              <AlertDialogAction onClick={confirmDelete}>
+                Continue
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 }
