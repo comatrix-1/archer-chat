@@ -49,7 +49,7 @@ ByteDance is committed to creating an inclusive space where employees are valued
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
-    const result = await res.data;
+    await res.data;
     navigate("/resume-list");
   };
   return (
