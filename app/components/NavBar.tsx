@@ -3,11 +3,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { FaUserCircle, FaSignOutAlt, FaSignInAlt } from "react-icons/fa";
 
 const navItems = [
-  { to: "/chats", label: "Chats" },
   { to: "/resume", label: "Resume" },
   { to: "/charts", label: "Charts" },
-  { to: "/resume-list", label: "Resume List" },
-  { to: "/resume-generator", label: "Resume Generator" },
 ];
 
 export function NavBar() {

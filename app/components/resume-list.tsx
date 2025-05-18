@@ -1,5 +1,5 @@
 import { Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import {
   AlertDialog,
@@ -13,6 +13,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import { fetchWithAuth } from "~/utils/fetchWithAuth";
 import { Button } from "./ui/button";
+import { Separator } from "./ui/separator";
 
 export interface ResumeItem {
   id: string;
@@ -36,29 +37,20 @@ function safeNavigateToDetail(id: string) {
     window.location.href = `/resume-generator-detail?id=${id}`;
   }
 }
-export default function ResumeList() {
-  const [resumes, setResumes] = useState<ResumeItem[]>([]);
+interface ResumeListProps {
+  readonly masterResume: ResumeItem | null;
+  readonly resumeList: ResumeItem[];
+}
+
+export default function ResumeList({
+  masterResume,
+  resumeList,
+}: ResumeListProps) {
   const [loading, setLoading] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [resumeToDelete, setResumeToDelete] = useState<string | null>(null);
 
   const navigate = useNavigate();
-  const fetchResumes = async () => {
-    setLoading(true);
-    try {
-      const res = await fetchWithAuth("/api/resume/list");
-      if (res.data?.resumes) {
-        setResumes(res.data.resumes);
-      }
-    } catch (error) {
-      console.error("Error fetching resumes:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  useEffect(() => {
-    fetchResumes();
-  }, []);
   const openDeleteDialog = (id: string) => {
     setResumeToDelete(id);
     setIsDeleteDialogOpen(true);
@@ -71,7 +63,7 @@ export default function ResumeList() {
       await fetchWithAuth(`/api/resume/${resumeToDelete}`, {
         method: "DELETE",
       });
-      await fetchResumes(); // Refetch resumes to update the list
+      // Since we're not managing state internally, we don't need to refetch
     } catch (error) {
       console.error("Error deleting resume:", error);
     } finally {
@@ -82,51 +74,76 @@ export default function ResumeList() {
   };
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Generated Resumes</h1>
-        <Button onClick={() => navigate("/resume-generator")}>
-          Generate New
-        </Button>
-      </div>
-      {loading && resumes.length === 0 && (
-        <div className="text-gray-500">Loading resumes...</div>
-      )}
-      {!loading && resumes.length === 0 && (
-        <div className="text-gray-500">No resumes generated yet.</div>
-      )}
-      <div className="space-y-4">
-        {resumes.map((resume) => (
-          <div key={resume.id} className="bg-white rounded shadow p-4">
-            <div className="flex justify-between items-center">
-              <div className="font-semibold text-lg mb-1">
-                {resume.conversation?.title ?? "Untitled Conversation"}
-              </div>
+      <div className="space-y-8">
+        <div>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Resumes</h2>
+            <Button onClick={() => navigate("/resume-generator")}>
+              Generate New
+            </Button>
+          </div>
+          {loading && resumeList.length === 0 && (
+            <div className="text-gray-500">Loading resumes...</div>
+          )}
+          {!loading && resumeList.length === 0 && (
+            <div className="text-gray-500">No resumes generated yet.</div>
+          )}
+          {masterResume && (
+            <div
+              key={masterResume.id}
+              className="bg-white rounded shadow p-4 flex justify-between items-center"
+            >
+              <div className="font-semibold text-lg mb-1">Master Resume</div>
 
               <div className="flex items-center gap-2">
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    safeNavigateToDetail(resume.id);
+                    safeNavigateToDetail(masterResume.id);
                   }}
                   disabled={loading}
                 >
                   View
                 </Button>
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    openDeleteDialog(resume.id);
-                  }}
-                  disabled={loading}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
               </div>
             </div>
+          )}
+          <Separator className="my-4" />
+          <div className="space-y-4">
+            {resumeList.map((resume) => (
+              <div key={resume.id} className="bg-white rounded shadow p-4">
+                <div className="flex justify-between items-center">
+                  <div className="font-semibold text-lg mb-1">
+                    {resume.conversation?.title ?? "Untitled Conversation"}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        safeNavigateToDetail(resume.id);
+                      }}
+                      disabled={loading}
+                    >
+                      View
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDeleteDialog(resume.id);
+                      }}
+                      disabled={loading}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
       {isDeleteDialogOpen && (
         <AlertDialog
