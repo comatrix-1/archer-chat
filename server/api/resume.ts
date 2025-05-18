@@ -18,14 +18,19 @@ import {
   SkillCategory as SkillCategoryValue,
   SkillProficiency as SkillProficiencyValue,
 } from "@prisma/client";
+import { userContextMiddleware } from "server/middleware/userContext.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_secret_here";
 
 export const resumeRoute = new Hono()
   .use(honoJwt({ secret: JWT_SECRET }))
+  .use(userContextMiddleware)
   .get("/", async (c: Context) => {
-    const payload = c.get("jwtPayload") as { userId: string };
-    const userId = payload.userId;
+    const user = c.get("user");
+    const userId = user?.id;
+    if (!userId)
+      return c.json({ error: "Unauthorized: User ID not found in token" }, 401);
+
     const resume = await prisma.resume.findUnique({
       where: {
         userId_conversationId: {
@@ -80,17 +85,22 @@ export const resumeRoute = new Hono()
   })
   .post("/", async (c: Context) => {
     const authHeader = c.req.header("Authorization");
-    let userId;
     let resume;
     let updatedResume;
     try {
       const body = await c.req.json();
       resume = body.resume ?? (body as Resume);
       console.log("POST /api/resume :: authHeader:", authHeader);
-      console.log("POST /api/resume :: resume payload:", resume);
-      const payload = c.get("jwtPayload") as { userId: string };
-      userId = payload.userId;
-      console.log("POST /api/resume :: userId:", userId);
+      console.log("POST /api/resume :: clientResumeData payload:", resume);
+      const authenticatedUser = c.get("user");
+      if (!authenticatedUser?.id)
+        return c.json({ error: "Unauthorized: User not found" }, 401);
+      const authenticatedUserId = authenticatedUser.id;
+      console.log(
+        "POST /api/resume :: authenticatedUserId:",
+        authenticatedUserId
+      );
+
       try {
         const resumeData = resume;
         const updatedResume = await prisma.$transaction(async (prisma) => {
@@ -164,7 +174,9 @@ export const resumeRoute = new Hono()
             });
           }
           await prisma.licenseCertification.deleteMany({
-            where: { resumeId: resumeData.id },
+            where: {
+              resumeId: resumeData.id
+            }
           });
           if (resumeData.licenseCertifications?.length) {
             await prisma.licenseCertification.createMany({
@@ -183,8 +195,8 @@ export const resumeRoute = new Hono()
           return prisma.resume.update({
             where: {
               userId_conversationId: {
-                userId: resumeData.userId,
-                conversationId: resumeData.conversationId,
+                userId: authenticatedUser?.id,
+                conversationId: resumeData.conversationId ?? "",
               },
             },
             data: {
@@ -225,7 +237,6 @@ export const resumeRoute = new Hono()
         {
           error: "Failed to update resume",
           details: error,
-          debug: { authHeader, resume, userId },
         },
         500
       );
@@ -257,8 +268,11 @@ export const resumeRoute = new Hono()
     return c.json(updated);
   })
   .post("/generate", async (c: Context) => {
-    const payload = c.get("jwtPayload") as { userId: string };
-    const userId = payload.userId;
+    const user = c.get("user");
+    if (!user || !user.id)
+      return c.json({ error: "Unauthorized: User not found" }, 401);
+    const userId = user.id;
+
     const { title, jobDescription } = await c.req.json();
     const baseResumeTemplate = await prisma.resume.findUnique({
       where: {
@@ -608,8 +622,10 @@ export const resumeRoute = new Hono()
     return c.json({ resumes });
   })
   .get("/:id", async (c: Context) => {
-    const payload = c.get("jwtPayload") as { userId: string };
-    const userId = payload.userId;
+    const user = c.get("user");
+    if (!user || !user.id)
+      return c.json({ error: "Unauthorized: User not found" }, 401);
+    const userId = user.id;
     const id = c.req.param("id");
     const resume = await prisma.resume.findUnique({
       where: { id },

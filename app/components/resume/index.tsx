@@ -226,9 +226,15 @@ export default function ResumeComponent({
         throw new Error("No response from server");
       }
       const responseData = await response.data;
-      setResume(responseData);
-      if (blocker) {
-        blocker.reset?.();
+      console.log('responseData', responseData);
+      if (responseData.resume) {
+        setResume(responseData.resume);
+        if (blocker) {
+          blocker.reset?.();
+        }
+        form.reset(responseData.resume);
+      } else {
+        console.error("Error saving resume:", responseData);
       }
     } catch (error) {
       console.error("Error saving resume:", error);
@@ -257,8 +263,6 @@ export default function ResumeComponent({
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Resume</h1>
             <div className="flex gap-2">
-              {" "}
-              {}
               <Button
                 type="button"
                 variant="outline"

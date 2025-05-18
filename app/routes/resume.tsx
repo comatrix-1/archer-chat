@@ -4,12 +4,15 @@ import { useAuth } from "~/contexts/AuthContext";
 import { fetchWithAuth } from "~/utils/fetchWithAuth";
 
 export default function ResumeRoute() {
-  const { user, isLoggedIn } = useAuth();
   const [resume, setResume] = useState<any>(null);
   const [resumeList, setResumeList] = useState<any>(null);
+  const { user, isLoggedIn, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      console.error("User not found");
+      return;
+    }
     fetchWithAuth(`/api/resume`, {
       method: "GET",
     })
@@ -30,7 +33,7 @@ export default function ResumeRoute() {
       .catch(() => {
         setResumeList([]);
       });
-  }, []);
+  }, [user, isLoggedIn, authLoading]);
 
   if (!isLoggedIn) return <div className="p-8">Please login.</div>;
   if (!resume || !resumeList) return <div className="p-8">Loading...</div>;

@@ -63,7 +63,6 @@ export default function ResumeList({
       await fetchWithAuth(`/api/resume/${resumeToDelete}`, {
         method: "DELETE",
       });
-      // Since we're not managing state internally, we don't need to refetch
     } catch (error) {
       console.error("Error deleting resume:", error);
     } finally {
@@ -82,12 +81,7 @@ export default function ResumeList({
               Generate New
             </Button>
           </div>
-          {loading && resumeList.length === 0 && (
-            <div className="text-gray-500">Loading resumes...</div>
-          )}
-          {!loading && resumeList.length === 0 && (
-            <div className="text-gray-500">No resumes generated yet.</div>
-          )}
+
           {masterResume && (
             <div
               key={masterResume.id}
@@ -110,6 +104,12 @@ export default function ResumeList({
           )}
           <Separator className="my-4" />
           <div className="space-y-4">
+            {loading && resumeList.length === 0 && (
+              <div className="text-gray-500 text-center">Loading resumes...</div>
+            )}
+            {!loading && resumeList.length === 0 && (
+                <div className="text-gray-500 text-center text-sm">No resumes generated yet.</div>
+            )}
             {resumeList.map((resume) => (
               <div key={resume.id} className="bg-white rounded shadow p-4">
                 <div className="flex justify-between items-center">
