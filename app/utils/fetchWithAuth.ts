@@ -12,7 +12,7 @@ export type FetchWithAuthOptions = AxiosRequestConfig & { token?: string, body?:
  */
 export async function fetchWithAuth(url: string, options: FetchWithAuthOptions = {}) {
   console.log('fetchWithAuth() :: START');
-  const token = options.token || localStorage.getItem('token');
+  const token = options.token ?? localStorage.getItem('authToken');
   console.log('fetchWithAuth() :: token:', token);
   const headers = {
     ...(options.headers || {}),
