@@ -76,10 +76,7 @@ export default function ResumeList({
       <div className="space-y-8">
         <div>
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-bold">Resumes</h2>
-            <Button onClick={() => navigate("/resume-generator")}>
-              Generate New
-            </Button>
+            <h2 className="text-xl font-bold">Master resume</h2>
           </div>
 
           {masterResume && (
@@ -103,12 +100,22 @@ export default function ResumeList({
             </div>
           )}
           <Separator className="my-4" />
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-bold">Resumes</h2>
+            <Button onClick={() => navigate("/resume-generator")}>
+              Generate New
+            </Button>
+          </div>
           <div className="space-y-4">
             {loading && resumeList.length === 0 && (
-              <div className="text-gray-500 text-center">Loading resumes...</div>
+              <div className="text-gray-500 text-center">
+                Loading resumes...
+              </div>
             )}
             {!loading && resumeList.length === 0 && (
-                <div className="text-gray-500 text-center text-sm">No resumes generated yet.</div>
+              <div className="text-gray-500 text-center text-sm">
+                No resumes generated yet.
+              </div>
             )}
             {resumeList.map((resume) => (
               <div key={resume.id} className="bg-white rounded shadow p-4">
