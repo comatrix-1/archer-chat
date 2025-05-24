@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  postgres_test:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+      POSTGRES_DB: myapp_test_docker
+    ports:
+      - '5433:5432' # Map to a different host port (e.g., 5433) to avoid conflict with dev DB
+    volumes:
+      - postgres_test_data_volume:/var/lib/postgresql/data # Optional: persist data between runs if needed, usually not for tests
+
+volumes:
+  postgres_test_data_volume: # Define the volume

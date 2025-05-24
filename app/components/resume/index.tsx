@@ -423,6 +423,7 @@ export default function ResumeComponent({
                     className={cn("p-1 h-auto")}
                     onClick={(e) => {
                       e.stopPropagation();
+                      console.log('adding education')
                       appendEducation({
                         id: generateUUID(),
                         school: "",

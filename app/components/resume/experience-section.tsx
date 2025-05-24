@@ -60,7 +60,10 @@ interface ExperienceItemProps {
 // Create a separate component for each experience item
 const ExperienceItem: React.FC<ExperienceItemProps> = memo(
   ({ fieldId, index, control, getValues, setValue, removeExperience }) => {
-    // Watch the end date value for reactivity - Now called at the top level of ExperienceItem
+    const startDateValue = useWatch({
+      control,
+      name: `experiences.${index}.startDate`,
+    });
     const endDateValue = useWatch({
       control,
       name: `experiences.${index}.endDate`,
@@ -179,7 +182,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
               <div className="flex-1">
                 <FormLabel>Start Date</FormLabel>
                 <MonthYearPicker
-                  date={getValues(`experiences.${index}.startDate`)}
+                  date={startDateValue}
                   onSelect={(date) => {
                     const newDate = date ? new Date(date) : null;
                     if (newDate) {
