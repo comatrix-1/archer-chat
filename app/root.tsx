@@ -5,13 +5,15 @@ import {
   Outlet,
   Scripts,
   ScrollRestoration,
+  useNavigation,
 } from "react-router";
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import { AuthProvider } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ChatProvider } from "./contexts/ChatContext";
 import { NavBar } from "./components/NavBar";
+import LoadingSpinner from "./components/LoadingSpinner";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -47,11 +49,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <AuthProvider>
-      <ChatProvider>
-        <NavBar />
-        <Outlet />
-      </ChatProvider>
+      <AppContent />
     </AuthProvider>
+  );
+}
+
+function AppContent() {
+  const { loading: authLoading } = useAuth();
+  const navigation = useNavigation();
+
+  const isLoading = authLoading || navigation.state === "loading";
+  return (
+    <ChatProvider>
+      <NavBar />
+      <Outlet />
+      <LoadingSpinner isLoading={isLoading} />
+    </ChatProvider>
   );
 }
 

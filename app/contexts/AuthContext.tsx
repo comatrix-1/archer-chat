@@ -146,6 +146,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const login = async (email: string, password: string) => {
     try {
       console.log('Login attempt...');
+      setLoading(true);
       const csrfToken = getCsrfToken();
       if (!csrfToken) {
         const response = await fetch('/api/auth/check-csrf', {
@@ -184,6 +185,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       console.error("Login error:", error);
       setError("An error occurred during login");
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -191,6 +194,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     data: Omit<User, "id" | "role"> & { password: string; confirmPassword: string }
   ) => {
     try {
+      setLoading(true);
       if (data.password !== data.confirmPassword) {
         setError("Passwords do not match");
         return false;
@@ -225,6 +229,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     } catch (error) {
       setError("An error occurred during registration");
       return false;
+    } finally {
+      setLoading(false);
     }
   };
 
