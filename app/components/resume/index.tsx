@@ -1,4 +1,7 @@
 "use client";
+import * as React from "react";
+import { Plus } from "lucide-react";
+import { useResumeForm } from "~/hooks/use-resume-form";
 import type {
   Contact,
   Education,
@@ -9,17 +12,7 @@ import type {
   Resume,
   Skill,
 } from "@prisma/client";
-import {
-  EmploymentType,
-  LocationType,
-  SkillCategory,
-  SkillProficiency,
-} from "@prisma/client";
-import { Plus } from "lucide-react";
-import * as React from "react";
-import { useEffect, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
-import { useBlocker } from "react-router";
+import { EmploymentType, LocationType, SkillCategory, SkillProficiency } from "@prisma/client";
 import CertificationSection from "~/components/resume/certification-section";
 import ContactSection from "~/components/resume/contact-section";
 import EducationSection from "~/components/resume/education-section";
@@ -56,32 +49,7 @@ import { Textarea } from "~/components/ui/textarea";
 import { cn } from "~/lib/utils";
 import { exportResumeToDocx } from "~/utils/docx-exporter";
 import { generateUUID } from "~/utils/security";
-import { fetchWithAuth } from "../../utils/fetchWithAuth";
-type ResumeFormData = {
-  objective: string;
-  contact: Contact;
-  experiences: (Omit<
-    Experience,
-    "resumeId" | "createdAt" | "updatedAt" | "employmentType" | "locationType"
-  > & {
-    employmentType: EmploymentType;
-    locationType: LocationType;
-  })[];
-  educations: Omit<Education, "resumeId" | "createdAt" | "updatedAt">[];
-  skills: (Omit<
-    Skill,
-    "resumeId" | "createdAt" | "updatedAt" | "category" | "proficiency"
-  > & {
-    category: SkillCategory;
-    proficiency: SkillProficiency;
-  })[];
-  licenseCertifications: Omit<
-    LicenseCertification,
-    "resumeId" | "createdAt" | "updatedAt"
-  >[];
-  honorsAwards: Omit<HonorsAwards, "resumeId" | "createdAt" | "updatedAt">[];
-  projects: Omit<Project, "resumeId">[];
-};
+
 export default function ResumeComponent({
   initialResume,
 }: Readonly<{
@@ -95,159 +63,45 @@ export default function ResumeComponent({
     projects: Project[];
   };
 }>) {
-  const [resume, setResume] = useState(initialResume);
-  console.log("ResumeComponent() :: resume: ", resume);
+  console.log('ResumeComponent() initialResume: ', initialResume);
   const formRef = React.useRef<HTMLFormElement>(null);
-  const form = useForm<ResumeFormData>({
-    defaultValues: {
-      objective: resume.objective ?? "",
-      contact: resume.contact
-        ? { ...resume.contact }
-        : {
-            id: generateUUID(),
-            phone: "",
-            email: "",
-            name: "",
-            linkedin: null,
-            portfolio: null,
-            city: "",
-            country: "",
-          },
-      experiences:
-        resume.experiences?.map((exp: Experience) => ({
-          ...exp,
-          id: exp.id ?? generateUUID(),
-          startDate: exp.startDate ? new Date(exp.startDate) : new Date(),
-          endDate: exp.endDate ? new Date(exp.endDate) : null,
-        })) ?? [],
-      educations:
-        resume.educations?.map((edu: Education) => ({
-          ...edu,
-          id: edu.id ?? generateUUID(),
-          startDate: edu.startDate ? new Date(edu.startDate) : new Date(),
-          endDate: edu.endDate ? new Date(edu.endDate) : null,
-          gpa: edu.gpa ?? null,
-          gpaMax: edu.gpaMax ?? null,
-        })) ?? [],
-      skills:
-        resume.skills?.map((skill: Skill) => ({
-          ...skill,
-          id: skill.id ?? generateUUID(),
-        })) ?? [],
-      licenseCertifications:
-        resume.licenseCertifications?.map((cert: LicenseCertification) => ({
-          ...cert,
-          id: cert.id ?? generateUUID(),
-          issueDate: cert.issueDate ? new Date(cert.issueDate) : new Date(),
-          expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : null,
-          credentialId: cert.credentialId ?? null,
-        })) ?? [],
-      honorsAwards:
-        resume.honorsAwards?.map((award: HonorsAwards) => ({
-          ...award,
-          id: award.id ?? generateUUID(),
-          date: award.date ? new Date(award.date) : new Date(),
-        })) ?? [],
-      projects:
-        resume.projects?.map((proj: Project) => ({
-          ...proj,
-          id: proj.id ?? generateUUID(),
-          startDate: proj.startDate ? new Date(proj.startDate) : new Date(),
-          endDate: proj.endDate ? new Date(proj.endDate) : null,
-        })) ?? [],
-    },
-  });
-  const { control } = form;
-  const {
-    fields: skillFields,
-    append: appendSkill,
-    remove: removeSkill,
-  } = useFieldArray({
-    control,
-    name: "skills",
-  });
-  const {
-    fields: experienceFields,
-    append: appendExperience,
-    remove: removeExperience,
-  } = useFieldArray({
-    control,
-    name: "experiences",
-  });
-  const {
-    fields: educationFields,
-    append: appendEducation,
-    remove: removeEducation,
-  } = useFieldArray({
-    control,
-    name: "educations",
-  });
-  const {
-    fields: certificationFields,
-    append: appendCertification,
-    remove: removeCertification,
-  } = useFieldArray({
-    control,
-    name: "licenseCertifications",
-  });
-  const {
-    fields: honorsAwardsFields,
-    append: appendHonorsAward,
-    remove: removeHonorsAward,
-  } = useFieldArray({
-    control,
-    name: "honorsAwards",
-  });
-  const {
-    fields: projectFields,
-    append: appendProject,
-    remove: removeProject,
-  } = useFieldArray({
-    control,
-    name: "projects",
-  });
 
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      form.formState.isDirty &&
-      currentLocation.pathname !== nextLocation.pathname
-  );
+  const {
+    form,
+    formState,
+    handleSubmit,
+    loading,
 
-  const handleSubmit = form.handleSubmit(async (data) => {
-    try {
-      const response = await fetchWithAuth("/api/resume", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response) {
-        throw new Error("No response from server");
-      }
-      const responseData = await response.data;
-      console.log('responseData', responseData);
-      if (responseData.resume) {
-        setResume(responseData.resume);
-        if (blocker) {
-          blocker.reset?.();
-        }
-        form.reset(responseData.resume);
-      } else {
-        console.error("Error saving resume:", responseData);
-      }
-    } catch (error) {
-      console.error("Error saving resume:", error);
-    }
-  });
-  useEffect(() => {
-    form.handleSubmit(() => {
-      blocker?.reset?.();
-    });
-  }, [form, blocker]);
-  if (!resume) {
+    resume,
+
+    skillFields,
+    experienceFields,
+    educationFields,
+    certificationFields,
+    honorsAwardsFields,
+    projectFields,
+
+    appendSkill,
+    appendExperience,
+    appendEducation,
+    appendCertification,
+    appendHonorsAward,
+    appendProject,
+
+    removeSkill,
+    removeExperience,
+    removeEducation,
+    removeCertification,
+    removeHonorsAward,
+    removeProject,
+
+    blocker,
+  } = useResumeForm(initialResume);
+
+  if (loading.isLoading) {
     return <p>Loading...</p>;
   }
+  
   return (
     <>
       <Form {...form}>
@@ -271,11 +125,11 @@ export default function ResumeComponent({
                 Export to DOCX
               </Button>
               <Button
-                variant={form.formState.isDirty ? "default" : "secondary"}
-                disabled={!form.formState.isDirty}
+                variant={formState.isDirty ? "default" : "secondary"}
+                disabled={!formState.isDirty}
                 type="submit"
               >
-                {form.formState.isDirty ? "Save Changes" : "No Changes"}
+                {formState.isDirty ? "Save Changes" : "No Changes"}
               </Button>
             </div>
           </div>

@@ -2,19 +2,25 @@ import {
   type RouteConfig,
   route,
   index,
+  layout,
   prefix,
 } from "@react-router/dev/routes";
 
 export default [
-  index("./routes/home.tsx"),
   route("login", "./routes/login.tsx"),
   route("register", "./routes/register.tsx"),
-  route("resume", "./routes/resume.tsx"),
-  route("charts", "./routes/charts.tsx"),
-  ...prefix("chats", [
-    index("./routes/chats/index.tsx"),
-    route(":chatId", "./routes/chats/[chatId].tsx"),
+  
+  layout("./routes/protected-layout.tsx", [
+    index("./routes/home.tsx"),
+    
+    ...prefix("resume", [
+      index("./routes/resume/index.tsx"),
+      route("generator", "./routes/resume/generator.tsx"),
+      route(":id", "./routes/resume/detail.tsx"),
+    ]),
+
+    route("charts", "./routes/charts.tsx"),
   ]),
-  route("resume-generator", "./routes/resume-generator.tsx"),
-  route("resume-generator-detail", "./routes/resume-detail.tsx"),
+  
+  route("*", "./routes/not-found.tsx"),
 ] satisfies RouteConfig;

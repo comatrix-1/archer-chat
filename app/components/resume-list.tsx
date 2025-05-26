@@ -34,7 +34,7 @@ export interface ResumeItem {
 }
 function safeNavigateToDetail(id: string) {
   if (typeof window !== "undefined") {
-    window.location.href = `/resume-generator-detail?id=${id}`;
+    window.location.href = `/resume/detail?id=${id}`;
   }
 }
 interface ResumeListProps {

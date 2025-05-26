@@ -63,74 +63,116 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   // Check authentication on mount
   useEffect(() => {
+    let isMounted = true;
+    
     const checkAuth = async () => {
       try {
-        console.log('Checking auth...');
+        console.log('AuthContext - Checking authentication state...');
         
-        // First try to get CSRF token
-        const csrfToken = getCsrfToken();
+        // Get stored data first to minimize delay
+        const storedToken = localStorage.getItem('authToken');
+        const storedUserData = localStorage.getItem('userData');
+        
+        console.log('AuthContext - Stored token exists:', !!storedToken);
+        console.log('AuthContext - Stored user data exists:', !!storedUserData);
+
+        // If we have both token and user data, set them immediately for better UX
+        if (storedToken && storedUserData) {
+          try {
+            const userData = JSON.parse(storedUserData);
+            console.log('AuthContext - Setting user from localStorage:', userData);
+            
+            if (isMounted) {
+              setUser(userData);
+              setAccessToken(storedToken);
+              setIsLoggedIn(true);
+              console.log('AuthContext - Using stored auth data');
+            }
+          } catch (error) {
+            console.error('AuthContext - Error parsing stored user data:', error);
+            // Clear invalid data
+            if (isMounted) {
+              removeAuthData();
+            }
+          }
+        }
+
+        // Get CSRF token if needed
+        let csrfToken = getCsrfToken();
         if (!csrfToken) {
-          console.log('No CSRF token, getting new one...');
+          console.log('AuthContext - No CSRF token, getting new one...');
           const response = await fetch('/api/auth/check-csrf', {
             credentials: 'include'
           });
           if (!response.ok) {
             throw new Error('Failed to get CSRF token');
           }
+          csrfToken = getCsrfToken();
+          console.log('AuthContext - Got new CSRF token:', csrfToken ? 'yes' : 'no');
         }
 
-        // Try to get the JWT token from localStorage
-        const storedToken = localStorage.getItem('authToken');
-        const storedUserData = localStorage.getItem('userData');
-        console.log('Stored token:', storedToken);
-        console.log('Stored user data:', storedUserData);
-
-        if (storedToken && storedUserData) {
-          // Token exists and we have user data
-          setUser(JSON.parse(storedUserData));
-          setIsLoggedIn(true);
-          console.log('Using stored auth data');
-          return;
-        }
-
-        // If we don't have valid auth data, try to refresh token
+        // If we have a stored token but no user data, try to refresh
         if (storedToken) {
-          const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${storedToken}`,
-            'X-CSRF-Token': getCsrfToken() || ''
-          };
+          console.log('AuthContext - Attempting to refresh token...');
+          try {
+            const csrfToken = getCsrfToken();
+            if (!csrfToken) {
+              throw new Error('No CSRF token available for refresh');
+            }
 
-          const response = await fetch('/api/auth/refresh', {
-            method: 'POST',
-            credentials: 'include',
-            headers
-          });
+            const response = await fetch('/api/auth/refresh', {
+              method: 'POST',
+              credentials: 'include',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${storedToken}`,
+                'X-CSRF-Token': csrfToken
+              }
+            });
 
-          if (response.ok) {
-            const data = await response.json();
-            console.log('Refresh successful, user:', data.user);
-            saveAuthData(data.accessToken, data.user);
-          } else {
-            console.log('Refresh failed, clearing auth data');
-            removeAuthData();
+            if (response.ok) {
+              const data = await response.json();
+              console.log('AuthContext - Refresh successful, user:', data.user);
+              if (isMounted) {
+                saveAuthData(data.accessToken, data.user);
+              }
+            } else {
+              const errorData = await response.json().catch(() => ({}));
+              console.error('AuthContext - Refresh failed:', response.status, errorData);
+              throw new Error(errorData.message || 'Failed to refresh token');
+            }
+          } catch (error) {
+            console.error('AuthContext - Error during token refresh:', error);
+            // Clear auth data if refresh fails
+            if (isMounted) {
+              removeAuthData();
+            }
+            throw error;
           }
-        } else {
-          console.log('No auth data found');
+        } else if (isMounted) {
+          console.log('AuthContext - No stored token found');
           setIsLoggedIn(false);
           setUser(null);
         }
       } catch (error) {
         console.error("Auth check failed:", error);
-        setIsLoggedIn(false);
-        setUser(null);
+        if (isMounted) {
+          setIsLoggedIn(false);
+          setUser(null);
+        }
       } finally {
-        setLoading(false);
-        console.log('Auth check complete, loading:', loading);
+        if (isMounted) {
+          setLoading(false);
+          console.log('Auth check complete');
+        }
       }
     };
 
     checkAuth();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Handle auth state updates
