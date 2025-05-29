@@ -1,8 +1,10 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
 import { z } from "zod";
+import { Alert, AlertDescription } from "~/components/ui/alert";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import {
@@ -34,7 +36,7 @@ const registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const { register } = useAuth();
+  const { register, error: authError } = useAuth();
   const navigate = useNavigate();
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -46,6 +48,15 @@ export default function Register() {
     },
   });
 
+  useEffect(() => {
+    if (authError) {
+      form.setError("root", {
+        type: "manual",
+        message: authError,
+      });
+    }
+  }, [authError, form]);
+
   const onSubmit = async (data: RegisterFormData) => {
     const ok = await register(data);
     if (ok) {
@@ -55,6 +66,13 @@ export default function Register() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">
+      {form.formState.errors.root && (
+        <Alert variant="destructive" className="mb-4 max-w-screen-sm">
+          <AlertDescription className="text-center">
+            {form.formState.errors.root.message}
+          </AlertDescription>
+        </Alert>
+      )}
       <Card className="w-full max-w-sm">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Register</CardTitle>
