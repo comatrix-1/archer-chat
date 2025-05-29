@@ -56,7 +56,6 @@ ByteDance is committed to creating an inclusive space where employees are valued
     <div className="p-4 max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-bold">Generate New Resume</h1>
-        {}
         <Button variant="outline" onClick={() => navigate("/resume")}>
           Back to List
         </Button>
@@ -103,7 +102,6 @@ ByteDance is committed to creating an inclusive space where employees are valued
             <Button type="submit" disabled={form.formState.isSubmitting}>
               Generate
             </Button>
-            {}
             <Button
               type="button"
               variant="secondary"

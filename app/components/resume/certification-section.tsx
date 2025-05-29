@@ -110,7 +110,6 @@ const CertificationItem: React.FC<CertificationItemProps> = memo(({ fieldId, ind
               />
             </div>
             <div className="flex-1">
-              {}
               <div className="flex items-center justify-between mb-1">
                 <FormLabel>Expiry Date</FormLabel>
                 <div className="flex items-center space-x-2">
@@ -171,7 +170,6 @@ const CertificationItem: React.FC<CertificationItemProps> = memo(({ fieldId, ind
             )}
           />
         </div>
-        {}
       </div>
       <Button
         type="button"
