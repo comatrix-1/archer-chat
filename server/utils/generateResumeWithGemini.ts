@@ -4,54 +4,54 @@ import { fileURLToPath } from "url";
 import { GoogleGenAI } from "@google/genai";
 
 interface GenerateResumeParams {
-	title: string;
-	jobDescription: string;
-	resume: any;
+  title: string;
+  jobDescription: string;
+  resume: any;
 }
 
 export async function generateResumeWithGemini({
-	title,
-	jobDescription,
-	resume,
+  title,
+  jobDescription,
+  resume,
 }: GenerateResumeParams): Promise<{ resume: any; coverLetter: string }> {
-	console.log("generateResumeWithGemini()");
-	const MAX_RETRIES = 2;
-	const apiKey = process.env.GOOGLE_API_KEY;
-	if (!apiKey) {
-		throw new Error("GOOGLE_API_KEY is not set in environment variables");
-	}
+  console.log("generateResumeWithGemini()");
+  const MAX_RETRIES = 2;
+  const apiKey = process.env.GOOGLE_API_KEY;
+  if (!apiKey) {
+    throw new Error("GOOGLE_API_KEY is not set in environment variables");
+  }
 
-	let attempt = 0;
-	let lastError: Error | null = null;
+  let attempt = 0;
+  let lastError: Error | null = null;
 
-	while (attempt < MAX_RETRIES) {
-		const ai = new GoogleGenAI({ apiKey: apiKey });
+  while (attempt < MAX_RETRIES) {
+    const ai = new GoogleGenAI({ apiKey: apiKey });
 
-		const __filename = fileURLToPath(import.meta.url);
-		const __dirname = path.dirname(__filename);
-		const fullPrismaSchemaText = readFileSync(
-			path.resolve(__dirname, "../../prisma/schema.prisma"),
-			"utf-8",
-		);
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const fullPrismaSchemaText = readFileSync(
+      path.resolve(__dirname, "../../prisma/schema.prisma"),
+      "utf-8",
+    );
 
-		const dependentModelNames = [
-			"Experience",
-			"Education",
-			"Skill",
-			"HonorsAwards",
-			"LicenseCertification",
-			"Project",
-		];
-		const relevantEnumNames = [
-			"EmploymentType",
-			"LocationType",
-			"SkillCategory",
-			"SkillProficiency",
-		];
+    const dependentModelNames = [
+      "Experience",
+      "Education",
+      "Skill",
+      "HonorsAwards",
+      "LicenseCertification",
+      "Project",
+    ];
+    const relevantEnumNames = [
+      "EmploymentType",
+      "LocationType",
+      "SkillCategory",
+      "SkillProficiency",
+    ];
 
-		const schemaParts: string[] = [];
+    const schemaParts: string[] = [];
 
-		const minimalResumeModelString = `
+    const minimalResumeModelString = `
 model Resume {
   objective             String?
   experiences           Experience[]
@@ -61,40 +61,40 @@ model Resume {
   licenseCertifications LicenseCertification[]
   projects              Project[]
 }`;
-		schemaParts.push(minimalResumeModelString.trim());
+    schemaParts.push(minimalResumeModelString.trim());
 
-		function extractDefinition(
-			name: string,
-			type: "model" | "enum",
-			sourceText: string,
-		): string | null {
-			const regex = new RegExp(
-				`(^|\\n)${type} ${name}\\s*\\{[\\s\\S]*?\\n\\}`,
-				"gm",
-			);
-			const matches = sourceText.match(regex);
-			if (matches && matches.length > 0) {
-				return matches[0].trim();
-			}
-			console.warn(
-				`Schema definition for ${type} ${name} not found in prisma.schema.`,
-			);
-			return null;
-		}
+    function extractDefinition(
+      name: string,
+      type: "model" | "enum",
+      sourceText: string,
+    ): string | null {
+      const regex = new RegExp(
+        `(^|\\n)${type} ${name}\\s*\\{[\\s\\S]*?\\n\\}`,
+        "gm",
+      );
+      const matches = sourceText.match(regex);
+      if (matches && matches.length > 0) {
+        return matches[0].trim();
+      }
+      console.warn(
+        `Schema definition for ${type} ${name} not found in prisma.schema.`,
+      );
+      return null;
+    }
 
-		dependentModelNames.forEach((name) => {
-			const definition = extractDefinition(name, "model", fullPrismaSchemaText);
-			if (definition) schemaParts.push(definition);
-		});
+    dependentModelNames.forEach((name) => {
+      const definition = extractDefinition(name, "model", fullPrismaSchemaText);
+      if (definition) schemaParts.push(definition);
+    });
 
-		relevantEnumNames.forEach((name) => {
-			const definition = extractDefinition(name, "enum", fullPrismaSchemaText);
-			if (definition) schemaParts.push(definition);
-		});
+    relevantEnumNames.forEach((name) => {
+      const definition = extractDefinition(name, "enum", fullPrismaSchemaText);
+      if (definition) schemaParts.push(definition);
+    });
 
-		const filteredPrismaSchema = schemaParts.join("\n\n");
+    const filteredPrismaSchema = schemaParts.join("\n\n");
 
-		const prompt = `
+    const prompt = `
     You are a professional resume generator. Given the following information (job title, job description, master resume), tailor the following master resume for the job into a resume of approximately 1-2 pages, in JSON format.
     You may re-word and re-phrase the content to make it more suitable for the job title and description.
     The output JSON structure should closely match the structure of the provided prisma schema example below. There are only <schema><job-title><job-description><master-resume> brackets containing the information you need, ignore all other angled brackets. Some description fields such as experience description have HTML markup, please return the same HTML markup format, while making changes to content as necessary.
@@ -120,49 +120,49 @@ ${filteredPrismaSchema}
     * The resume should be between 1-2 pages long.
     `;
 
-		let text = "";
-		try {
-			console.log(`Calling Gemini API (Attempt ${attempt + 1}/${MAX_RETRIES})`);
-			const response = await ai.models.generateContent({
-				model: "gemini-2.0-flash",
-				contents: prompt,
-			});
+    let text = "";
+    try {
+      console.log(`Calling Gemini API (Attempt ${attempt + 1}/${MAX_RETRIES})`);
+      const response = await ai.models.generateContent({
+        model: "gemini-2.0-flash",
+        contents: prompt,
+      });
 
-			text = response.text || "";
+      text = response.text || "";
 
-			let jsonString = text.trim();
-			const codeBlockMatch = jsonString.match(
-				/^```(?:json)?\s*([\s\S]*?)\s*```$/i,
-			);
-			if (codeBlockMatch) {
-				jsonString = codeBlockMatch[1].trim();
-			}
+      let jsonString = text.trim();
+      const codeBlockMatch = jsonString.match(
+        /^```(?:json)?\s*([\s\S]*?)\s*```$/i,
+      );
+      if (codeBlockMatch) {
+        jsonString = codeBlockMatch[1].trim();
+      }
 
-			const resumeJson = JSON.parse(jsonString);
+      const resumeJson = JSON.parse(jsonString);
 
-			console.log(
-				"generateResumeWithGemini() resume parsed successfully: ",
-				resumeJson,
-			);
+      console.log(
+        "generateResumeWithGemini() resume parsed successfully: ",
+        resumeJson,
+      );
 
-			return {
-				resume: resumeJson,
-				coverLetter: "",
-			};
-		} catch (e: any) {
-			console.error(`Attempt ${attempt + 1} failed:`, e.message);
-			lastError = new Error(
-				`Failed to parse AI response as JSON: ${e.message}\nRaw response: ${text}`,
-			);
-			attempt++;
-			if (attempt < MAX_RETRIES) {
-				console.log(`Retrying... (${attempt}/${MAX_RETRIES})`);
-			}
-		}
-	}
+      return {
+        resume: resumeJson,
+        coverLetter: "",
+      };
+    } catch (e: any) {
+      console.error(`Attempt ${attempt + 1} failed:`, e.message);
+      lastError = new Error(
+        `Failed to parse AI response as JSON: ${e.message}\nRaw response: ${text}`,
+      );
+      attempt++;
+      if (attempt < MAX_RETRIES) {
+        console.log(`Retrying... (${attempt}/${MAX_RETRIES})`);
+      }
+    }
+  }
 
-	console.error(`All ${MAX_RETRIES} attempts failed.`);
-	throw (
-		lastError || new Error("Failed to generate resume after multiple attempts.")
-	);
+  console.error(`All ${MAX_RETRIES} attempts failed.`);
+  throw (
+    lastError || new Error("Failed to generate resume after multiple attempts.")
+  );
 }

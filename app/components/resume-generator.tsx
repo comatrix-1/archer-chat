@@ -4,22 +4,22 @@ import { useNavigate } from "react-router";
 import { fetchWithAuth } from "~/utils/fetchWithAuth";
 import { Button } from "./ui/button";
 import {
-	Form,
-	FormControl,
-	FormField,
-	FormItem,
-	FormLabel,
-	FormMessage,
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
 } from "./ui/form";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 
 export default function ResumeGenerator() {
-	const navigate = useNavigate();
-	const form = useForm<{ title: string; jobDescription: string }>({
-		defaultValues: {
-			title: "Product Expert - Video Cloud at ByteDance",
-			jobDescription: `Responsibilities
+  const navigate = useNavigate();
+  const form = useForm<{ title: string; jobDescription: string }>({
+    defaultValues: {
+      title: "Product Expert - Video Cloud at ByteDance",
+      jobDescription: `Responsibilities
 Team Introduction
 Multimedia middle platform (Video Cloud) is one of the world's leading video platforms, providing media storage, transcoding and streaming services. We are committed to building the next generation video processing platform and the largest live broadcast network to provide an excellent experience for billions of users around the world. The role of the Solutions Expert requires in-depth understanding of video cloud business architecture, helping internal/external business parties to deepen product awareness, promote product optimization, and output the best solution in combination with product capabilities.
 As a Video Cloud Product Expert, you will be responsible for
@@ -41,77 +41,77 @@ Inspiring creativity is at the core of ByteDance's mission. Our innovative produ
 As ByteDancers, we strive to do great things with great people. We lead with curiosity, humility, and a desire to make impact in a rapidly growing tech company. By constantly iterating and fostering an "Always Day 1" mindset, we achieve meaningful breakthroughs for ourselves, our Company, and our users. When we create and grow together, the possibilities are limitless. Join us.
 Diversity & Inclusion
 ByteDance is committed to creating an inclusive space where employees are valued for their skills, experiences, and unique perspectives. Our platform connects people from across the globe and so does our workplace. At ByteDance, our mission is to inspire creativity and enrich life. To achieve that goal, we are committed to celebrating our diverse voices and to creating an environment that reflects the many communities we reach. We are passionate about this and hope you are too.`,
-		},
-	});
-	const onSubmit = async (data: { title: string; jobDescription: string }) => {
-		const res = await fetchWithAuth("/api/resume/generate", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(data),
-		});
-		await res.data;
-		navigate("/resume");
-	};
-	return (
-		<div className="p-4 max-w-2xl mx-auto">
-			<div className="flex justify-between items-center mb-4">
-				<h1 className="text-2xl font-bold">Generate New Resume</h1>
-				<Button variant="outline" onClick={() => navigate("/resume")}>
-					Back to List
-				</Button>
-			</div>
-			<Form {...form}>
-				<form
-					onSubmit={form.handleSubmit(onSubmit)}
-					className="space-y-4 bg-white p-4 rounded shadow mb-6"
-				>
-					<FormField
-						control={form.control}
-						name="title"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Title</FormLabel>
-								<FormControl>
-									<Input
-										placeholder="Title (e.g. Software Engineer at Meta)"
-										{...field}
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<FormField
-						control={form.control}
-						name="jobDescription"
-						render={({ field }) => (
-							<FormItem>
-								<FormLabel>Job Description</FormLabel>
-								<FormControl>
-									<Textarea
-										placeholder="Paste the job description here"
-										rows={5}
-										{...field}
-									/>
-								</FormControl>
-								<FormMessage />
-							</FormItem>
-						)}
-					/>
-					<div className="flex gap-2">
-						<Button type="submit" disabled={form.formState.isSubmitting}>
-							Generate
-						</Button>
-						<Button
-							type="button"
-							variant="secondary"
-							onClick={() => navigate("/resume")}
-						>
-							Cancel
-						</Button>
-					</div>
-				</form>
-			</Form>
-		</div>
-	);
+    },
+  });
+  const onSubmit = async (data: { title: string; jobDescription: string }) => {
+    const res = await fetchWithAuth("/api/resume/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    await res.data;
+    navigate("/resume");
+  };
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Generate New Resume</h1>
+        <Button variant="outline" onClick={() => navigate("/resume")}>
+          Back to List
+        </Button>
+      </div>
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="space-y-4 bg-white p-4 rounded shadow mb-6"
+        >
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Title (e.g. Software Engineer at Meta)"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="jobDescription"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Job Description</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder="Paste the job description here"
+                    rows={5}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex gap-2">
+            <Button type="submit" disabled={form.formState.isSubmitting}>
+              Generate
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => navigate("/resume")}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
+  );
 }

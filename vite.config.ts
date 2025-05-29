@@ -5,17 +5,17 @@ import tsconfigPaths from "vite-tsconfig-paths";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-	plugins: [
-		tailwindcss(),
-		reactRouter(),
-		tsconfigPaths(),
-		serverAdapter({
-			entry: "server/router.ts",
-		}),
-	],
-	test: {
-		globals: true,
-		environment: "node",
-		globalSetup: ["./vitest.global-setup.ts"],
-	},
+  plugins: [
+    tailwindcss(),
+    reactRouter(),
+    tsconfigPaths(),
+    serverAdapter({
+      entry: "server/router.ts",
+    }),
+  ],
+  test: {
+    globals: true,
+    environment: "node",
+    globalSetup: ["./vitest.global-setup.ts"],
+  },
 });
