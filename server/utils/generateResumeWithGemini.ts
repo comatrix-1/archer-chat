@@ -27,26 +27,21 @@ export async function generateResumeWithGemini({
   while (attempt < MAX_RETRIES) {
     const ai = new GoogleGenAI({ apiKey: apiKey });
 
-    // Fix for __dirname in ES Modules
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     const fullPrismaSchemaText = readFileSync(path.resolve(__dirname, '../../prisma/schema.prisma'), 'utf-8');
 
-    // Define the models and enums relevant to the resume content structure
     const dependentModelNames = [
       "Experience", "Education", "Skill",
       "HonorsAwards", "LicenseCertification", "Project"
     ];
     const relevantEnumNames = [
       "EmploymentType", "LocationType", "SkillCategory", "SkillProficiency"
-      // Add any other enums directly used by the above models if necessary
+
     ];
 
     const schemaParts: string[] = [];
 
-    // 1. Construct the minimal Resume model definition for the prompt
-    // This includes only the fields Gemini should generate content for,
-    // matching the structure of the `baseResumeTemplate`'s relevant content.
     const minimalResumeModelString = `
 model Resume {
   objective             String?
@@ -59,27 +54,22 @@ model Resume {
 }`;
     schemaParts.push(minimalResumeModelString.trim());
 
-    // Helper function to extract full model/enum definition from the schema text
     function extractDefinition(name: string, type: "model" | "enum", sourceText: string): string | null {
-      // Regex to find 'model Name { ... }' or 'enum Name { ... }'
-      // It looks for 'model/enum Name ', then an opening brace,
-      // then any characters (non-greedy) until a closing brace typically on a new line.
+
       const regex = new RegExp(`(^|\\n)${type} ${name}\\s*\\{[\\s\\S]*?\\n\\}`, "gm");
       const matches = sourceText.match(regex);
       if (matches && matches.length > 0) {
-        return matches[0].trim(); // Return the first match, trimmed
+        return matches[0].trim();
       }
       console.warn(`Schema definition for ${type} ${name} not found in prisma.schema.`);
       return null;
     }
 
-    // 2. Extract full definitions for dependent models
     dependentModelNames.forEach(name => {
       const definition = extractDefinition(name, "model", fullPrismaSchemaText);
       if (definition) schemaParts.push(definition);
     });
 
-    // 3. Extract full definitions for enums
     relevantEnumNames.forEach(name => {
       const definition = extractDefinition(name, "enum", fullPrismaSchemaText);
       if (definition) schemaParts.push(definition);
@@ -87,7 +77,6 @@ model Resume {
 
     const filteredPrismaSchema = schemaParts.join("\n\n");
 
-    // Refined prompt to request a JSON resume matching the Prisma Profile schema
     const prompt = `
     You are a professional resume generator. Given the following information (job title, job description, master resume), tailor the following master resume for the job into a resume of approximately 1-2 pages, in JSON format.
     You may re-word and re-phrase the content to make it more suitable for the job title and description.
@@ -101,7 +90,7 @@ ${filteredPrismaSchema}
     <job-title>${title}</job-title>\n-
     <job-description>${jobDescription}</job-description>\n-
     <master-resume>${JSON.stringify(resume, null, 2)}</master-resume>/n
-    
+
     Please approach this step-by-step:
     1. Find key words and phrases from the job title and description.
     2. Pick the most relevant pieces of content from the master resume, there is no need to include all items.
@@ -124,7 +113,6 @@ ${filteredPrismaSchema}
 
       text = response.text || "";
 
-      // Handle possible Markdown code block wrapping (```json ... ``` or ``` ... ```)
       let jsonString = text.trim();
       const codeBlockMatch = jsonString.match(
         /^```(?:json)?\s*([\s\S]*?)\s*```$/i
@@ -133,14 +121,13 @@ ${filteredPrismaSchema}
         jsonString = codeBlockMatch[1].trim();
       }
 
-      // Try to parse the response as JSON
       const resumeJson = JSON.parse(jsonString);
 
       console.log("generateResumeWithGemini() resume parsed successfully: ", resumeJson);
-      // If parsing succeeds, return the result
+
       return {
         resume: resumeJson,
-        coverLetter: "", // Assuming cover letter generation is separate
+        coverLetter: "",
       };
     } catch (e: any) {
       console.error(`Attempt ${attempt + 1} failed:`, e.message);
@@ -148,13 +135,11 @@ ${filteredPrismaSchema}
       attempt++;
       if (attempt < MAX_RETRIES) {
         console.log(`Retrying... (${attempt}/${MAX_RETRIES})`);
-        // Optional: Add a small delay before retrying
-        // await new Promise(resolve => setTimeout(resolve, 1000));
+
       }
     }
   }
 
-  // If all retries failed, throw the last recorded error
   console.error(`All ${MAX_RETRIES} attempts failed.`);
   throw lastError || new Error("Failed to generate resume after multiple attempts.");
 }

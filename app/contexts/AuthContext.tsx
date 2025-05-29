@@ -33,7 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [accessToken, setAccessToken] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  // Get CSRF token from headers
   const getCsrfToken = () => {
     const csrfToken = document.cookie
       .split(";")
@@ -43,7 +42,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     return csrfToken;
   };
 
-  // Save JWT token and user data to localStorage
   const saveAuthData = (token: string, userData: User) => {
     localStorage.setItem('authToken', token);
     localStorage.setItem('userData', JSON.stringify(userData));
@@ -52,7 +50,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log('Auth data saved:', { token: token.substring(0, 10) + '...', userData });
   };
 
-  // Remove JWT token and user data from localStorage
   const removeAuthData = () => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('userData');
@@ -61,27 +58,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     console.log('Auth data removed');
   };
 
-  // Check authentication on mount
   useEffect(() => {
     let isMounted = true;
-    
+
     const checkAuth = async () => {
       try {
         console.log('AuthContext - Checking authentication state...');
-        
-        // Get stored data first to minimize delay
+
         const storedToken = localStorage.getItem('authToken');
         const storedUserData = localStorage.getItem('userData');
-        
+
         console.log('AuthContext - Stored token exists:', !!storedToken);
         console.log('AuthContext - Stored user data exists:', !!storedUserData);
 
-        // If we have both token and user data, set them immediately for better UX
         if (storedToken && storedUserData) {
           try {
             const userData = JSON.parse(storedUserData);
             console.log('AuthContext - Setting user from localStorage:', userData);
-            
+
             if (isMounted) {
               setUser(userData);
               setAccessToken(storedToken);
@@ -90,14 +84,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             }
           } catch (error) {
             console.error('AuthContext - Error parsing stored user data:', error);
-            // Clear invalid data
+
             if (isMounted) {
               removeAuthData();
             }
           }
         }
 
-        // Get CSRF token if needed
         let csrfToken = getCsrfToken();
         if (!csrfToken) {
           console.log('AuthContext - No CSRF token, getting new one...');
@@ -111,7 +104,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           console.log('AuthContext - Got new CSRF token:', csrfToken ? 'yes' : 'no');
         }
 
-        // If we have a stored token but no user data, try to refresh
         if (storedToken) {
           console.log('AuthContext - Attempting to refresh token...');
           try {
@@ -143,7 +135,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
             }
           } catch (error) {
             console.error('AuthContext - Error during token refresh:', error);
-            // Clear auth data if refresh fails
+
             if (isMounted) {
               removeAuthData();
             }
@@ -175,7 +167,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     };
   }, []);
 
-  // Handle auth state updates
   useEffect(() => {
     console.log('User state changed:', user);
     if (user) {

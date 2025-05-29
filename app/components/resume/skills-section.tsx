@@ -1,15 +1,15 @@
 "use client";
 
-import React, { useMemo } from "react"; // Import useMemo
-import { Input } from "~/components/ui/input"; // Adjust the import path as necessary
+import React, { useMemo } from "react";
+import { Input } from "~/components/ui/input";
 import {
   Select,
   SelectTrigger,
   SelectValue,
   SelectContent,
   SelectItem,
-} from "~/components/ui/select"; // Adjust the import path as necessary
-import { Button } from "~/components/ui/button"; // Adjust the import path as necessary
+} from "~/components/ui/select";
+import { Button } from "~/components/ui/button";
 import { Trash2 } from "lucide-react";
 import {
   FormField,
@@ -19,22 +19,21 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
-import { SkillCategory, SkillProficiency } from "@prisma/client"; // Import enums
+import { SkillCategory, SkillProficiency } from "@prisma/client";
 
 interface SkillField {
   id: string;
   name: string;
-  proficiency: SkillProficiency | string; // Allow string for initial form values if needed, but aim for enum
-  category: SkillCategory | string; // Allow string for initial form values, but aim for enum
+  proficiency: SkillProficiency | string;
+  category: SkillCategory | string;
 }
 
 interface SkillsSectionProps {
   skills: SkillField[];
-  control: any; // Consider using Control<ResumeFormData> from react-hook-form
+  control: any;
   removeSkill: (index: number) => void;
 }
 
-// Use enum values for categories and proficiencies
 const SKILL_CATEGORY_OPTIONS = Object.values(SkillCategory);
 const SKILL_PROFICIENCY_OPTIONS = Object.values(SkillProficiency);
 
@@ -43,14 +42,14 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
   control,
   removeSkill,
 }) => {
-  // Group skills by category using useMemo for performance
+
   const groupedSkills = useMemo(() => {
     return skills.reduce((acc, skill, index) => {
-      const category = skill.category || SkillCategory.TECHNICAL; // Default to TECHNICAL or another suitable default from your enum
+      const category = skill.category || SkillCategory.TECHNICAL;
       if (!acc[category]) {
         acc[category] = [];
       }
-      // Store the original index along with the skill data
+
       acc[category].push({ ...skill, originalIndex: index });
       return acc;
     }, {} as Record<string, (SkillField & { originalIndex: number })[]>);
@@ -62,7 +61,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Iterate over grouped skills */}
+      { }
       {Object.entries(groupedSkills).map(([category, categorySkills]) => (
         <div key={category} className="space-y-3 border-l-2 pl-4 border-muted">
           <h3 className="text-md font-semibold text-muted-foreground">
@@ -73,13 +72,13 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
               key={field.id}
               className="group flex items-end justify-between w-full gap-2 py-1 text-sm"
             >
-              {/* Category Selector */}
+              { }
               <div className="w-1/4">
                 <FormField
                   control={control}
                   name={`skills.${field.originalIndex}.category`}
                   render={(
-                    { field: renderField } // Renamed to avoid conflict
+                    { field: renderField }
                   ) => (
                     <FormItem>
                       <FormLabel>Category</FormLabel>
@@ -107,13 +106,13 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
                   )}
                 />
               </div>
-              {/* Skill Name Input */}
+              { }
               <div className="w-2/4">
                 <FormField
                   control={control}
                   name={`skills.${field.originalIndex}.name`}
                   render={(
-                    { field: renderField } // Renamed to avoid conflict
+                    { field: renderField }
                   ) => (
                     <FormItem>
                       <FormLabel>Skill Name</FormLabel>
@@ -125,13 +124,13 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
                   )}
                 />
               </div>
-              {/* Proficiency Selector */}
+              { }
               <div className="w-1/4">
                 <FormField
                   control={control}
                   name={`skills.${field.originalIndex}.proficiency`}
                   render={(
-                    { field: renderField } // Renamed to avoid conflict
+                    { field: renderField }
                   ) => (
                     <FormItem>
                       <FormLabel>Proficiency</FormLabel>
@@ -151,7 +150,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
                                   prof.slice(1).toLowerCase()}
                               </SelectItem>
                             ))}
-                            {/* If "N/A" or "Experienced" are distinct and needed, consider adding them to your SkillProficiency enum */}
+                            { }
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -160,7 +159,7 @@ const SkillsSection: React.FC<SkillsSectionProps> = ({
                   )}
                 />
               </div>
-              {/* Remove Button */}
+              { }
               <Button
                 type="button"
                 variant="destructive"

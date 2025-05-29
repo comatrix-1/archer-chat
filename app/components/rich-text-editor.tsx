@@ -1,4 +1,4 @@
-"use client"; // Required for TipTap hooks
+"use client";
 
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
@@ -8,15 +8,14 @@ import ListItem from '@tiptap/extension-list-item'
 import Paragraph from '@tiptap/extension-paragraph'
 import Text from '@tiptap/extension-text'
 import { Bold, Italic, List } from "lucide-react";
-import { Toggle } from "~/components/ui/toggle"; // Assuming you have a Toggle component
+import { Toggle } from "~/components/ui/toggle";
 import React from "react";
 
-// Define your extension array
 const extensions = [Document, Paragraph, Text, BulletList, ListItem]
 
 interface RichTextEditorProps {
-  content: string | undefined | null; // Accept initial content
-  onChange: (htmlContent: string) => void; // Callback for changes
+  content: string | undefined | null;
+  onChange: (htmlContent: string) => void;
   placeholder?: string;
 }
 
@@ -27,16 +26,16 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
 }) => {
   const editor = useEditor({
     extensions,
-    content: content || "", // Use provided content or empty string
+    content: content || "",
     editorProps: {
       attributes: {
-        // Add styling similar to Textarea
-class:
-  "min-h-[80px] w-full rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ProseMirror",
-},
+
+        class:
+          "min-h-[80px] w-full rounded-md border border-input bg-background px-2 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ProseMirror",
+      },
     },
     onUpdate({ editor }) {
-      onChange(editor.getHTML()); // Pass HTML content back on update
+      onChange(editor.getHTML());
     },
   });
 
@@ -70,7 +69,7 @@ class:
         >
           <List className="h-4 w-4" />
         </Toggle>
-        {/* Add more controls as needed (e.g., headings, links) */}
+        { }
       </div>
       <EditorContent editor={editor} placeholder={placeholder} />
     </div>

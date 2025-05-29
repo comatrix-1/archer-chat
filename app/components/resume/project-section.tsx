@@ -5,7 +5,7 @@ import { useWatch, type Control, type UseFormGetValues, type UseFormSetValue } f
 import { Input } from '~/components/ui/input';
 import { Button } from '~/components/ui/button';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '~/components/ui/form';
-import type { Project } from '@prisma/client'; 
+import type { Project } from '@prisma/client';
 import { Trash2 } from 'lucide-react';
 import { NO_ITEMS_DESCRIPTION } from '~/lib/constants';
 import { MonthYearPicker } from '~/components/month-year-picker';
@@ -13,7 +13,7 @@ import { Checkbox } from '~/components/ui/checkbox';
 import { RichTextEditor } from '../rich-text-editor';
 
 interface ProjectSectionProps {
-    projectFields: Omit<Project, "resumeId">[]; // Use Omit if needed, adjust based on useFieldArray type
+    projectFields: Omit<Project, "resumeId">[];
     control: Control<any>;
     removeProject: (index: number) => void;
     setValue: UseFormSetValue<any>;
@@ -29,7 +29,6 @@ interface ProjectItemProps {
     getValues: UseFormGetValues<any>;
 }
 
-// Create a separate component for each project item
 const ProjectItem: React.FC<ProjectItemProps> = memo(({ fieldId, index, control, getValues, setValue, removeProject }) => {
     const startDateValue = useWatch({
         control,

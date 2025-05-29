@@ -15,14 +15,14 @@ interface MonthYearPickerProps {
   endDate?: Date;
 }
 
-export function MonthYearPicker({ 
-  date, 
-  onSelect, 
+export function MonthYearPicker({
+  date,
+  onSelect,
   startDate = new Date(new Date().getFullYear() - 50, 0, 1),
   endDate = new Date()
 }: Readonly<MonthYearPickerProps>) {
   console.log('MonthYearPicker() date', date);
-  
+
   const months = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -35,24 +35,23 @@ export function MonthYearPicker({
     (_, i) => endYear - i
   );
   console.log('MonthYearPicker() :: years: ', years);
-  
-  // Filter months based on start/end years
+
   const getAvailableMonths = (year: number) => {
     if (year === startYear && year === endYear) {
-      // Same year, filter months between start and end
-      return months.filter((_, i) => 
+
+      return months.filter((_, i) =>
         i >= startDate.getMonth() && i <= endDate.getMonth()
       );
     } else if (year === startYear) {
-      // Start year, only include months after start month
+
       return months.slice(startDate.getMonth());
     } else if (year === endYear) {
-      // End year, only include months before end month
+
       return months.slice(0, endDate.getMonth() + 1);
     }
-    return months; // Full year available
+    return months;
   };
-  
+
   const availableMonths = getAvailableMonths(date ? new Date(date).getFullYear() : new Date().getFullYear());
 
   const selectedDate = date ? new Date(date) : null;
@@ -94,10 +93,10 @@ export function MonthYearPicker({
         </SelectTrigger>
         <SelectContent>
           {availableMonths.map((month) => (
-            <SelectItem 
-              key={month} 
+            <SelectItem
+              key={month}
               value={month}
-              disabled={!months.includes(month) || false} // Ensure boolean value
+              disabled={!months.includes(month) || false}
             >
               {month}
             </SelectItem>
@@ -114,13 +113,13 @@ export function MonthYearPicker({
         </SelectTrigger>
         <SelectContent>
           {years.map((year) => {
-            const isYearDisabled = 
+            const isYearDisabled =
               (year === startYear && date && new Date(date).getMonth() < startDate.getMonth()) ||
               (year === endYear && date && new Date(date).getMonth() > endDate.getMonth());
-              
+
             return (
-              <SelectItem 
-                key={year} 
+              <SelectItem
+                key={year}
                 value={year.toString()}
                 disabled={Boolean(isYearDisabled)}
               >

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react"; // Import memo
+import React, { memo } from "react";
 import {
   useWatch,
   type Control,
@@ -15,7 +15,7 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select"; // Import Select components
+} from "~/components/ui/select";
 import {
   FormField,
   FormItem,
@@ -27,12 +27,12 @@ import type { Experience } from "@prisma/client";
 import { EmploymentType, LocationType } from "@prisma/client";
 import { Trash2 } from "lucide-react";
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
-import { MonthYearPicker } from "~/components/month-year-picker"; // Import MonthYearPicker
-import { Checkbox } from "~/components/ui/checkbox"; // Import Checkbox
-import { RichTextEditor } from "../rich-text-editor"; // Import RichTextEditor
+import { MonthYearPicker } from "~/components/month-year-picker";
+import { Checkbox } from "~/components/ui/checkbox";
+import { RichTextEditor } from "../rich-text-editor";
 
 interface ExperienceSectionProps {
-  // Update the type for experienceSectionFields to reflect enums
+
   experienceSectionFields: (Omit<
     Experience,
     "resumeId" | "createdAt" | "updatedAt" | "employmentType" | "locationType"
@@ -40,16 +40,15 @@ interface ExperienceSectionProps {
     employmentType: EmploymentType | string;
     locationType: LocationType | string;
   })[];
-  control: Control<any>; // Use Control type
+  control: Control<any>;
   removeExperience: (index: number) => void;
-  setValue: UseFormSetValue<any>; // Use UseFormSetValue type
-  getValues: UseFormGetValues<any>; // Use UseFormGetValues type
+  setValue: UseFormSetValue<any>;
+  getValues: UseFormGetValues<any>;
 }
 
 interface ExperienceItemProps {
-  fieldId: string; // Pass the unique ID for the key prop
+  fieldId: string;
   index: number;
-  // field: (Omit<Experience, "resumeId" | "createdAt" | "updatedAt" | "employmentType" | "locationType"> & { employmentType: EmploymentType | string; locationType: LocationType | string }); // If passing the whole field object
 
   control: Control<any>;
   removeExperience: (index: number) => void;
@@ -57,7 +56,6 @@ interface ExperienceItemProps {
   getValues: UseFormGetValues<any>;
 }
 
-// Create a separate component for each experience item
 const ExperienceItem: React.FC<ExperienceItemProps> = memo(
   ({ fieldId, index, control, getValues, setValue, removeExperience }) => {
     const startDateValue = useWatch({
@@ -91,7 +89,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
               control={control}
               name={`experiences.${index}.employmentType`}
               render={(
-                { field } // field.value should be an EmploymentType or string
+                { field }
               ) => (
                 <FormItem>
                   <FormLabel>Employment Type</FormLabel>
@@ -151,7 +149,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
                 control={control}
                 name={`experiences.${index}.locationType`}
                 render={(
-                  { field } // field.value should be a LocationType or string
+                  { field }
                 ) => (
                   <FormItem className="flex-1">
                     <FormLabel>Location Type</FormLabel>
@@ -194,7 +192,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
                     });
                   }}
                 />
-                {/* We might need a FormMessage here if validation is added */}
+                { }
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
@@ -210,7 +208,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
                             shouldDirty: true,
                           });
                         } else {
-                          // Set a default date or leave null for user to pick
+
                           setValue(`experiences.${index}.endDate`, new Date(), {
                             shouldValidate: true,
                             shouldDirty: true,
@@ -228,7 +226,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
                 </div>
                 {!isPresent && (
                   <MonthYearPicker
-                    date={endDateValue} // Use watched value
+                    date={endDateValue}
                     onSelect={(date) => {
                       const newDate = date ? new Date(date) : null;
                       if (newDate) {
@@ -241,7 +239,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
                     }}
                   />
                 )}
-                {/* We might need a FormMessage here if validation is added */}
+                { }
               </div>
             </div>
             <FormField
@@ -251,10 +249,10 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
                 <FormItem>
                   <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
-                    {/* Replace Textarea with RichTextEditor */}
+                    { }
                     <RichTextEditor
                       content={field.value}
-                      onChange={field.onChange} // Pass the onChange handler from RHF
+                      onChange={field.onChange}
                       placeholder="Describe your responsibilities and achievements..."
                     />
                   </FormControl>
@@ -263,7 +261,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
               )}
             />
           </div>
-          {/* Keep remove button separate if needed, or integrate */}
+          { }
         </div>
         <Button
           type="button"
@@ -276,7 +274,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
     );
   }
 );
-ExperienceItem.displayName = "ExperienceItem"; // Add display name for better debugging
+ExperienceItem.displayName = "ExperienceItem";
 
 const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   experienceSectionFields: experienceFields,
@@ -292,9 +290,9 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
     <div className="space-y-4">
       {experienceFields.map((field, index) => {
         return (
-          // Render the new ExperienceItem component
+
           <ExperienceItem
-            key={field.id} // Use field.id from useFieldArray for stable keys
+            key={field.id}
             fieldId={field.id}
             index={index}
             control={control}

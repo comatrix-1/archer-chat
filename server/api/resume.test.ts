@@ -49,7 +49,7 @@ describe("Resume API Tests", () => {
   const JWT_SECRET = process.env.JWT_SECRET ?? "test-jwt-secret";
   beforeAll(async () => {
     app = new Hono<{ Bindings: {}; Variables: CustomContext }>();
-    // Use the same JWT middleware as the actual application
+
     app.use(
       "/api/resume/*",
       honoJwt({
@@ -85,7 +85,7 @@ describe("Resume API Tests", () => {
     });
   });
   afterAll(async () => {
-    // Clean up all test data
+
     await prisma.licenseCertification.deleteMany({
       where: { resume: { userId: testUser.id } },
     });
@@ -113,7 +113,7 @@ describe("Resume API Tests", () => {
   });
 
   beforeEach(async () => {
-    // Ensure we have a clean test resume before each test
+
     await prisma.resume.upsert({
       where: { id: testResume.id },
       update: {},
@@ -246,8 +246,7 @@ describe("Resume API Tests", () => {
             name: "Faulty Certification to Trigger Error",
             issuer: "Error Corp",
             issueDate: new Date().toISOString(),
-            // The server-side logic will attempt to use "invalid-resume-id-that-does-not-exist"
-            // as resumeId for this, causing a foreign key constraint violation.
+
           },
         ],
         projects: [],
@@ -265,7 +264,7 @@ describe("Resume API Tests", () => {
       expect(body.success).toBe(false);
       expect(body.message).toBe("Failed to update resume");
       expect(body.error).toBeDefined();
-    
+
     });
     test("should handle empty lists of nested data", async () => {
       const token = generateTestToken(testUser.id);
@@ -300,7 +299,6 @@ describe("Resume API Tests", () => {
       const responseBody = await response.json();
       expect(responseBody.success).toBe(true);
 
-      // Verify all nested arrays are empty in the database
       const updatedResume = await prisma.resume.findUnique({
         where: { id: testResume.id },
         include: {
@@ -325,7 +323,6 @@ describe("Resume API Tests", () => {
     test("should handle concurrent updates to the same resume", async () => {
       const token = generateTestToken(testUser.id);
 
-      // Create two slightly different updates
       const update1 = {
         ...testResume,
         objective: "First concurrent update",
@@ -336,7 +333,6 @@ describe("Resume API Tests", () => {
         objective: "Second concurrent update",
       };
 
-      // Send both updates in parallel
       const [response1, response2] = await Promise.all([
         app.request("/api/resume", {
           method: "POST",
@@ -356,16 +352,13 @@ describe("Resume API Tests", () => {
         }),
       ]);
 
-      // Both updates should succeed
       expect(response1.status).toBe(200);
       expect(response2.status).toBe(200);
 
-      // Verify the final state
       const finalResume = await prisma.resume.findUnique({
         where: { id: testResume.id },
       });
 
-      // The objective should be one of the two updates
       expect(["First concurrent update", "Second concurrent update"]).toContain(
         finalResume?.objective
       );
@@ -456,17 +449,17 @@ describe("Resume API Tests", () => {
   describe("GET /api/resume/list", () => {
     test("should return a list of resumes for the user", async () => {
       const token = generateTestToken(testUser.id);
-      // Create unique contacts for the new resumes
+
       const contact1ForList = await prisma.contact.create({
         data: {
           email: `contact1_for_list_test_${Date.now()}@example.com`,
-          // Add other necessary fields for Contact model if they don't have defaults
+
         },
       });
       const contact2ForList = await prisma.contact.create({
         data: {
-          email: `contact2_for_list_test_${Date.now() + 1}@example.com`, // Ensure unique email even if Date.now() is the same
-          // Add other necessary fields for Contact model if they don't have defaults
+          email: `contact2_for_list_test_${Date.now() + 1}@example.com`,
+
         },
       });
 
@@ -476,13 +469,13 @@ describe("Resume API Tests", () => {
             userId: testUser.id,
             conversationId: "conversation1",
             objective: "Test resume 1",
-            contactId: contact1ForList.id, // Use the ID of the first new contact
+            contactId: contact1ForList.id,
           },
           {
             userId: testUser.id,
             conversationId: "conversation2",
             objective: "Test resume 2",
-            contactId: contact2ForList.id, // Use the ID of the second new contact
+            contactId: contact2ForList.id,
           },
         ],
       });
@@ -522,21 +515,17 @@ describe("Resume API Tests", () => {
       expect(Array.isArray(body.resumes)).toBe(true);
       expect(body.resumes.length).toBe(0);
 
-      // Delete the existing base resume (if any) to prevent unique constraint violation
-      // This is necessary because we are about to create a new "base" resume record
-      // and reassign the global testResume variable to it.
       await prisma.resume.deleteMany({
         where: {
           userId: testUser.id,
-          conversationId: "", // Target the specific record that would cause a conflict
+          conversationId: "",
         },
       });
 
-      // Recreate base resume, creating a new Contact
       testResume = await prisma.resume.create({
-        // Update testResume with new data
+
         data: {
-          user: { connect: { id: testUser.id } }, // Connect to existing user
+          user: { connect: { id: testUser.id } },
           conversationId: "",
           objective: "Base template objective",
           contact: {
@@ -614,18 +603,17 @@ describe("Resume API Tests", () => {
       const testResume2 = await prisma.resume.create({
         data: {
           user: {
-            // Connect to the existing testUser
+
             connect: { id: testUser.id },
           },
           conversationId: "conversation3",
           objective: "Specific resume test",
           contact: {
-            // Create a new, unique contact for this test resume
+
             create: {
-              // Using a dynamic email to ensure uniqueness for the test contact.
-              // Contact model's email field is @unique.
+
               email: `contact_for_resume2_get_test_${Date.now()}@example.com`,
-              // Add any other necessary fields for the Contact model if they don't have defaults
+
             },
           },
         },
@@ -659,19 +647,17 @@ describe("Resume API Tests", () => {
       const testResume3 = await prisma.resume.create({
         data: {
           user: {
-            // Connect to the existing testUser
+
             connect: { id: testUser.id },
           },
-          conversationId: "conversation4", // Preserving original test data
+          conversationId: "conversation4",
           objective: "Resume to be deleted",
           contact: {
-            // Create a new, unique contact for this test resume
+
             create: {
-              // Using a dynamic email to ensure uniqueness for the test contact.
-              // Contact model's email field is @unique.
+
               email: `contact_for_resume3_to_delete_${Date.now()}@example.com`,
-              // Add any other necessary fields for the Contact model if they don't have defaults
-              // or if specific values are needed for the test.
+
             },
           },
         },

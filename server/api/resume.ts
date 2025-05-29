@@ -20,14 +20,13 @@ import {
 } from "@prisma/client";
 import { userContextMiddleware } from "server/middleware/userContext.js";
 
-// Define a type for the Hono context variables
 interface HonoEnv {
   Variables: {
     user: { id: string };
-    jwtPayload: { userId: string;[key: string]: any }; // Add other jwtPayload fields if necessary
+    jwtPayload: { userId: string;[key: string]: any };
   };
 }
-// Helper functions
+
 function isEmptyOrInvalidDate(val: any): boolean {
   return !val ||
     (typeof val === "string" && val.trim() === "") ||
@@ -62,7 +61,7 @@ function formatDateValue(val: any): string | null {
   try {
     return new Date(val).toISOString();
   } catch (e) {
-    console.error(`Failed to parse date value: ${val}`, e); // S2486: Handle exception
+    console.error(`Failed to parse date value: ${val}`, e);
     return null;
   }
 }
@@ -97,7 +96,6 @@ function sanitizeDates(obj: any) {
   return processObject(obj, dateFields);
 }
 
-// Mapping functions
 export function mapToEmploymentType(type: string | undefined): EmploymentType {
   if (type && Object.values(EmploymentType).includes(type as EmploymentType)) {
     return type as EmploymentType;
@@ -149,7 +147,7 @@ export const resumeRoute = new Hono<HonoEnv>()
   .use(userContextMiddleware)
   .get("/", async (c) => {
     const user = c.get("user");
-    if (!user?.id) { // S6582: Prefer optional chaining
+    if (!user?.id) {
       return c.json({ error: "Unauthorized: User ID not found in token" }, 401);
     }
     const userId = user.id;
@@ -214,7 +212,7 @@ export const resumeRoute = new Hono<HonoEnv>()
       payloadResume = body.resume ?? (body as Resume);
       console.log("POST /api/resume :: authHeader:", authHeader);
       console.log("POST /api/resume :: clientResumeData payload:", payloadResume);
-      const authenticatedUser = c.get("user"); // S6582: Prefer optional chaining
+      const authenticatedUser = c.get("user");
       if (!authenticatedUser?.id) {
         return c.json({ error: "Unauthorized: User not found" }, 401);
       }
@@ -224,30 +222,28 @@ export const resumeRoute = new Hono<HonoEnv>()
         authenticatedUserId
       );
 
-      const resumeData = payloadResume as Resume & { contact: any, experiences: Experience[], educations: Education[], skills: Skill[], honorsAwards: HonorsAwards[], licenseCertifications: LicenseCertification[], projects: Project[] }; // Add stronger typing if possible
-      
+      const resumeData = payloadResume as Resume & { contact: any, experiences: Experience[], educations: Education[], skills: Skill[], honorsAwards: HonorsAwards[], licenseCertifications: LicenseCertification[], projects: Project[] };
+
       const baseResume = await prisma.resume.findUnique({
         where: {
           userId_conversationId: {
             userId: authenticatedUser?.id,
-            conversationId: "", // Target the base resume
+            conversationId: "",
           },
         },
-        select: { id: true, contactId: true } // Select only necessary fields
+        select: { id: true, contactId: true }
       });
 
       if (!baseResume) {
-        throw new Error("Authenticated user's base resume not found."); // Should not happen if beforeEach works, but good practice
+        throw new Error("Authenticated user's base resume not found.");
       }
 
       const updatedResume = await prisma.$transaction(async (prisma) => {
         const { id, ...contactData } = resumeData.contact;
 
-        // Find the authenticated user's base resume to get the correct contactId and resumeId
-
         await prisma.contact.update({
-          where: { id: baseResume.contactId }, // Use the contactId from the base resume
-          data: { ...contactData }, // Use the data from the request body
+          where: { id: baseResume.contactId },
+          data: { ...contactData },
         });
         await prisma.experience.deleteMany({
           where: { resumeId: resumeData.id },
@@ -255,8 +251,8 @@ export const resumeRoute = new Hono<HonoEnv>()
         if (resumeData.experiences?.length) {
           await prisma.experience.createMany({
             data: resumeData.experiences.map((exp: Experience) => ({
-              ...exp, // Assuming exp structure matches Prisma model fields
-              resumeId: baseResume.id, // Use the base resume's ID
+              ...exp,
+              resumeId: baseResume.id,
               startDate: new Date(exp.startDate),
               endDate: exp.endDate ? new Date(exp.endDate) : null,
             })),
@@ -268,8 +264,8 @@ export const resumeRoute = new Hono<HonoEnv>()
         if (resumeData.educations?.length) {
           await prisma.education.createMany({
             data: resumeData.educations.map((edu: Education) => ({
-              ...edu, // Assuming edu structure matches Prisma model fields
-              resumeId: baseResume.id, // Use the base resume's ID
+              ...edu,
+              resumeId: baseResume.id,
               startDate: new Date(edu.startDate),
               endDate: edu.endDate ? new Date(edu.endDate) : null,
             })),
@@ -281,8 +277,8 @@ export const resumeRoute = new Hono<HonoEnv>()
         if (resumeData.skills?.length) {
           await prisma.skill.createMany({
             data: resumeData.skills.map((skill: Skill) => ({
-              ...skill, // Assuming skill structure matches Prisma model fields
-              resumeId: baseResume.id, // Use the base resume's ID
+              ...skill,
+              resumeId: baseResume.id,
             })),
           });
         }
@@ -292,8 +288,8 @@ export const resumeRoute = new Hono<HonoEnv>()
         if (resumeData.honorsAwards?.length) {
           await prisma.honorsAwards.createMany({
             data: resumeData.honorsAwards.map((award: HonorsAwards) => ({
-              ...award, // Assuming award structure matches Prisma model fields
-              resumeId: baseResume.id, // Use the base resume's ID
+              ...award,
+              resumeId: baseResume.id,
               date: new Date(award.date),
             })),
           });
@@ -304,8 +300,8 @@ export const resumeRoute = new Hono<HonoEnv>()
         if (resumeData.projects?.length) {
           await prisma.project.createMany({
             data: resumeData.projects.map((proj: Project) => ({
-              ...proj, // Assuming proj structure matches Prisma model fields
-              resumeId: baseResume.id, // Use the base resume's ID
+              ...proj,
+              resumeId: baseResume.id,
               startDate: new Date(proj.startDate),
               endDate: proj.endDate ? new Date(proj.endDate) : null,
             })),
@@ -314,13 +310,13 @@ export const resumeRoute = new Hono<HonoEnv>()
         await prisma.licenseCertification.deleteMany({
           where: {
             resumeId: resumeData.id
-          } // TODO: Use baseResume.id here as well
+          }
         });
         if (resumeData.licenseCertifications?.length) {
           await prisma.licenseCertification.createMany({
             data: resumeData.licenseCertifications.map(
               (cert: LicenseCertification) => ({
-                ...cert, // Assuming cert structure matches Prisma model fields
+                ...cert,
                 resumeId: baseResume.id,
                 issueDate: new Date(cert.issueDate),
                 expiryDate: cert.expiryDate
@@ -334,7 +330,7 @@ export const resumeRoute = new Hono<HonoEnv>()
           where: {
             userId_conversationId: {
               userId: authenticatedUser?.id,
-              conversationId: "", // Always target the base resume for this route?
+              conversationId: "",
             },
           },
           data: {
@@ -364,64 +360,62 @@ export const resumeRoute = new Hono<HonoEnv>()
           success: false,
           message: "Failed to update resume",
           error: error.message || "An unknown error occurred",
-        }, 500); // Explicitly set 500 status
+        }, 500);
       } else {
-        // Handle cases where the thrown error is not an instance of Error
+
         console.error("An unknown error occurred during resume update (non-Error type):", error);
         return c.json({
           success: false,
           message: "Failed to update resume",
           error: "An unknown error occurred (non-Error type)",
-        }, 500); // Explicitly set 500 status
+        }, 500);
       }
     }
   })
   .put("/", async (c) => {
     const authenticatedUser = c.get("user");
-    if (!authenticatedUser?.id) { // S6582: Prefer optional chaining
+    if (!authenticatedUser?.id) {
       return c.json({ error: "Unauthorized: User not found in token" }, 401);
     }
     const userIdFromToken = authenticatedUser?.id;
 
     const { email, name, role, contactId } = await c.req.json();
 
-    // This validation is based on your other test: "should return 400 if email and contactId are missing"
     if (!email || !contactId) {
       return c.json({ error: "Email and contactId are required" }, 400);
     }
 
     try {
-      // Update the authenticated user's details
+
       await prisma.user.update({
         where: { id: userIdFromToken },
         data: {
-          email, // new email from request body
-          name,  // new name from request body (make sure your model/logic handles if it's optional)
-          role,  // new role from request body (make sure your model/logic handles if it's optional)
+          email,
+          name,
+          role,
         },
       });
 
-      // Update the contactId of the user's base resume
       const updatedResume = await prisma.resume.update({
         where: {
           userId_conversationId: {
-            userId: userIdFromToken, // Use authenticated user's ID
-            conversationId: "",     // Target base resume
+            userId: userIdFromToken,
+            conversationId: "",
           },
         },
-        data: { contactId }, // new contactId from request body
-        include: { // To provide a comprehensive response, similar to other resume endpoints
+        data: { contactId },
+        include: {
           contact: true,
-          // Add other relations if they are typically expected in the response
+
         }
       });
 
-      return c.json(updatedResume, 200); // Return the updated resume object
+      return c.json(updatedResume, 200);
 
     } catch (error: any) {
       console.error("Error in PUT /api/resume:", error);
-      if (error.code === 'P2025') { // Prisma error: Record to update not found
-        // This could be if the user's base resume doesn't exist
+      if (error.code === 'P2025') {
+
         return c.json({ error: 'Record to update not found (e.g., user base resume).' }, 404);
       }
       return c.json({ error: 'Failed to update data' }, 500);
@@ -429,7 +423,7 @@ export const resumeRoute = new Hono<HonoEnv>()
   })
   .post("/generate", async (c) => {
     const user = c.get("user");
-    if (!user?.id) { // S6582: Prefer optional chaining
+    if (!user?.id) {
       return c.json({ error: "Unauthorized: User not found" }, 401);
     }
     const userId = user.id;
@@ -519,7 +513,7 @@ export const resumeRoute = new Hono<HonoEnv>()
             contactId: newContact.id,
             experiences: {
               create: r.experiences?.map((exp) => ({
-                title: exp.title ?? "Untitled Experience", // S6606: Prefer ??
+                title: exp.title ?? "Untitled Experience",
                 employmentType: mapToEmploymentType(
                   exp.employmentType as string | undefined
                 ),
@@ -536,8 +530,8 @@ export const resumeRoute = new Hono<HonoEnv>()
             educations: {
               create: r.educations?.map((edu) => ({
                 school: edu.school || "Unknown School",
-                degree: edu.degree ?? "N/A", // S6606: Prefer ??
-                fieldOfStudy: edu.fieldOfStudy ?? "N/A", // S6606: Prefer ??
+                degree: edu.degree ?? "N/A",
+                fieldOfStudy: edu.fieldOfStudy ?? "N/A",
                 startDate: edu.startDate ? new Date(edu.startDate) : new Date(),
                 endDate: edu.endDate ? new Date(edu.endDate) : null,
                 gpa: typeof edu.gpa === "number" ? edu.gpa : null,
@@ -548,7 +542,7 @@ export const resumeRoute = new Hono<HonoEnv>()
             },
             skills: {
               create: r.skills?.map((skill) => ({
-                name: skill.name ?? "Unnamed Skill", // S6606: Prefer ??
+                name: skill.name ?? "Unnamed Skill",
                 proficiency: mapToSkillProficiency(
                   skill.proficiency as string | undefined
                 ),
@@ -559,16 +553,16 @@ export const resumeRoute = new Hono<HonoEnv>()
             },
             honorsAwards: {
               create: r.honorsAwards?.map((award) => ({
-                title: award.title ?? "Untitled Award", // S6606: Prefer ??
-                issuer: award.issuer ?? "Unknown Issuer", // S6606: Prefer ??
+                title: award.title ?? "Untitled Award",
+                issuer: award.issuer ?? "Unknown Issuer",
                 date: award.date ? new Date(award.date) : new Date(),
                 description: award.description,
               })),
             },
             licenseCertifications: {
               create: r.licenseCertifications?.map((cert) => ({
-                name: cert.name ?? "Untitled Certification", // S6606: Prefer ??
-                issuer: cert.issuer ?? "Unknown Issuer", // S6606: Prefer ??
+                name: cert.name ?? "Untitled Certification",
+                issuer: cert.issuer ?? "Unknown Issuer",
                 issueDate: cert.issueDate
                   ? new Date(cert.issueDate)
                   : new Date(),
@@ -578,7 +572,7 @@ export const resumeRoute = new Hono<HonoEnv>()
             },
             projects: {
               create: r.projects?.map((proj) => ({
-                title: proj.title ?? "Untitled Project", // S6606: Prefer ??
+                title: proj.title ?? "Untitled Project",
                 startDate: proj.startDate
                   ? new Date(proj.startDate)
                   : new Date(),
@@ -623,7 +617,7 @@ export const resumeRoute = new Hono<HonoEnv>()
   })
   .get("/list", async (c) => {
     const user = c.get("user");
-    if (!user?.id) { // S6582: Prefer optional chaining
+    if (!user?.id) {
       return c.json({ error: "Unauthorized: User ID not found" }, 401);
     }
     const userId = user.id;
@@ -651,10 +645,10 @@ export const resumeRoute = new Hono<HonoEnv>()
   })
   .get("/:id", async (c) => {
     const user = c.get("user");
-    if (!user?.id) { // S6582: Prefer optional chaining
+    if (!user?.id) {
       return c.json({ error: "Unauthorized: User not found" }, 401);
     }
-    const userId = user.id; // userId from authenticated user
+    const userId = user.id;
     const id = c.req.param("id");
     const resume = await prisma.resume.findUnique({
       where: { id },
@@ -676,7 +670,7 @@ export const resumeRoute = new Hono<HonoEnv>()
   })
   .delete("/:id", async (c) => {
     const user = c.get("user");
-    if (!user?.id) { // S6582: Prefer optional chaining
+    if (!user?.id) {
       return c.json({ error: "Unauthorized: User ID not found" }, 401);
     }
     const userId = user.id;

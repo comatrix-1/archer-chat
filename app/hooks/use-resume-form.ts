@@ -72,15 +72,15 @@ export function useResumeForm(initialResume: Resume & {
       contact: initialResume.contact
         ? { ...initialResume.contact }
         : {
-            id: generateUUID(),
-            phone: "",
-            email: "",
-            name: "",
-            linkedin: null,
-            portfolio: null,
-            city: "",
-            country: "",
-          },
+          id: generateUUID(),
+          phone: "",
+          email: "",
+          name: "",
+          linkedin: null,
+          portfolio: null,
+          city: "",
+          country: "",
+        },
       experiences:
         initialResume.experiences?.map((exp: Experience) => ({
           ...exp,
@@ -166,7 +166,7 @@ export function useResumeForm(initialResume: Resume & {
 
   const onSubmit = async (data: ResumeFormData) => {
     setLoadingState(prev => ({ ...prev, isSubmitting: true, error: null }));
-    
+
     try {
       const response = await fetchWithAuth("/api/resume", {
         method: "POST",
@@ -175,14 +175,14 @@ export function useResumeForm(initialResume: Resume & {
         },
         body: JSON.stringify(data),
       });
-      
+
       if (!response) {
         throw new Error("No response from server");
       }
-      
+
       const responseData = await response.data;
       console.log('responseData', responseData);
-      
+
       if (responseData.resume) {
         setResume(responseData.resume);
         reset(responseData.resume);
@@ -213,67 +213,58 @@ export function useResumeForm(initialResume: Resume & {
     }
   }, [blocker, formState.isDirty]);
 
-  // Helper to set loading state
   const setLoading = useCallback((isLoading: boolean) => {
     setLoadingState(prev => ({ ...prev, isLoading }));
   }, []);
 
-  // Helper to set error state
   const setError = useCallback((error: string | null) => {
     setLoadingState(prev => ({ ...prev, error }));
   }, []);
 
-  // Clear error state
   const clearError = useCallback(() => {
     setLoadingState(prev => ({ ...prev, error: null }));
   }, []);
 
   return {
-    // Form state and methods
+
     form,
     formState,
     handleSubmit: (e?: React.BaseSyntheticEvent) => handleSubmit(onSubmit)(e),
     setValue,
     getValues,
     reset,
-    
-    // Resume data
+
     resume,
     setResume,
-    
-    // Loading and error states
+
     loading: {
       ...loadingState,
       setLoading,
       setError,
       clearError,
     },
-    
-    // Field arrays
+
     skillFields,
     experienceFields,
     educationFields,
     certificationFields,
     honorsAwardsFields,
     projectFields,
-    
-    // Append functions
+
     appendSkill,
     appendExperience,
     appendEducation,
     appendCertification,
     appendHonorsAward,
     appendProject,
-    
-    // Remove functions
+
     removeSkill,
     removeExperience,
     removeEducation,
     removeCertification,
     removeHonorsAward,
     removeProject,
-    
-    // Navigation blocker
+
     blocker,
   };
 }

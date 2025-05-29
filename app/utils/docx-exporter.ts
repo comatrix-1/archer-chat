@@ -1,12 +1,12 @@
 import type {
   Contact,
   Education,
-  Experience as PrismaExperience, // Alias to avoid conflict with local types if any
+  Experience as PrismaExperience,
   HonorsAwards,
   LicenseCertification,
   Project,
-  Skill as PrismaSkill, // Alias
-  // Import the enum types themselves
+  Skill as PrismaSkill,
+
   EmploymentType,
   LocationType,
   SkillCategory,
@@ -26,7 +26,6 @@ import {
 import pkg from "file-saver";
 const { saveAs } = pkg;
 
-// Define the ResumeFormData type here or import it if defined elsewhere
 type ResumeFormData = {
   objective: string;
   contact: Contact;
@@ -50,15 +49,14 @@ type ResumeFormData = {
     "resumeId" | "createdAt" | "updatedAt"
   >[];
   honorsAwards: Omit<HonorsAwards, "resumeId" | "createdAt" | "updatedAt">[];
-  projects: Omit<Project, "resumeId" | "createdAt" | "updatedAt">[]; // Assuming Project might have these too
+  projects: Omit<Project, "resumeId" | "createdAt" | "updatedAt">[];
 };
 
-// --- Helper function to create styled paragraphs ---
 const createSectionHeading = (text: string) => {
   return new Paragraph({
     children: [new TextRun({ text: text, bold: true, allCaps: true })],
     heading: HeadingLevel.HEADING_2,
-    spacing: { before: 240, after: 0 }, // Add some spacing
+    spacing: { before: 240, after: 0 },
     border: {
       bottom: {
         color: "auto",
@@ -74,7 +72,7 @@ const createParagraph = (text: string | (TextRun | string)[], options = {}) => {
   const children = Array.isArray(text)
     ? text.map((t) => (typeof t === "string" ? new TextRun(t) : t))
     : [new TextRun(text)];
-  // Remove default 'after' spacing, apply only if passed in options
+
   return new Paragraph({ children, ...options });
 };
 
@@ -86,15 +84,14 @@ const createBullet = (text: string) => {
   });
 };
 
-const NAME_FONT_SIZE = 32; // 16pt
+const NAME_FONT_SIZE = 32;
 const TAB_STOP_POSITION = 11520;
-const FIRST_PARAGRAPH_BEFORE_SPACING = 12; // 12 twips = 0.008 inches
+const FIRST_PARAGRAPH_BEFORE_SPACING = 12;
 const AFTER_SPACING = 0;
-const MARGIN = 720; // 720 twips = 0.5 inches
+const MARGIN = 720;
 
-// Helper function to convert enum values to sentence case
 const toSentenceCase = (value: string): string => {
-  // Special cases for employment types
+
   if (value === "FULL_TIME") return "Full-time";
   if (value === "PART_TIME") return "Part-time";
   if (value === "CONTRACT") return "Contract";
@@ -103,18 +100,15 @@ const toSentenceCase = (value: string): string => {
   if (value === "REMOTE") return "Remote";
   if (value === "HYBRID") return "Hybrid";
   if (value === "ON_SITE") return "On-site";
-  
-  // Convert other values to sentence case
+
   return value.toLowerCase().replace(/\b./g, (match) => match.toUpperCase());
 };
 
 export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
   console.log("Exporting data:", resumeData);
 
-  // --- Build Document Sections ---
   const sections = [];
 
-  // Contact Section
   sections.push(
     new Paragraph({
       children: [
@@ -128,7 +122,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
       spacing: { after: 0 },
     }),
     (() => {
-      // Build contact details conditionally
+
       const contactDetails: (TextRun | string)[] = [];
       const city = resumeData.contact.city ?? "";
       const country = resumeData.contact.country ?? "";
@@ -173,27 +167,25 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     })()
   );
 
-  // Objective Section
   if (resumeData.objective) {
     sections.push(createSectionHeading("Objective"));
     sections.push(createParagraph(resumeData.objective));
   }
 
-  // Experience Section
   if (resumeData.experiences?.length) {
     sections.push(createSectionHeading("Work Experience"));
     resumeData.experiences.forEach((exp) => {
       const startDate = exp.startDate
         ? new Date(exp.startDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-          })
+          year: "numeric",
+          month: "short",
+        })
         : "N/A";
       const endDate = exp.endDate
         ? new Date(exp.endDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-          })
+          year: "numeric",
+          month: "short",
+        })
         : "Present";
       sections.push(
         createParagraph(
@@ -230,25 +222,24 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         )
       );
       if (exp.description) {
-        // Parse HTML description for DOCX
+
         try {
           const parser = new DOMParser();
           const doc = parser.parseFromString(exp.description, "text/html");
 
-          // Iterate through direct children of the body (usually paragraphs or lists)
           doc.body.childNodes.forEach((node) => {
             if (node.nodeName === "P") {
               const text = node.textContent || "";
               if (text.trim()) {
-                sections.push(createParagraph(text)); // Use createParagraph helper
+                sections.push(createParagraph(text));
               }
             } else if (node.nodeName === "UL") {
-              // Handle unordered lists
+
               node.childNodes.forEach((listItem) => {
                 if (listItem.nodeName === "LI") {
                   const text = listItem.textContent || "";
                   if (text.trim()) {
-                    sections.push(createBullet(text.trim())); // Use createBullet helper
+                    sections.push(createBullet(text.trim()));
                   }
                 }
               });
@@ -262,21 +253,20 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     });
   }
 
-  // Education Section
   if (resumeData.educations?.length) {
     sections.push(createSectionHeading("Education"));
     resumeData.educations.forEach((edu) => {
       const startDate = edu.startDate
         ? new Date(edu.startDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-          })
+          year: "numeric",
+          month: "short",
+        })
         : "N/A";
       const endDate = edu.endDate
         ? new Date(edu.endDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-          })
+          year: "numeric",
+          month: "short",
+        })
         : "Present";
       let gpaString = "";
       if (edu.gpa) {
@@ -320,25 +310,24 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         )
       );
       if (edu.description) {
-        // Parse HTML description for DOCX
+
         try {
           const parser = new DOMParser();
           const doc = parser.parseFromString(edu.description, "text/html");
 
-          // Iterate through direct children of the body (usually paragraphs or lists)
           doc.body.childNodes.forEach((node) => {
             if (node.nodeName === "P") {
               const text = node.textContent || "";
               if (text.trim()) {
-                sections.push(createParagraph(text)); // Use createParagraph helper
+                sections.push(createParagraph(text));
               }
             } else if (node.nodeName === "UL") {
-              // Handle unordered lists
+
               node.childNodes.forEach((listItem) => {
                 if (listItem.nodeName === "LI") {
                   const text = listItem.textContent || "";
                   if (text.trim()) {
-                    sections.push(createBullet(text.trim())); // Use createBullet helper
+                    sections.push(createBullet(text.trim()));
                   }
                 }
               });
@@ -346,28 +335,27 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           });
         } catch (e) {
           console.error("Error parsing education description HTML:", e);
-          // Fallback: add raw text if parsing fails
+
           sections.push(createParagraph(edu.description));
         }
       }
     });
   }
 
-  // Projects Section
   if (resumeData.projects?.length) {
     sections.push(createSectionHeading("Education"));
     resumeData.projects.forEach((project) => {
       const startDate = project.startDate
         ? new Date(project.startDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-          })
+          year: "numeric",
+          month: "short",
+        })
         : "N/A";
       const endDate = project.endDate
         ? new Date(project.endDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-          })
+          year: "numeric",
+          month: "short",
+        })
         : "Present";
       sections.push(
         createParagraph(
@@ -390,25 +378,24 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         )
       );
       if (project.description) {
-        // Parse HTML description for DOCX
+
         try {
           const parser = new DOMParser();
           const doc = parser.parseFromString(project.description, "text/html");
 
-          // Iterate through direct children of the body (usually paragraphs or lists)
           doc.body.childNodes.forEach((node) => {
             if (node.nodeName === "P") {
               const text = node.textContent || "";
               if (text.trim()) {
-                sections.push(createParagraph(text)); // Use createParagraph helper
+                sections.push(createParagraph(text));
               }
             } else if (node.nodeName === "UL") {
-              // Handle unordered lists
+
               node.childNodes.forEach((listItem) => {
                 if (listItem.nodeName === "LI") {
                   const text = listItem.textContent || "";
                   if (text.trim()) {
-                    sections.push(createBullet(text.trim())); // Use createBullet helper
+                    sections.push(createBullet(text.trim()));
                   }
                 }
               });
@@ -416,18 +403,16 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           });
         } catch (e) {
           console.error("Error parsing project description HTML:", e);
-          // Fallback: add raw text if parsing fails
+
           sections.push(createParagraph(project.description));
         }
       }
     });
   }
 
-  // Skills Section
   if (resumeData.skills?.length) {
-    sections.push(createSectionHeading("Skills")); // Keep the main heading
+    sections.push(createSectionHeading("Skills"));
 
-    // Group skills by category
     const groupedSkills = resumeData.skills.reduce((acc, skill) => {
       const category = skill.category || "Other";
       if (!acc[category]) {
@@ -437,46 +422,43 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
       return acc;
     }, {} as Record<string, typeof resumeData.skills>);
 
-    // Create a paragraph for each category
     Object.entries(groupedSkills).forEach(([category, categorySkills]) => {
       sections.push(
         createParagraph(
           [
-            new TextRun({ text: `${toSentenceCase(category)}: `, bold: true }), // Convert category to sentence case
+            new TextRun({ text: `${toSentenceCase(category)}: `, bold: true }),
             new TextRun(
               categorySkills
                 .map(
                   (skill) =>
-                    `${skill.name}${
-                      skill.proficiency && skill.proficiency !== "N/A"
-                        ? ` (${toSentenceCase(skill.proficiency)})`
-                        : ""
+                    `${skill.name}${skill.proficiency && skill.proficiency !== "N/A"
+                      ? ` (${toSentenceCase(skill.proficiency)})`
+                      : ""
                     }`
                 )
-                .join(", ") + "." // Join skills with comma, end with period
+                .join(", ") + "."
             ),
           ],
           { spacing: { after: AFTER_SPACING } }
-        ) // Add space after each category line
+        )
       );
     });
   }
 
-  // Certifications Section
   if (resumeData.licenseCertifications?.length) {
     sections.push(createSectionHeading("Licenses & Certifications"));
     resumeData.licenseCertifications.forEach((cert) => {
       const issueDate = cert.issueDate
         ? new Date(cert.issueDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-          })
+          year: "numeric",
+          month: "short",
+        })
         : "N/A";
       const expiryDate = cert.expiryDate
         ? `${new Date(cert.expiryDate).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-          })}`
+          year: "numeric",
+          month: "short",
+        })}`
         : "";
       sections.push(
         createParagraph(
@@ -504,15 +486,14 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     });
   }
 
-  // Honors & Awards Section
   if (resumeData.honorsAwards?.length) {
     sections.push(createSectionHeading("Honors & Awards"));
     resumeData.honorsAwards.forEach((award) => {
       const awardDate = award.date
         ? new Date(award.date).toLocaleDateString("en-US", {
-            year: "numeric",
-            month: "short",
-          })
+          year: "numeric",
+          month: "short",
+        })
         : "";
       sections.push(
         createParagraph([new TextRun({ text: award.title, bold: true })], {
@@ -520,7 +501,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
             before: FIRST_PARAGRAPH_BEFORE_SPACING,
             after: AFTER_SPACING,
           },
-        }), // Award title, reduce space after
+        }),
         createParagraph([
           new TextRun(`Issued by: ${award.issuer || ""}`),
           new TextRun(awardDate ? `\t${awardDate}` : ""),
@@ -547,7 +528,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
       },
     ],
     styles: {
-      // Optional: Define default styles
+
       paragraphStyles: [
         {
           id: "Normal",
@@ -555,9 +536,9 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           basedOn: "Normal",
           next: "Normal",
           quickFormat: true,
-          run: { size: 22, font: "Times New Roman" }, // 11pt
+          run: { size: 22, font: "Times New Roman" },
           paragraph: {
-            spacing: { line: 276, after: AFTER_SPACING }, // Set 'after' spacing to 0
+            spacing: { line: 276, after: AFTER_SPACING },
           },
         },
         {
@@ -566,7 +547,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           basedOn: "Normal",
           next: "Normal",
           quickFormat: true,
-          run: { size: 24, bold: true, allCaps: true, font: "Times New Roman" }, // 12pt
+          run: { size: 24, bold: true, allCaps: true, font: "Times New Roman" },
           paragraph: {
             spacing: { before: 240, after: AFTER_SPACING },
           },
@@ -575,12 +556,10 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     },
   });
 
-  // --- Generate and Download ---
   try {
     const blob = await Packer.toBlob(doc);
-    const filename = `Resume - ${
-      resumeData.contact.name ?? "User"
-    } - ${new Date().toLocaleString().replace(/[/,:]/g, "-").replace(/\s/g, "_")}.docx`;    
+    const filename = `Resume - ${resumeData.contact.name ?? "User"
+      } - ${new Date().toLocaleString().replace(/[/,:]/g, "-").replace(/\s/g, "_")}.docx`;
     saveAs(blob, filename);
     console.log("Document generated and download initiated.");
   } catch (error) {

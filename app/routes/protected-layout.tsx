@@ -9,11 +9,8 @@ export default function ProtectedLayout() {
   );
 }
 
-// This tells React Router that this is a layout route
 export const handle = {
-  // You can add route metadata here if needed
   protected: true
 };
 
-// This ensures the layout is applied to all child routes
 export { default as ErrorBoundary } from "~/components/ErrorBoundary";
