@@ -102,6 +102,16 @@ ${filteredPrismaSchema}
     <job-description>${jobDescription}</job-description>\n-
     <master-resume>${JSON.stringify(resume, null, 2)}</master-resume>/n
     
+    Please approach this step-by-step:
+    1. Find key words and phrases from the job title and description.
+    2. Pick the most relevant pieces of content from the master resume, there is no need to include all items.
+    3. Tailor the content to make it more suitable for the job title and description, ensuring keywords are included.
+    4. Return the content in JSON format.
+
+    Here are some guidelines for the resume:
+    * The resume should be professional and highlight relevant skills and experiences.
+    * Each experience item should have between 3-6 bullet points.
+    * The resume should be between 1-2 pages long.
     `;
 
     let text = "";

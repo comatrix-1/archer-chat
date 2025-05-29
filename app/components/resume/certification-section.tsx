@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo } from "react"; // Import memo
+import React, { memo } from "react"; 
 import type { LicenseCertification } from "@prisma/client";
 import { Trash2 } from "lucide-react";
 import { Input } from "~/components/ui/input";
@@ -13,41 +13,38 @@ import {
   FormControl,
   FormMessage,
 } from "~/components/ui/form";
-import { useWatch, type Control, type UseFormSetValue, type UseFormGetValues } from "react-hook-form"; // Import RHF types
+import { useWatch, type Control, type UseFormSetValue, type UseFormGetValues } from "react-hook-form"; 
 import { Checkbox } from "~/components/ui/checkbox";
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
-
 interface CertificationSectionProps {
   certificationFields: Omit<
     LicenseCertification,
     "resumeId" | "createdAt" | "updatedAt"
   >[];
-  control: Control<any>; // Use Control type
-  setValue: UseFormSetValue<any>; // Use UseFormSetValue type
-  getValues: UseFormGetValues<any>; // Use UseFormGetValues type
+  control: Control<any>; 
+  setValue: UseFormSetValue<any>; 
+  getValues: UseFormGetValues<any>; 
   removeCertification: (index: number) => void;
 }
-
 interface CertificationItemProps {
-  fieldId: string; // Pass the unique ID for the key prop
+  fieldId: string; 
   index: number;
   control: Control<any>;
   setValue: UseFormSetValue<any>;
   getValues: UseFormGetValues<any>;
   removeCertification: (index: number) => void;
 }
-
-// Create a separate component for each certification item
 const CertificationItem: React.FC<CertificationItemProps> = memo(({ fieldId, index, control, getValues, setValue, removeCertification }) => {
-  // Watch the expiry date value for reactivity - Now called at the top level of CertificationItem
   const issueDateValue = useWatch({
     control,
     name: `licenseCertifications.${index}.issueDate`,
   });
+
   const expiryDateValue = useWatch({
     control,
     name: `licenseCertifications.${index}.expiryDate`,
   });
+
   const hasNoExpiry = expiryDateValue === null;
 
   return (
@@ -94,7 +91,6 @@ const CertificationItem: React.FC<CertificationItemProps> = memo(({ fieldId, ind
                 date={issueDateValue}
                 onSelect={(date) => {
                   console.log("date", date);
-                  // Allow setting null, but ensure time is zeroed if date exists
                   const newDate = date ? new Date(date) : null;
                   if (newDate) {
                     newDate.setHours(0, 0, 0, 0);
@@ -102,18 +98,19 @@ const CertificationItem: React.FC<CertificationItemProps> = memo(({ fieldId, ind
                   setValue(
                     `licenseCertifications.${index}.issueDate`,
                     newDate,
-                    { shouldValidate: true, shouldDirty: true } // Add options
+                    { shouldValidate: true, shouldDirty: true } 
                   );
-
                   console.log(
                     "Form Values:",
                     getValues(`licenseCertifications.${index}.issueDate`)
                   );
                 }}
+                startDate={new Date(new Date().getFullYear() - 50, 0, 1)}
+                endDate={new Date()}
               />
             </div>
             <div className="flex-1">
-              {/* Group Label and Checkbox */}
+              {}
               <div className="flex items-center justify-between mb-1">
                 <FormLabel>Expiry Date</FormLabel>
                 <div className="flex items-center space-x-2">
@@ -122,14 +119,12 @@ const CertificationItem: React.FC<CertificationItemProps> = memo(({ fieldId, ind
                     checked={hasNoExpiry}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        // Set expiry date to null when checked
                         setValue(
                           `licenseCertifications.${index}.expiryDate`,
                           null,
                           { shouldValidate: true, shouldDirty: true }
                         );
                       } else {
-                        // Set a default date or leave null for user to pick
                         setValue(`licenseCertifications.${index}.expiryDate`, new Date(), { shouldValidate: true, shouldDirty: true });
                       }
                     }}
@@ -144,9 +139,8 @@ const CertificationItem: React.FC<CertificationItemProps> = memo(({ fieldId, ind
               </div>
               {!hasNoExpiry && (
                 <MonthYearPicker
-                  date={expiryDateValue} // Use watched value
+                  date={expiryDateValue} 
                   onSelect={(date) => {
-                    // Allow setting null, but ensure time is zeroed if date exists
                     const newDate = date ? new Date(date) : null;
                     if (newDate) {
                       newDate.setHours(0, 0, 0, 0);
@@ -154,9 +148,11 @@ const CertificationItem: React.FC<CertificationItemProps> = memo(({ fieldId, ind
                     setValue(
                       `licenseCertifications.${index}.expiryDate`,
                       newDate,
-                      { shouldValidate: true, shouldDirty: true } // Add options
+                      { shouldValidate: true, shouldDirty: true }
                     );
                   }}
+                  startDate={new Date(new Date().getFullYear() - 15, 0, 1)}
+                  endDate={new Date(new Date().getFullYear() + 15, 11, 31)}
                 />
               )}
             </div>
@@ -175,7 +171,7 @@ const CertificationItem: React.FC<CertificationItemProps> = memo(({ fieldId, ind
             )}
           />
         </div>
-        {/* Removed empty div */}
+        {}
       </div>
       <Button
         type="button"
@@ -187,7 +183,8 @@ const CertificationItem: React.FC<CertificationItemProps> = memo(({ fieldId, ind
     </div>
   );
 });
-CertificationItem.displayName = 'CertificationItem'; // Add display name
+
+CertificationItem.displayName = 'CertificationItem'; 
 
 const CertificationSection: React.FC<CertificationSectionProps> = ({
   certificationFields,
@@ -196,17 +193,14 @@ const CertificationSection: React.FC<CertificationSectionProps> = ({
   setValue,
   getValues,
 }) => {
-  // console.log("CertificationSection()"); // Optional: remove if not needed
-
   if (!certificationFields || certificationFields.length === 0) {
     return <p>{NO_ITEMS_DESCRIPTION}</p>;
   }
   return (
     <div className="space-y-4">
       {certificationFields.map((field, index) => (
-        // Render the new CertificationItem component
         <CertificationItem
-          key={field.id} // Use field.id from useFieldArray for stable keys
+          key={field.id} 
           fieldId={field.id}
           index={index}
           control={control}
@@ -218,5 +212,4 @@ const CertificationSection: React.FC<CertificationSectionProps> = ({
     </div>
   );
 };
-
 export default CertificationSection;

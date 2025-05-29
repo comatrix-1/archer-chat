@@ -305,7 +305,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
         createParagraph(
           [
             new TextRun(
-              `${edu.degree || ""}, ${edu.fieldOfStudy || ""}, ${gpaString}`
+              `${edu.degree || ""}${edu.fieldOfStudy ? `, ${edu.fieldOfStudy}` : ""}${gpaString ? `, ${gpaString}` : ""}`
             ),
             new TextRun(`\t${startDate} - ${endDate}`),
           ],
@@ -473,11 +473,11 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
           })
         : "N/A";
       const expiryDate = cert.expiryDate
-        ? `Expires: ${new Date(cert.expiryDate).toLocaleDateString("en-US", {
+        ? `${new Date(cert.expiryDate).toLocaleDateString("en-US", {
             year: "numeric",
             month: "short",
           })}`
-        : "No Expiry";
+        : "";
       sections.push(
         createParagraph(
           [
@@ -579,8 +579,8 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
   try {
     const blob = await Packer.toBlob(doc);
     const filename = `Resume - ${
-      resumeData.contact.name ?? "User" // Use name from contact
-    } - ${new Date().toLocaleDateString()}.docx`;
+      resumeData.contact.name ?? "User"
+    } - ${new Date().toLocaleString().replace(/[/,:]/g, "-").replace(/\s/g, "_")}.docx`;    
     saveAs(blob, filename);
     console.log("Document generated and download initiated.");
   } catch (error) {

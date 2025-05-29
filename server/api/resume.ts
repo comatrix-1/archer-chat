@@ -24,26 +24,26 @@ import { userContextMiddleware } from "server/middleware/userContext.js";
 interface HonoEnv {
   Variables: {
     user: { id: string };
-    jwtPayload: { userId: string; [key: string]: any }; // Add other jwtPayload fields if necessary
+    jwtPayload: { userId: string;[key: string]: any }; // Add other jwtPayload fields if necessary
   };
 }
 // Helper functions
 function isEmptyOrInvalidDate(val: any): boolean {
-  return !val || 
-         (typeof val === "string" && val.trim() === "") ||
-         val.toString().toLowerCase() === "present" ||
-         (typeof val === "string" && isNaN(Date.parse(val)));
+  return !val ||
+    (typeof val === "string" && val.trim() === "") ||
+    val.toString().toLowerCase() === "present" ||
+    (typeof val === "string" && isNaN(Date.parse(val)));
 }
 
 function formatDateString(dateStr: string): string | null {
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
     return new Date(dateStr + "T00:00:00.000Z").toISOString();
   }
-  
+
   if (/^\d{4}-\d{2}$/.test(dateStr)) {
     return new Date(dateStr + "-01T00:00:00.000Z").toISOString();
   }
-  
+
   return null;
 }
 
@@ -51,14 +51,14 @@ function formatDateValue(val: any): string | null {
   if (isEmptyOrInvalidDate(val)) {
     return null;
   }
-  
+
   if (typeof val === "string") {
     const formatted = formatDateString(val);
     if (formatted) {
       return formatted;
     }
   }
-  
+
   try {
     return new Date(val).toISOString();
   } catch (e) {
@@ -69,9 +69,9 @@ function formatDateValue(val: any): string | null {
 
 function processObject(obj: any, dateFields: string[]): any {
   if (!obj || typeof obj !== "object") return obj;
-  
+
   const result = Array.isArray(obj) ? [...obj] : { ...obj };
-  
+
   for (const key in result) {
     if (dateFields.includes(key)) {
       result[key] = formatDateValue(result[key]);
@@ -81,7 +81,7 @@ function processObject(obj: any, dateFields: string[]): any {
       result[key] = processObject(result[key], dateFields);
     }
   }
-  
+
   return result;
 }
 
@@ -208,12 +208,12 @@ export const resumeRoute = new Hono<HonoEnv>()
   })
   .post("/", async (c) => {
     const authHeader = c.req.header("Authorization");
-    let resume;
+    let payloadResume;
     try {
       const body = await c.req.json();
-      resume = body.resume ?? (body as Resume);
+      payloadResume = body.resume ?? (body as Resume);
       console.log("POST /api/resume :: authHeader:", authHeader);
-      console.log("POST /api/resume :: clientResumeData payload:", resume);
+      console.log("POST /api/resume :: clientResumeData payload:", payloadResume);
       const authenticatedUser = c.get("user"); // S6582: Prefer optional chaining
       if (!authenticatedUser?.id) {
         return c.json({ error: "Unauthorized: User not found" }, 401);
@@ -224,165 +224,156 @@ export const resumeRoute = new Hono<HonoEnv>()
         authenticatedUserId
       );
 
-      try {
-        const resumeData = resume as Resume & { contact: any, experiences: Experience[], educations: Education[], skills: Skill[], honorsAwards: HonorsAwards[], licenseCertifications: LicenseCertification[], projects: Project[] }; // Add stronger typing if possible
-        const updatedResume = await prisma.$transaction(async (prisma) => {
-          const { id, ...contactData } = resumeData.contact;
-
-          // Find the authenticated user's base resume to get the correct contactId and resumeId
-          const baseResume = await prisma.resume.findUnique({
-            where: {
-              userId_conversationId: {
-                userId: authenticatedUser?.id,
-                conversationId: "", // Target the base resume
-              },
-            },
-            select: { id: true, contactId: true } // Select only necessary fields
-          });
-
-          if (!baseResume) {
-             throw new Error("Authenticated user's base resume not found."); // Should not happen if beforeEach works, but good practice
-          }
-
-          await prisma.contact.update({
-            where: { id: baseResume.contactId }, // Use the contactId from the base resume
-            data: { ...contactData }, // Use the data from the request body
-          });
-          await prisma.experience.deleteMany({
-            where: { resumeId: resumeData.id },
-          });
-          if (resumeData.experiences?.length) {
-            await prisma.experience.createMany({
-              data: resumeData.experiences.map((exp: Experience) => ({
-                ...exp, // Assuming exp structure matches Prisma model fields
-                resumeId: baseResume.id, // Use the base resume's ID
-                startDate: new Date(exp.startDate),
-                endDate: exp.endDate ? new Date(exp.endDate) : null,
-              })),
-            });
-          }
-          await prisma.education.deleteMany({
-            where: { resumeId: resumeData.id },
-          });
-          if (resumeData.educations?.length) {
-            await prisma.education.createMany({
-              data: resumeData.educations.map((edu: Education) => ({
-                ...edu, // Assuming edu structure matches Prisma model fields
-                resumeId: baseResume.id, // Use the base resume's ID
-                startDate: new Date(edu.startDate),
-                endDate: edu.endDate ? new Date(edu.endDate) : null,
-              })),
-            });
-          }
-          await prisma.skill.deleteMany({
-            where: { resumeId: resumeData.id },
-          });
-          if (resumeData.skills?.length) {
-            await prisma.skill.createMany({
-              data: resumeData.skills.map((skill: Skill) => ({
-                ...skill, // Assuming skill structure matches Prisma model fields
-                resumeId: baseResume.id, // Use the base resume's ID
-              })),
-            });
-          }
-          await prisma.honorsAwards.deleteMany({
-            where: { resumeId: resumeData.id },
-          });
-          if (resumeData.honorsAwards?.length) {
-            await prisma.honorsAwards.createMany({
-              data: resumeData.honorsAwards.map((award: HonorsAwards) => ({
-                ...award, // Assuming award structure matches Prisma model fields
-                resumeId: baseResume.id, // Use the base resume's ID
-                date: new Date(award.date),
-              })),
-            });
-          }
-          await prisma.project.deleteMany({
-            where: { resumeId: resumeData.id },
-          });
-          if (resumeData.projects?.length) {
-            await prisma.project.createMany({
-              data: resumeData.projects.map((proj: Project) => ({
-                ...proj, // Assuming proj structure matches Prisma model fields
-                resumeId: baseResume.id, // Use the base resume's ID
-                startDate: new Date(proj.startDate),
-                endDate: proj.endDate ? new Date(proj.endDate) : null,
-              })),
-            });
-          }
-          await prisma.licenseCertification.deleteMany({
-            where: {
-              resumeId: resumeData.id
-            } // TODO: Use baseResume.id here as well
-          });
-          if (resumeData.licenseCertifications?.length) {
-            await prisma.licenseCertification.createMany({
-              data: resumeData.licenseCertifications.map(
-                (cert: LicenseCertification) => ({
-                  ...cert, // Assuming cert structure matches Prisma model fields
-                  resumeId: resumeData.id,
-                  issueDate: new Date(cert.issueDate),
-                  expiryDate: cert.expiryDate
-                    ? new Date(cert.expiryDate)
-                    : null,
-                })
-              ),
-            });
-          }
-          return prisma.resume.update({
-            where: {
-              userId_conversationId: {
-                userId: authenticatedUser?.id,
-                conversationId: "", // Always target the base resume for this route?
-              },
-            },
-            data: {
-              objective: resumeData.objective,
-            },
-            include: {
-              contact: true,
-              experiences: true,
-              educations: true,
-              skills: true,
-              honorsAwards: true,
-              licenseCertifications: true,
-              projects: true,
-            },
-          });
-        });
-        console.log("Resume updated successfully");
-        return c.json({
-          success: true,
-          message: "Resume updated successfully",
-          resume: updatedResume,
-        });
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.error("Error updating resume:", error);
-          return c.json({
-            success: false,
-            message: "Failed to update resume",
-            error: error.message || "An unknown error occurred",
-          }, 500); // Explicitly set 500 status
-        } else {
-          // Handle cases where the thrown error is not an instance of Error
-          console.error("An unknown error occurred during resume update (non-Error type):", error);
-          return c.json({
-            success: false,
-            message: "Failed to update resume",
-            error: "An unknown error occurred (non-Error type)",
-          }, 500); // Explicitly set 500 status
-        }
-      }
-    } catch (error) {
-      console.error("POST /api/resume :: error:", error);
-      return c.json(
-        {
-          error: "Failed to update resume",
-          details: error,
+      const resumeData = payloadResume as Resume & { contact: any, experiences: Experience[], educations: Education[], skills: Skill[], honorsAwards: HonorsAwards[], licenseCertifications: LicenseCertification[], projects: Project[] }; // Add stronger typing if possible
+      
+      const baseResume = await prisma.resume.findUnique({
+        where: {
+          userId_conversationId: {
+            userId: authenticatedUser?.id,
+            conversationId: "", // Target the base resume
+          },
         },
-        500
-      );
+        select: { id: true, contactId: true } // Select only necessary fields
+      });
+
+      if (!baseResume) {
+        throw new Error("Authenticated user's base resume not found."); // Should not happen if beforeEach works, but good practice
+      }
+
+      const updatedResume = await prisma.$transaction(async (prisma) => {
+        const { id, ...contactData } = resumeData.contact;
+
+        // Find the authenticated user's base resume to get the correct contactId and resumeId
+
+        await prisma.contact.update({
+          where: { id: baseResume.contactId }, // Use the contactId from the base resume
+          data: { ...contactData }, // Use the data from the request body
+        });
+        await prisma.experience.deleteMany({
+          where: { resumeId: resumeData.id },
+        });
+        if (resumeData.experiences?.length) {
+          await prisma.experience.createMany({
+            data: resumeData.experiences.map((exp: Experience) => ({
+              ...exp, // Assuming exp structure matches Prisma model fields
+              resumeId: baseResume.id, // Use the base resume's ID
+              startDate: new Date(exp.startDate),
+              endDate: exp.endDate ? new Date(exp.endDate) : null,
+            })),
+          });
+        }
+        await prisma.education.deleteMany({
+          where: { resumeId: resumeData.id },
+        });
+        if (resumeData.educations?.length) {
+          await prisma.education.createMany({
+            data: resumeData.educations.map((edu: Education) => ({
+              ...edu, // Assuming edu structure matches Prisma model fields
+              resumeId: baseResume.id, // Use the base resume's ID
+              startDate: new Date(edu.startDate),
+              endDate: edu.endDate ? new Date(edu.endDate) : null,
+            })),
+          });
+        }
+        await prisma.skill.deleteMany({
+          where: { resumeId: resumeData.id },
+        });
+        if (resumeData.skills?.length) {
+          await prisma.skill.createMany({
+            data: resumeData.skills.map((skill: Skill) => ({
+              ...skill, // Assuming skill structure matches Prisma model fields
+              resumeId: baseResume.id, // Use the base resume's ID
+            })),
+          });
+        }
+        await prisma.honorsAwards.deleteMany({
+          where: { resumeId: resumeData.id },
+        });
+        if (resumeData.honorsAwards?.length) {
+          await prisma.honorsAwards.createMany({
+            data: resumeData.honorsAwards.map((award: HonorsAwards) => ({
+              ...award, // Assuming award structure matches Prisma model fields
+              resumeId: baseResume.id, // Use the base resume's ID
+              date: new Date(award.date),
+            })),
+          });
+        }
+        await prisma.project.deleteMany({
+          where: { resumeId: resumeData.id },
+        });
+        if (resumeData.projects?.length) {
+          await prisma.project.createMany({
+            data: resumeData.projects.map((proj: Project) => ({
+              ...proj, // Assuming proj structure matches Prisma model fields
+              resumeId: baseResume.id, // Use the base resume's ID
+              startDate: new Date(proj.startDate),
+              endDate: proj.endDate ? new Date(proj.endDate) : null,
+            })),
+          });
+        }
+        await prisma.licenseCertification.deleteMany({
+          where: {
+            resumeId: resumeData.id
+          } // TODO: Use baseResume.id here as well
+        });
+        if (resumeData.licenseCertifications?.length) {
+          await prisma.licenseCertification.createMany({
+            data: resumeData.licenseCertifications.map(
+              (cert: LicenseCertification) => ({
+                ...cert, // Assuming cert structure matches Prisma model fields
+                resumeId: baseResume.id,
+                issueDate: new Date(cert.issueDate),
+                expiryDate: cert.expiryDate
+                  ? new Date(cert.expiryDate)
+                  : null,
+              })
+            ),
+          });
+        }
+        return prisma.resume.update({
+          where: {
+            userId_conversationId: {
+              userId: authenticatedUser?.id,
+              conversationId: "", // Always target the base resume for this route?
+            },
+          },
+          data: {
+            objective: resumeData.objective,
+          },
+          include: {
+            contact: true,
+            experiences: true,
+            educations: true,
+            skills: true,
+            honorsAwards: true,
+            licenseCertifications: true,
+            projects: true,
+          },
+        });
+      });
+      console.log("Resume updated successfully");
+      return c.json({
+        success: true,
+        message: "Resume updated successfully",
+        resume: updatedResume,
+      });
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.error("Error updating resume:", error);
+        return c.json({
+          success: false,
+          message: "Failed to update resume",
+          error: error.message || "An unknown error occurred",
+        }, 500); // Explicitly set 500 status
+      } else {
+        // Handle cases where the thrown error is not an instance of Error
+        console.error("An unknown error occurred during resume update (non-Error type):", error);
+        return c.json({
+          success: false,
+          message: "Failed to update resume",
+          error: "An unknown error occurred (non-Error type)",
+        }, 500); // Explicitly set 500 status
+      }
     }
   })
   .put("/", async (c) => {
@@ -537,7 +528,7 @@ export const resumeRoute = new Hono<HonoEnv>()
                 locationType: mapToLocationType(
                   exp.locationType as string | undefined
                 ),
-                startDate: exp.startDate ? new Date(exp.startDate) : new Date(), 
+                startDate: exp.startDate ? new Date(exp.startDate) : new Date(),
                 endDate: exp.endDate ? new Date(exp.endDate) : null,
                 description: exp.description,
               })),
@@ -547,8 +538,8 @@ export const resumeRoute = new Hono<HonoEnv>()
                 school: edu.school || "Unknown School",
                 degree: edu.degree ?? "N/A", // S6606: Prefer ??
                 fieldOfStudy: edu.fieldOfStudy ?? "N/A", // S6606: Prefer ??
-                startDate: edu.startDate ? new Date(edu.startDate) : new Date(), 
-                endDate: edu.endDate ? new Date(edu.endDate) : null, 
+                startDate: edu.startDate ? new Date(edu.startDate) : new Date(),
+                endDate: edu.endDate ? new Date(edu.endDate) : null,
                 gpa: typeof edu.gpa === "number" ? edu.gpa : null,
                 gpaMax: typeof edu.gpaMax === "number" ? edu.gpaMax : null,
                 location: edu.location,
@@ -558,7 +549,7 @@ export const resumeRoute = new Hono<HonoEnv>()
             skills: {
               create: r.skills?.map((skill) => ({
                 name: skill.name ?? "Unnamed Skill", // S6606: Prefer ??
-                proficiency: mapToSkillProficiency( 
+                proficiency: mapToSkillProficiency(
                   skill.proficiency as string | undefined
                 ),
                 category: mapToSkillCategory(
@@ -570,7 +561,7 @@ export const resumeRoute = new Hono<HonoEnv>()
               create: r.honorsAwards?.map((award) => ({
                 title: award.title ?? "Untitled Award", // S6606: Prefer ??
                 issuer: award.issuer ?? "Unknown Issuer", // S6606: Prefer ??
-                date: award.date ? new Date(award.date) : new Date(), 
+                date: award.date ? new Date(award.date) : new Date(),
                 description: award.description,
               })),
             },
@@ -578,8 +569,8 @@ export const resumeRoute = new Hono<HonoEnv>()
               create: r.licenseCertifications?.map((cert) => ({
                 name: cert.name ?? "Untitled Certification", // S6606: Prefer ??
                 issuer: cert.issuer ?? "Unknown Issuer", // S6606: Prefer ??
-                issueDate: cert.issueDate 
-                  ? new Date(cert.issueDate) 
+                issueDate: cert.issueDate
+                  ? new Date(cert.issueDate)
                   : new Date(),
                 expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : null,
                 credentialId: cert.credentialId,
@@ -588,8 +579,8 @@ export const resumeRoute = new Hono<HonoEnv>()
             projects: {
               create: r.projects?.map((proj) => ({
                 title: proj.title ?? "Untitled Project", // S6606: Prefer ??
-                startDate: proj.startDate 
-                  ? new Date(proj.startDate) 
+                startDate: proj.startDate
+                  ? new Date(proj.startDate)
                   : new Date(),
                 endDate: proj.endDate ? new Date(proj.endDate) : null,
                 description: proj.description,
@@ -631,7 +622,7 @@ export const resumeRoute = new Hono<HonoEnv>()
     });
   })
   .get("/list", async (c) => {
-    const user = c.get("user"); 
+    const user = c.get("user");
     if (!user?.id) { // S6582: Prefer optional chaining
       return c.json({ error: "Unauthorized: User ID not found" }, 401);
     }
@@ -684,7 +675,7 @@ export const resumeRoute = new Hono<HonoEnv>()
     return c.json({ resume });
   })
   .delete("/:id", async (c) => {
-    const user = c.get("user"); 
+    const user = c.get("user");
     if (!user?.id) { // S6582: Prefer optional chaining
       return c.json({ error: "Unauthorized: User ID not found" }, 401);
     }
