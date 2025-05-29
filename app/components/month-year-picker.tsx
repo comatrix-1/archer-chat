@@ -1,134 +1,144 @@
-'use client'
+"use client";
 
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
 } from "~/components/ui/select";
 
 interface MonthYearPickerProps {
-  date: Date | null;
-  onSelect: (date: Date | null) => void;
-  startDate?: Date;
-  endDate?: Date;
+	date: Date | null;
+	onSelect: (date: Date | null) => void;
+	startDate?: Date;
+	endDate?: Date;
 }
 
 export function MonthYearPicker({
-  date,
-  onSelect,
-  startDate = new Date(new Date().getFullYear() - 50, 0, 1),
-  endDate = new Date()
+	date,
+	onSelect,
+	startDate = new Date(new Date().getFullYear() - 50, 0, 1),
+	endDate = new Date(),
 }: Readonly<MonthYearPickerProps>) {
-  console.log('MonthYearPicker() date', date);
+	console.log("MonthYearPicker() date", date);
 
-  const months = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-  ];
+	const months = [
+		"January",
+		"February",
+		"March",
+		"April",
+		"May",
+		"June",
+		"July",
+		"August",
+		"September",
+		"October",
+		"November",
+		"December",
+	];
 
-  const startYear = startDate.getFullYear();
-  const endYear = endDate.getFullYear();
-  const years = Array.from(
-    { length: endYear - startYear + 1 },
-    (_, i) => endYear - i
-  );
-  console.log('MonthYearPicker() :: years: ', years);
+	const startYear = startDate.getFullYear();
+	const endYear = endDate.getFullYear();
+	const years = Array.from(
+		{ length: endYear - startYear + 1 },
+		(_, i) => endYear - i,
+	);
+	console.log("MonthYearPicker() :: years: ", years);
 
-  const getAvailableMonths = (year: number) => {
-    if (year === startYear && year === endYear) {
+	const getAvailableMonths = (year: number) => {
+		if (year === startYear && year === endYear) {
+			return months.filter(
+				(_, i) => i >= startDate.getMonth() && i <= endDate.getMonth(),
+			);
+		} else if (year === startYear) {
+			return months.slice(startDate.getMonth());
+		} else if (year === endYear) {
+			return months.slice(0, endDate.getMonth() + 1);
+		}
+		return months;
+	};
 
-      return months.filter((_, i) =>
-        i >= startDate.getMonth() && i <= endDate.getMonth()
-      );
-    } else if (year === startYear) {
+	const availableMonths = getAvailableMonths(
+		date ? new Date(date).getFullYear() : new Date().getFullYear(),
+	);
 
-      return months.slice(startDate.getMonth());
-    } else if (year === endYear) {
+	const selectedDate = date ? new Date(date) : null;
+	console.log("MonthYearPicker() selectedDate", selectedDate);
+	const selectedMonth = selectedDate ? selectedDate.getMonth() : null;
+	const selectedYear = selectedDate ? selectedDate.getFullYear() : null;
 
-      return months.slice(0, endDate.getMonth() + 1);
-    }
-    return months;
-  };
+	const handleMonthChange = (month: string) => {
+		console.log("MonthYearPicker() handleMonthChange() month", month);
+		if (!month) {
+			onSelect(null);
+			return;
+		}
 
-  const availableMonths = getAvailableMonths(date ? new Date(date).getFullYear() : new Date().getFullYear());
+		const newDate = selectedDate ? new Date(selectedDate) : new Date();
+		newDate.setMonth(months.indexOf(month));
+		onSelect(newDate);
+	};
 
-  const selectedDate = date ? new Date(date) : null;
-  console.log('MonthYearPicker() selectedDate', selectedDate)
-  const selectedMonth = selectedDate ? selectedDate.getMonth() : null;
-  const selectedYear = selectedDate ? selectedDate.getFullYear() : null;
+	const handleYearChange = (year: string) => {
+		if (!year) {
+			onSelect(null);
+			return;
+		}
 
-  const handleMonthChange = (month: string) => {
-    console.log('MonthYearPicker() handleMonthChange() month', month)
-    if (!month) {
-      onSelect(null);
-      return;
-    }
+		const newDate = selectedDate ? new Date(selectedDate) : new Date();
+		newDate.setFullYear(Number.parseInt(year));
+		onSelect(newDate);
+	};
 
-    const newDate = selectedDate ? new Date(selectedDate) : new Date();
-    newDate.setMonth(months.indexOf(month));
-    onSelect(newDate);
-  };
+	return (
+		<div className="flex gap-2">
+			<Select
+				value={selectedMonth !== null ? months[selectedMonth] : undefined}
+				onValueChange={handleMonthChange}
+			>
+				<SelectTrigger className="w-full">
+					<SelectValue placeholder="Month" />
+				</SelectTrigger>
+				<SelectContent>
+					{availableMonths.map((month) => (
+						<SelectItem
+							key={month}
+							value={month}
+							disabled={!months.includes(month) || false}
+						>
+							{month}
+						</SelectItem>
+					))}
+				</SelectContent>
+			</Select>
 
-  const handleYearChange = (year: string) => {
-    if (!year) {
-      onSelect(null);
-      return;
-    }
+			<Select value={selectedYear?.toString()} onValueChange={handleYearChange}>
+				<SelectTrigger className="w-full">
+					<SelectValue placeholder="Year" />
+				</SelectTrigger>
+				<SelectContent>
+					{years.map((year) => {
+						const isYearDisabled =
+							(year === startYear &&
+								date &&
+								new Date(date).getMonth() < startDate.getMonth()) ||
+							(year === endYear &&
+								date &&
+								new Date(date).getMonth() > endDate.getMonth());
 
-    const newDate = selectedDate ? new Date(selectedDate) : new Date();
-    newDate.setFullYear(parseInt(year));
-    onSelect(newDate);
-  };
-
-  return (
-    <div className="flex gap-2">
-      <Select
-        value={selectedMonth !== null ? months[selectedMonth] : undefined}
-        onValueChange={handleMonthChange}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Month" />
-        </SelectTrigger>
-        <SelectContent>
-          {availableMonths.map((month) => (
-            <SelectItem
-              key={month}
-              value={month}
-              disabled={!months.includes(month) || false}
-            >
-              {month}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-
-      <Select
-        value={selectedYear?.toString()}
-        onValueChange={handleYearChange}
-      >
-        <SelectTrigger className="w-full">
-          <SelectValue placeholder="Year" />
-        </SelectTrigger>
-        <SelectContent>
-          {years.map((year) => {
-            const isYearDisabled =
-              (year === startYear && date && new Date(date).getMonth() < startDate.getMonth()) ||
-              (year === endYear && date && new Date(date).getMonth() > endDate.getMonth());
-
-            return (
-              <SelectItem
-                key={year}
-                value={year.toString()}
-                disabled={Boolean(isYearDisabled)}
-              >
-                {year}
-              </SelectItem>
-            );
-          })}
-        </SelectContent>
-      </Select>
-    </div>
-  );
+						return (
+							<SelectItem
+								key={year}
+								value={year.toString()}
+								disabled={Boolean(isYearDisabled)}
+							>
+								{year}
+							</SelectItem>
+						);
+					})}
+				</SelectContent>
+			</Select>
+		</div>
+	);
 }

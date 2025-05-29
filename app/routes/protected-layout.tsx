@@ -2,15 +2,15 @@ import { Outlet } from "react-router";
 import { ProtectedRoute } from "~/components/ProtectedRoute";
 
 export default function ProtectedLayout() {
-  return (
-    <ProtectedRoute>
-      <Outlet />
-    </ProtectedRoute>
-  );
+	return (
+		<ProtectedRoute>
+			<Outlet />
+		</ProtectedRoute>
+	);
 }
 
 export const handle = {
-  protected: true
+	protected: true,
 };
 
 export { default as ErrorBoundary } from "~/components/ErrorBoundary";
