@@ -15,6 +15,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
 import { RichTextEditor } from "../rich-text-editor";
+import { memo } from "react";
 interface EducationItemProps {
   field: Omit<Education, "resumeId" | "createdAt" | "updatedAt"> & {
     id: string;
@@ -25,7 +26,7 @@ interface EducationItemProps {
   removeEducation: (index: number) => void;
 }
 
-const EducationItem: React.FC<EducationItemProps> = ({
+const EducationItem: React.FC<EducationItemProps> = memo(({
   field,
   index,
   control,
@@ -209,7 +210,7 @@ const EducationItem: React.FC<EducationItemProps> = ({
       </Button>
     </div>
   );
-};
+});
 
 interface EducationSectionProps {
   educationFields: (Omit<Education, "resumeId" | "createdAt" | "updatedAt"> & {

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import ResumeComponent from "~/components/resume";
+import { Button } from "~/components/ui/button";
 import { fetchWithAuth } from "~/utils/fetchWithAuth";
 
 function getQueryParam(name: string) {
@@ -26,12 +27,12 @@ export default function ResumeGeneratorDetail() {
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      <button
-        className="mb-4 text-blue-500"
+      <Button
+        variant="link"
         onClick={() => window.history.back()}
       >
         &larr; Back to list
-      </button>
+      </Button>
       {resume ? (
         <ResumeComponent initialResume={resume} />
       ) : (

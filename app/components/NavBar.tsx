@@ -1,6 +1,7 @@
 import { FaSignInAlt, FaSignOutAlt, FaUserCircle } from "react-icons/fa";
 import { Link, useLocation } from "react-router";
 import { useAuth } from "../contexts/AuthContext";
+import { Button } from "~/components/ui/button";
 
 const navItems = [
   { to: "/resume", label: "Resume" },
@@ -25,9 +26,8 @@ export function NavBar() {
           <Link
             key={item.to}
             to={item.to}
-            className={`px-3 py-1 rounded hover:bg-blue-600 transition-colors ${
-              location.pathname == item.to ? "bg-blue-700 font-semibold" : ""
-            }`}
+            className={`px-3 py-1 rounded hover:bg-blue-600 transition-colors ${location.pathname == item.to ? "bg-blue-700 font-semibold" : ""
+              }`}
           >
             {item.label}
           </Link>
@@ -45,13 +45,13 @@ export function NavBar() {
               <FaUserCircle className="inline text-xl" />
               <span className="hidden sm:inline">{user.name}</span>
             </span>
-            <button
+            <Button
               onClick={logout}
               className="flex items-center gap-1 px-3 py-1 rounded bg-red-500 hover:bg-red-600 transition-colors text-white"
               title="Logout"
             >
               <FaSignOutAlt /> <span className="hidden sm:inline">Logout</span>
-            </button>
+            </Button>
           </>
         ) : (
           <Link

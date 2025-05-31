@@ -118,6 +118,10 @@ ${filteredPrismaSchema}
     * The resume should be professional and highlight relevant skills and experiences.
     * Each experience item should have between 3-6 bullet points.
     * The resume should be between 1-2 pages long.
+    * Make the output as human as possible and Applicant Tracking System (ATS) friendly.
+    * Customize the resume to the job post .
+    * Use the keywords mentioned in the job post. 
+    * Do NOT change the company names, job titles, or the dates of employment. These details are factual and must remain 100% accurate for legal reasons, but modify everything else in the resume to match the job post's requested skills and qualifications. 
     `;
 
     let text = "";

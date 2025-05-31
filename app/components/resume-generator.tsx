@@ -2,7 +2,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { fetchWithAuth } from "~/utils/fetchWithAuth";
-import { Button } from "./ui/button";
+import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
