@@ -18,8 +18,6 @@ export default [
       route("generator", "./routes/resume/generator.tsx"),
       route(":id", "./routes/resume/detail.tsx"),
     ]),
-
-    route("charts", "./routes/charts.tsx"),
   ]),
 
   route("*", "./routes/not-found.tsx"),

@@ -14,6 +14,8 @@ import LoadingSpinner from "./components/LoadingSpinner";
 import { NavBar } from "./components/NavBar";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { ChatProvider } from "./contexts/ChatContext";
+import { AppSidebar } from "./components/app-sidebar";
+import { SidebarProvider } from "./components/ui/sidebar";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -61,9 +63,18 @@ function AppContent() {
   const isLoading = authLoading || navigation.state === "loading";
   return (
     <ChatProvider>
-      <NavBar />
-      <Outlet />
-      <LoadingSpinner isLoading={isLoading} />
+      <SidebarProvider>
+        <div className="min-h-screen flex flex-col">
+          <NavBar />
+          <div className="flex flex-1 pt-16">
+            <AppSidebar />
+            <main className="flex-1 overflow-auto p-6 ml-64">
+              <Outlet />
+            </main>
+          </div>
+          <LoadingSpinner isLoading={isLoading} />
+        </div>
+      </SidebarProvider>
     </ChatProvider>
   );
 }

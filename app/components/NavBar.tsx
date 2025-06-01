@@ -1,65 +1,55 @@
-import { FaSignInAlt, FaSignOutAlt, FaUserCircle } from "react-icons/fa";
-import { Link, useLocation } from "react-router";
-import { useAuth } from "../contexts/AuthContext";
+import { FaSignOutAlt, FaSpinner, FaUserCircle } from "react-icons/fa";
+import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
-
-const navItems = [
-  { to: "/resume", label: "Resume" },
-  { to: "/charts", label: "Charts" },
-];
+import { useAuth } from "../contexts/AuthContext";
 
 export function NavBar() {
-  const location = useLocation();
   const { user, logout, loading } = useAuth();
   console.log("NavBar auth state:", { user, loading });
 
   return (
-    <nav className="flex items-center gap-4 p-4 bg-gradient-to-r from-indigo-500 to-blue-400 shadow sticky top-0 z-10 text-white">
+    <nav className="fixed top-0 left-0 right-0 h-16 flex items-center justify-between gap-4 p-4 shadow z-50">
       <Link
         to="/"
         className="text-2xl font-bold tracking-tight mr-6 hover:text-yellow-300 transition-colors"
       >
         ArcherChat
       </Link>
-      <div className="flex gap-2 flex-1">
-        {navItems.map((item) => (
-          <Link
-            key={item.to}
-            to={item.to}
-            className={`px-3 py-1 rounded hover:bg-blue-600 transition-colors ${location.pathname == item.to ? "bg-blue-700 font-semibold" : ""
-              }`}
-          >
-            {item.label}
-          </Link>
-        ))}
-      </div>
       <div className="flex items-center gap-3">
-        {loading ? (
-          <span className="flex items-center gap-1 px-3 py-1 rounded bg-yellow-500 text-white">
-            <FaUserCircle className="inline text-xl" />
-            <span className="hidden sm:inline">Loading...</span>
-          </span>
-        ) : user ? (
+        {loading && (
+          <Button disabled>
+            <FaSpinner className="animate-spin" />
+          </Button>
+        )}
+        {!loading && user && (
           <>
             <span className="flex items-center gap-2 px-2 py-1 bg-white/10 rounded text-white">
               <FaUserCircle className="inline text-xl" />
               <span className="hidden sm:inline">{user.name}</span>
             </span>
-            <Button
-              onClick={logout}
-              className="flex items-center gap-1 px-3 py-1 rounded bg-red-500 hover:bg-red-600 transition-colors text-white"
-              title="Logout"
-            >
+            <Button onClick={logout} title="Logout">
               <FaSignOutAlt /> <span className="hidden sm:inline">Logout</span>
             </Button>
           </>
-        ) : (
-          <Link
-            to="/login"
-            className="flex items-center gap-1 px-3 py-1 rounded bg-green-500 hover:bg-green-600 transition-colors text-white"
-          >
-            <FaSignInAlt /> <span className="hidden sm:inline">Login</span>
-          </Link>
+        )}
+        {!loading && !user && (
+          <>
+            <Button variant="ghost">
+              <Link
+                to="/login"
+                className="flex items-center gap-1 rounded transition-colors"
+              >
+                <span className="hidden sm:inline">Login</span>
+              </Link>
+            </Button>
+            <Button>
+              <Link
+                to="/login"
+              >
+                <span className="hidden sm:inline">Get Started</span>
+              </Link>
+            </Button>
+          </>
         )}
       </div>
     </nav>

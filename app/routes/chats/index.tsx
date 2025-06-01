@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAuth } from "../../contexts/AuthContext";
 import { useChats } from "../../contexts/ChatContext";
+import { Button } from "~/components/ui/button";
 
 export default function ChatList() {
   const { chats, addChat } = useChats();
@@ -29,14 +30,14 @@ export default function ChatList() {
     <div className="max-w-2xl mx-auto p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">Chats</h2>
-        <button className="btn btn-primary" onClick={() => setOpen(true)}>
+        <Button className="btn btn-primary" onClick={() => setOpen(true)}>
           + New Chat
-        </button>
+        </Button>
       </div>
       <ul className="space-y-2">
         {chats.map((chat) => (
           <li key={chat.id}>
-            <button
+            <Button
               className="w-full text-left p-3 bg-white rounded shadow hover:bg-gray-100 flex justify-between items-center"
               onClick={() => navigate(`/chats/${chat.id}`)}
             >
@@ -44,7 +45,7 @@ export default function ChatList() {
               <span className="text-xs bg-gray-200 px-2 py-1 rounded ml-2">
                 {chat.recruitmentStatus}
               </span>
-            </button>
+            </Button>
           </li>
         ))}
       </ul>
