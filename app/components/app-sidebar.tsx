@@ -6,9 +6,11 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarTrigger,
 } from "~/components/ui/sidebar";
 
 const sidebarItems = [
@@ -38,8 +40,11 @@ export function AppSidebar() {
   return (
     <Sidebar
       collapsible="icon"
-      className="fixed left-0 top-16 w-64 h-[calc(100vh-4rem)] border-r"
+      className="w-64 h-full border-r flex-shrink-0 mt-16"
     >
+      <SidebarHeader className="ml-auto">
+        <SidebarTrigger />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent className="flex flex-col gap-2">

@@ -64,16 +64,14 @@ function AppContent() {
   return (
     <ChatProvider>
       <SidebarProvider>
-        <NavBar />
-        <div
-          className="flex flex-1 pt-16"
-        >
+        <div className="flex flex-col min-h-screen bg-background text-foreground w-full">
+          <NavBar />
           <AppSidebar />
-          <main className="flex-1">
+          <main className="flex-1 overflow-auto">
             <Outlet />
           </main>
+          <LoadingSpinner isLoading={isLoading} />
         </div>
-        <LoadingSpinner isLoading={isLoading} />
       </SidebarProvider>
     </ChatProvider>
   );
