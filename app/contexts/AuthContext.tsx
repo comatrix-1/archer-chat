@@ -7,6 +7,7 @@ export type User = {
   email: string;
   role: "JOBSEEKER" | "RECRUITER";
   name: string;
+  photoURL?: string;
 };
 
 interface AuthContextType {

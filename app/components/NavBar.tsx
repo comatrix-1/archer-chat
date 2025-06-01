@@ -1,7 +1,16 @@
-import { FaSignOutAlt, FaSpinner, FaUserCircle } from "react-icons/fa";
+import { FaSignOutAlt, FaSpinner, FaUserCircle, FaChevronDown } from "react-icons/fa";
 import { Link } from "react-router";
 import { Button } from "~/components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "~/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
 export function NavBar() {
   const { user, logout, loading } = useAuth();
@@ -22,15 +31,40 @@ export function NavBar() {
           </Button>
         )}
         {!loading && user && (
-          <>
-            <span className="flex items-center gap-2 px-2 py-1 bg-white/10 rounded text-white">
-              <FaUserCircle className="inline text-xl" />
-              <span className="hidden sm:inline">{user.name}</span>
-            </span>
-            <Button onClick={logout} title="Logout">
-              <FaSignOutAlt /> <span className="hidden sm:inline">Logout</span>
-            </Button>
-          </>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.photoURL ?? ''} />
+                  <AvatarFallback className="bg-primary/10 text-primary">
+                    {user.email?.charAt(0).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="hidden sm:inline-flex items-center gap-1">
+                  {user.email}
+                  <FaChevronDown className="h-3 w-3 opacity-50" />
+                </span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link to="/profile" className="w-full cursor-pointer">
+                  <FaUserCircle className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem 
+                onClick={logout}
+                className="text-red-600 focus:bg-red-50 focus:text-red-600"
+              >
+                <FaSignOutAlt className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
         {!loading && !user && (
           <>
