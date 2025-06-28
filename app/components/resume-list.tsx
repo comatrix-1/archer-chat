@@ -38,12 +38,12 @@ function safeNavigateToDetail(id: string) {
   }
 }
 interface ResumeListProps {
-  readonly masterResume: ResumeItem | null;
+  readonly masterResumeId: string | null;
   readonly resumeList: ResumeItem[];
 }
 
 export default function ResumeList({
-  masterResume,
+  masterResumeId,
   resumeList,
 }: ResumeListProps) {
   const [loading, setLoading] = useState(false);
@@ -79,9 +79,9 @@ export default function ResumeList({
             <h2 className="text-xl font-bold">Master resume</h2>
           </div>
 
-          {masterResume && (
+          {masterResumeId && (
             <div
-              key={masterResume.id}
+              key={masterResumeId}
               className="bg-white rounded shadow p-4 flex justify-between items-center"
             >
               <div className="font-semibold text-lg mb-1">Master Resume</div>
@@ -90,7 +90,7 @@ export default function ResumeList({
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    safeNavigateToDetail(masterResume.id);
+                    safeNavigateToDetail(masterResumeId);
                   }}
                   disabled={loading}
                 >

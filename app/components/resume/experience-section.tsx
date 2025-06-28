@@ -2,9 +2,10 @@
 
 import type { Experience } from "@prisma/client";
 import { EmploymentType, LocationType } from "@prisma/client";
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type React from "react";
 import { memo } from "react";
+import { cn } from "~/lib/utils";
 import {
   type Control,
   type UseFormGetValues,
@@ -31,19 +32,22 @@ import {
 } from "~/components/ui/select";
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
 import { RichTextEditor } from "../rich-text-editor";
+import { generateUUID } from "~/utils/security";
 
 interface ExperienceSectionProps {
   experienceSectionFields: (Omit<
     Experience,
     "resumeId" | "createdAt" | "updatedAt" | "employmentType" | "locationType"
   > & {
-    employmentType: EmploymentType | string;
-    locationType: LocationType | string;
+    employmentType: EmploymentType;
+    locationType: LocationType;
   })[];
   control: Control<any>;
   removeExperience: (index: number) => void;
   setValue: UseFormSetValue<any>;
   getValues: UseFormGetValues<any>;
+  appendExperience: (experience: Experience) => void;
+  resumeId: string;
 }
 
 interface ExperienceItemProps {
@@ -54,6 +58,7 @@ interface ExperienceItemProps {
   removeExperience: (index: number) => void;
   setValue: UseFormSetValue<any>;
   getValues: UseFormGetValues<any>;
+  resumeId: string;
 }
 
 const ExperienceItem: React.FC<ExperienceItemProps> = memo(
@@ -188,7 +193,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
                     });
                   }}
                 />
-                {}
+                { }
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
@@ -234,7 +239,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
                     }}
                   />
                 )}
-                {}
+                { }
               </div>
             </div>
             <FormField
@@ -244,7 +249,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
                 <FormItem>
                   <FormLabel>Description (Optional)</FormLabel>
                   <FormControl>
-                    {}
+                    { }
                     <RichTextEditor
                       content={field.value}
                       onChange={field.onChange}
@@ -256,7 +261,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
               )}
             />
           </div>
-          {}
+          { }
         </div>
         <Button
           type="button"
@@ -277,6 +282,8 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   getValues,
   setValue,
   removeExperience,
+  appendExperience,
+  resumeId,
 }) => {
   if (!experienceFields || experienceFields.length === 0) {
     return <p>{NO_ITEMS_DESCRIPTION}</p>;
@@ -293,9 +300,49 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
             getValues={getValues}
             setValue={setValue}
             removeExperience={removeExperience}
+            resumeId={resumeId}
           />
         );
       })}
+      <Button
+        type="button"
+        className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
+        onClick={(e) => {
+          e.stopPropagation();
+          appendExperience({
+            id: generateUUID(),
+            title: "",
+            company: "",
+            location: "",
+            startDate: new Date(),
+            endDate: new Date(),
+            description: "",
+            employmentType: EmploymentType.FULL_TIME,
+            locationType: LocationType.HYBRID,
+            resumeId,
+          });
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.stopPropagation();
+            appendExperience({
+              id: generateUUID(),
+              title: "",
+              company: "",
+              location: "",
+              startDate: new Date(),
+              endDate: new Date(),
+              description: "",
+              employmentType: "FULL_TIME",
+              locationType: "HYBRID",
+              resumeId,
+            });
+          }
+        }}
+      >
+        <Plus size={16} />
+        <span>Add Experience</span>
+      </Button>
     </div>
   );
 };

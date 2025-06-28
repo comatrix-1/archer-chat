@@ -1,7 +1,7 @@
 "use client";
 
 import type { Project } from "@prisma/client";
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type React from "react";
 import { memo } from "react";
 import {
@@ -23,26 +23,31 @@ import {
 import { Input } from "~/components/ui/input";
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
 import { RichTextEditor } from "../rich-text-editor";
+import { generateUUID } from "~/utils/security";
 
 interface ProjectSectionProps {
   projectFields: Omit<Project, "resumeId">[];
   control: Control<any>;
+  appendProject: (field: Project) => void;
   removeProject: (index: number) => void;
   setValue: UseFormSetValue<any>;
   getValues: UseFormGetValues<any>;
+  resumeId: string;
 }
 
 interface ProjectItemProps {
   fieldId: string;
   index: number;
   control: Control<any>;
+  appendProject: (field: Project) => void;
   removeProject: (index: number) => void;
   setValue: UseFormSetValue<any>;
   getValues: UseFormGetValues<any>;
+  resumeId: string;
 }
 
 const ProjectItem: React.FC<ProjectItemProps> = memo(
-  ({ fieldId, index, control, getValues, setValue, removeProject }) => {
+  ({ fieldId, index, control, getValues, setValue, removeProject, appendProject, resumeId }) => {
     const startDateValue = useWatch({
       control,
       name: `projects.${index}.startDate`,
@@ -145,6 +150,7 @@ const ProjectItem: React.FC<ProjectItemProps> = memo(
         >
           <Trash2 size={16} />
         </Button>
+
       </div>
     );
   },
@@ -157,12 +163,14 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({
   getValues,
   setValue,
   removeProject,
+  appendProject,
+  resumeId,
 }) => {
   if (!projectFields || projectFields.length === 0) {
     return <p>{NO_ITEMS_DESCRIPTION}</p>;
   }
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 flex flex-col items-stretch">
       {projectFields.map((field, index) => (
         <ProjectItem
           key={field.id}
@@ -171,9 +179,42 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({
           control={control}
           getValues={getValues}
           setValue={setValue}
+          appendProject={appendProject}
           removeProject={removeProject}
+          resumeId={resumeId}
         />
       ))}
+      <Button
+        type="button"
+        className="w-full max-w-md mx-auto"
+        onClick={(e) => {
+          e.stopPropagation();
+          appendProject({
+            id: generateUUID(),
+            title: "",
+            startDate: new Date(),
+            endDate: null,
+            description: "",
+            resumeId,
+          });
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.stopPropagation();
+            appendProject({
+              id: generateUUID(),
+              title: "",
+              startDate: new Date(),
+              endDate: null,
+              description: "",
+              resumeId,
+            });
+          }
+        }}
+      >
+        <Plus size={16} />
+        <span>Add Project</span>
+      </Button>
     </div>
   );
 };

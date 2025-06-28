@@ -11,14 +11,16 @@ import {
 import { Input } from "~/components/ui/input";
 
 interface ContactSectionProps {
-  form: any;
+  control: any;
 }
 
-const ContactSection: React.FC<ContactSectionProps> = ({ form }) => {
+const ContactSection: React.FC<ContactSectionProps> = ({
+  control,
+}: ContactSectionProps) => {
   return (
     <div className="space-y-4">
       <FormField
-        control={form.control}
+        control={control}
         name="contact.name"
         render={({ field }) => (
           <FormItem>
@@ -31,7 +33,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ form }) => {
         )}
       />
       <FormField
-        control={form.control}
+        control={control}
         name="contact.email"
         render={({ field }) => (
           <FormItem>
@@ -44,7 +46,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ form }) => {
         )}
       />
       <FormField
-        control={form.control}
+        control={control}
         name="contact.phone"
         render={({ field }) => (
           <FormItem>
@@ -57,7 +59,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ form }) => {
         )}
       />
       <FormField
-        control={form.control}
+        control={control}
         name="contact.linkedin"
         render={({ field }) => (
           <FormItem>
@@ -70,7 +72,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ form }) => {
         )}
       />
       <FormField
-        control={form.control}
+        control={control}
         name="contact.portfolio"
         render={({ field }) => (
           <FormItem>
@@ -83,7 +85,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ form }) => {
         )}
       />
       <FormField
-        control={form.control}
+        control={control}
         name="contact.city"
         render={({ field }) => (
           <FormItem>
@@ -96,7 +98,7 @@ const ContactSection: React.FC<ContactSectionProps> = ({ form }) => {
         )}
       />
       <FormField
-        control={form.control}
+        control={control}
         name="contact.country"
         render={({ field }) => (
           <FormItem>

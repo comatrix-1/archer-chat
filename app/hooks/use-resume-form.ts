@@ -17,6 +17,7 @@ import type {
 import { useCallback, useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { useBlocker } from "react-router";
+import { EResumeSteps } from "~/lib/constants";
 import { fetchWithAuth } from "~/utils/fetchWithAuth";
 import { generateUUID } from "~/utils/security";
 
@@ -55,9 +56,12 @@ export function useResumeForm(
     honorsAwards: HonorsAwards[];
     licenseCertifications: LicenseCertification[];
     projects: Project[];
-  },
+  }
 ) {
   const [resume, setResume] = useState(initialResume);
+  const [resumeStep, setResumeStep] = useState<EResumeSteps>(
+    EResumeSteps.PERSONAL
+  );
   const [loadingState, setLoadingState] = useState<{
     isSubmitting: boolean;
     isLoading: boolean;
@@ -112,7 +116,7 @@ export function useResumeForm(
             issueDate: cert.issueDate ? new Date(cert.issueDate) : new Date(),
             expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : null,
             credentialId: cert.credentialId ?? null,
-          }),
+          })
         ) ?? [],
       honorsAwards:
         initialResume.honorsAwards?.map((award: HonorsAwards) => ({
@@ -192,16 +196,16 @@ export function useResumeForm(
         reset(responseData.resume);
         setLoadingState((prev) => ({ ...prev, isSubmitting: false }));
         return true;
-      } else {
-        const errorMsg = responseData.error ?? "Failed to save resume";
-        setLoadingState((prev) => ({
-          ...prev,
-          isSubmitting: false,
-          error: errorMsg,
-        }));
-        console.error("Error saving resume:", responseData);
-        return false;
       }
+
+      const errorMsg = responseData.error ?? "Failed to save resume";
+      setLoadingState((prev) => ({
+        ...prev,
+        isSubmitting: false,
+        error: errorMsg,
+      }));
+      console.error("Error saving resume:", responseData);
+      return false;
     } catch (error) {
       const errorMsg =
         error instanceof Error ? error.message : "An unexpected error occurred";
@@ -217,7 +221,7 @@ export function useResumeForm(
 
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
-      formState.isDirty && currentLocation.pathname !== nextLocation.pathname,
+      formState.isDirty && currentLocation.pathname !== nextLocation.pathname
   );
 
   useEffect(() => {
@@ -248,6 +252,8 @@ export function useResumeForm(
 
     resume,
     setResume,
+    resumeStep,
+    setResumeStep,
 
     loading: {
       ...loadingState,

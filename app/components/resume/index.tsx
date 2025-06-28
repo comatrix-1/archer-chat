@@ -270,6 +270,11 @@ export default function ResumeComponent({
                   removeExperience={removeExperience}
                   setValue={form.setValue}
                   getValues={form.getValues}
+                  appendExperience={(exp) => {
+                    appendExperience(exp, {
+                      shouldFocus: false,
+                    });
+                  }}
                 />
               </AccordionContent>
             </AccordionItem>
@@ -324,6 +329,11 @@ export default function ResumeComponent({
                   control={form.control}
                   setValue={form.setValue}
                   removeEducation={removeEducation}
+                  appendEducation={(edu) => {
+                    appendEducation(edu, {
+                      shouldFocus: false,
+                    });
+                  }}
                 />
               </AccordionContent>
             </AccordionItem>

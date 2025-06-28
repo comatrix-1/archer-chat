@@ -1,7 +1,7 @@
 "use client";
 
 import type { LicenseCertification } from "@prisma/client";
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type React from "react";
 import { memo } from "react";
 import {
@@ -10,6 +10,7 @@ import {
   type UseFormSetValue,
   useWatch,
 } from "react-hook-form";
+import { v4 as uuidv4 } from "uuid";
 import { MonthYearPicker } from "~/components/month-year-picker";
 import { Button } from "~/components/ui/button";
 import { Checkbox } from "~/components/ui/checkbox";
@@ -22,6 +23,7 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
+import { generateUUID } from "~/utils/security";
 interface CertificationSectionProps {
   certificationFields: Omit<
     LicenseCertification,
@@ -30,7 +32,9 @@ interface CertificationSectionProps {
   control: Control<any>;
   setValue: UseFormSetValue<any>;
   getValues: UseFormGetValues<any>;
+  appendCertification: (certification: LicenseCertification) => void;
   removeCertification: (index: number) => void;
+  resumeId: string;
 }
 interface CertificationItemProps {
   fieldId: string;
@@ -38,10 +42,12 @@ interface CertificationItemProps {
   control: Control<any>;
   setValue: UseFormSetValue<any>;
   getValues: UseFormGetValues<any>;
+  appendCertification: (certification: LicenseCertification) => void;
   removeCertification: (index: number) => void;
+  resumeId: string;
 }
 const CertificationItem: React.FC<CertificationItemProps> = memo(
-  ({ fieldId, index, control, getValues, setValue, removeCertification }) => {
+  ({ fieldId, index, control, getValues, setValue, appendCertification, removeCertification, resumeId }) => {
     const issueDateValue = useWatch({
       control,
       name: `licenseCertifications.${index}.issueDate`,
@@ -200,15 +206,17 @@ CertificationItem.displayName = "CertificationItem";
 const CertificationSection: React.FC<CertificationSectionProps> = ({
   certificationFields,
   control,
+  appendCertification,
   removeCertification,
   setValue,
   getValues,
+  resumeId,
 }) => {
   if (!certificationFields || certificationFields.length === 0) {
     return <p>{NO_ITEMS_DESCRIPTION}</p>;
   }
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 flex flex-col items-stretch">
       {certificationFields.map((field, index) => (
         <CertificationItem
           key={field.id}
@@ -217,9 +225,44 @@ const CertificationSection: React.FC<CertificationSectionProps> = ({
           control={control}
           getValues={getValues}
           setValue={setValue}
+          appendCertification={appendCertification}
           removeCertification={removeCertification}
+          resumeId={resumeId}
         />
       ))}
+      <Button
+        type="button"
+        className="w-full max-w-md my-2 mx-auto"
+        onClick={(e) => {
+          e.stopPropagation();
+          appendCertification({
+            id: generateUUID(),
+            name: "",
+            issuer: "",
+            issueDate: new Date(),
+            expiryDate: null,
+            credentialId: null,
+            resumeId,
+          });
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.stopPropagation();
+            appendCertification({
+              id: generateUUID(),
+              name: "",
+              issuer: "",
+              issueDate: new Date(),
+              expiryDate: null,
+              credentialId: null,
+              resumeId,
+            });
+          }
+        }}
+      >
+        <Plus size={16} />
+        <span>Add Certification</span>
+      </Button>
     </div>
   );
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import type { HonorsAwards } from "@prisma/client";
-import { Trash2 } from "lucide-react";
+import { Plus, Trash2 } from "lucide-react";
 import type React from "react";
 import { Button } from "~/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
 import { Input } from "~/components/ui/input";
 import { Textarea } from "~/components/ui/textarea";
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
+import { generateUUID } from "~/utils/security";
 
 interface HonorsAwardField {
   id: string;
@@ -29,19 +30,23 @@ interface HonorsAwardsSectionProps {
     "resumeId" | "createdAt" | "updatedAt"
   >[];
   control: any;
+  appendHonorsAward: (field: HonorsAwardField) => void;
   removeHonorsAward: (index: number) => void;
 }
 
 const HonorsAwardsSection: React.FC<HonorsAwardsSectionProps> = ({
   honorsAwardsFields,
   control,
+  appendHonorsAward,
   removeHonorsAward,
 }) => {
-  if (!honorsAwardsFields || honorsAwardsFields.length === 0) {
-    return <p>{NO_ITEMS_DESCRIPTION}</p>;
-  }
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 flex flex-col items-stretch">
+      {!honorsAwardsFields || honorsAwardsFields.length === 0
+        ?
+        <p className="text-center">{NO_ITEMS_DESCRIPTION}</p>
+        : null
+      }
       {honorsAwardsFields.map((field, index) => (
         <div
           key={field.id}
@@ -120,6 +125,35 @@ const HonorsAwardsSection: React.FC<HonorsAwardsSectionProps> = ({
           </Button>
         </div>
       ))}
+      <Button
+        type="button"
+        className="w-full max-w-md mx-auto"
+        onClick={(e) => {
+          e.stopPropagation();
+          appendHonorsAward({
+            id: generateUUID(),
+            title: "",
+            issuer: "",
+            date: new Date(),
+            description: "",
+          });
+        }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.stopPropagation();
+            appendHonorsAward({
+              id: generateUUID(),
+              title: "",
+              issuer: "",
+              date: new Date(),
+              description: "",
+            });
+          }
+        }}
+      >
+        <Plus size={16} />
+        <span>Add Award</span>
+      </Button>
     </div>
   );
 };

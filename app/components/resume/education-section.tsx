@@ -16,6 +16,9 @@ import { Input } from "~/components/ui/input";
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
 import { RichTextEditor } from "../rich-text-editor";
 import { memo } from "react";
+import { Plus } from "lucide-react";
+import { cn } from "~/lib/utils";
+import { v4 as uuidv4 } from "uuid";
 interface EducationItemProps {
   field: Omit<Education, "resumeId" | "createdAt" | "updatedAt"> & {
     id: string;
@@ -219,6 +222,7 @@ interface EducationSectionProps {
   control: any;
   setValue: any;
   removeEducation: (index: number) => void;
+  appendEducation: (education: any) => void;
 }
 
 const EducationSection: React.FC<EducationSectionProps> = ({
@@ -226,6 +230,7 @@ const EducationSection: React.FC<EducationSectionProps> = ({
   control,
   setValue,
   removeEducation,
+  appendEducation,
 }) => {
   if (!educationFields || educationFields.length === 0) {
     return <p>{NO_ITEMS_DESCRIPTION}</p>;
@@ -242,7 +247,42 @@ const EducationSection: React.FC<EducationSectionProps> = ({
           removeEducation={removeEducation}
         />
       ))}
-    </div>
+        <Button
+          type="button"
+          className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
+          onClick={(e) => {
+            e.stopPropagation();
+            appendEducation({
+              id: uuidv4(),
+              school: "",
+              degree: "",
+              fieldOfStudy: "",
+              startDate: new Date(),
+              endDate: null,
+              current: false,
+              description: "",
+            });
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation();
+              appendEducation({
+                id: uuidv4(),
+                school: "",
+                degree: "",
+                fieldOfStudy: "",
+                startDate: new Date(),
+                endDate: null,
+                current: false,
+                description: "",
+              });
+            }
+          }}
+        >
+          <Plus size={16} />
+          <span>Add Education</span>
+        </Button>
+      </div>
   );
 };
 export default EducationSection;
