@@ -139,6 +139,7 @@ export const ResumeSection = ({
             educationFields={educationFields}
             control={form.control}
             setValue={form.setValue}
+            getValues={form.getValues}
             removeEducation={removeEducation}
             appendEducation={(edu) => {
               appendEducation(edu, {
@@ -185,6 +186,8 @@ export const ResumeSection = ({
           <HonorsAwardsSection
             honorsAwardsFields={honorsAwardsFields}
             control={form.control}
+            setValue={form.setValue}
+            getValues={form.getValues}
             removeHonorsAward={removeHonorsAward}
             appendHonorsAward={appendHonorsAward}
           />

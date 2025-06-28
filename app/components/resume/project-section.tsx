@@ -1,7 +1,7 @@
 "use client";
 
 import type { Project } from "@prisma/client";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import type React from "react";
 import { memo } from "react";
 import {
@@ -22,8 +22,9 @@ import {
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
-import { RichTextEditor } from "../rich-text-editor";
 import { generateUUID } from "~/utils/security";
+import { RichTextEditor } from "../rich-text-editor";
+import { DetailCard } from "./detail-card";
 
 interface ProjectSectionProps {
   projectFields: Omit<Project, "resumeId">[];
@@ -39,15 +40,21 @@ interface ProjectItemProps {
   fieldId: string;
   index: number;
   control: Control<any>;
-  appendProject: (field: Project) => void;
   removeProject: (index: number) => void;
   setValue: UseFormSetValue<any>;
-  getValues: UseFormGetValues<any>;
   resumeId: string;
+  title: string;
 }
 
 const ProjectItem: React.FC<ProjectItemProps> = memo(
-  ({ fieldId, index, control, getValues, setValue, removeProject, appendProject, resumeId }) => {
+  ({
+    fieldId,
+    index,
+    control,
+    setValue,
+    removeProject,
+    title,
+  }) => {
     const startDateValue = useWatch({
       control,
       name: `projects.${index}.startDate`,
@@ -59,7 +66,13 @@ const ProjectItem: React.FC<ProjectItemProps> = memo(
     const isPresent = endDateValue === null;
 
     return (
-      <div key={fieldId} className="space-y-4 border p-4 rounded-lg">
+      <DetailCard
+        key={index}
+        id={fieldId}
+        index={index}
+        title={title}
+        onDelete={() => removeProject(index)}
+      >
         <FormField
           control={control}
           name={`projects.${index}.title`}
@@ -99,7 +112,7 @@ const ProjectItem: React.FC<ProjectItemProps> = memo(
                     setValue(
                       `projects.${index}.endDate`,
                       checked ? null : new Date(),
-                      { shouldValidate: true, shouldDirty: true },
+                      { shouldValidate: true, shouldDirty: true }
                     );
                   }}
                 />
@@ -143,17 +156,9 @@ const ProjectItem: React.FC<ProjectItemProps> = memo(
             </FormItem>
           )}
         />
-        <Button
-          type="button"
-          variant="destructive"
-          onClick={() => removeProject(index)}
-        >
-          <Trash2 size={16} />
-        </Button>
-
-      </div>
+      </DetailCard>
     );
-  },
+  }
 );
 ProjectItem.displayName = "ProjectItem";
 
@@ -177,11 +182,10 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({
           fieldId={field.id}
           index={index}
           control={control}
-          getValues={getValues}
           setValue={setValue}
-          appendProject={appendProject}
           removeProject={removeProject}
           resumeId={resumeId}
+          title={field.title}
         />
       ))}
       <Button

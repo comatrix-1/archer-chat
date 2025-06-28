@@ -2,7 +2,7 @@
 
 import type { Experience } from "@prisma/client";
 import { EmploymentType, LocationType } from "@prisma/client";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import type React from "react";
 import { memo } from "react";
 import { cn } from "~/lib/utils";
@@ -33,6 +33,7 @@ import {
 import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
 import { RichTextEditor } from "../rich-text-editor";
 import { generateUUID } from "~/utils/security";
+import { DetailCard } from "./detail-card";
 
 interface ExperienceSectionProps {
   experienceSectionFields: (Omit<
@@ -53,16 +54,21 @@ interface ExperienceSectionProps {
 interface ExperienceItemProps {
   fieldId: string;
   index: number;
-
   control: Control<any>;
   removeExperience: (index: number) => void;
   setValue: UseFormSetValue<any>;
-  getValues: UseFormGetValues<any>;
   resumeId: string;
+  title: string;
 }
 
-const ExperienceItem: React.FC<ExperienceItemProps> = memo(
-  ({ fieldId, index, control, getValues, setValue, removeExperience }) => {
+const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
+  fieldId,
+  index,
+  control,
+  setValue,
+  removeExperience,
+  title,
+}) => {
     const startDateValue = useWatch({
       control,
       name: `experiences.${index}.startDate`,
@@ -74,22 +80,26 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
     const isPresent = endDateValue === null;
 
     return (
-      <div key={fieldId} className="space-y-4 border p-4 rounded-lg">
-        <div className="flex justify-between items-start gap-4">
-          <div className="space-y-4 flex-1">
-            <FormField
-              control={control}
-              name={`experiences.${index}.title`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Job title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+      <DetailCard
+        key={fieldId}
+        id={fieldId}
+        index={index}
+        title={title}
+        onDelete={() => removeExperience(index)}
+      >
+        <FormField
+          control={control}
+          name={`experiences.${index}.title`}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input placeholder="Job title" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
             <FormField
               control={control}
               name={`experiences.${index}.employmentType`}
@@ -260,17 +270,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(
                 </FormItem>
               )}
             />
-          </div>
-          { }
-        </div>
-        <Button
-          type="button"
-          variant="destructive"
-          onClick={() => removeExperience(index)}
-        >
-          <Trash2 size={16} />
-        </Button>
-      </div>
+          </DetailCard>
     );
   },
 );
@@ -291,19 +291,20 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
   return (
     <div className="space-y-4">
       {experienceFields.map((field, index) => {
-        return (
-          <ExperienceItem
-            key={field.id}
-            fieldId={field.id}
-            index={index}
-            control={control}
-            getValues={getValues}
-            setValue={setValue}
-            removeExperience={removeExperience}
-            resumeId={resumeId}
-          />
-        );
-      })}
+    const title = getValues(`experiences.${index}.title`) ?? `Experience #${index + 1}`;
+    return (
+      <ExperienceItem
+        key={field.id}
+        fieldId={field.id}
+        index={index}
+        control={control}
+        setValue={setValue}
+        removeExperience={removeExperience}
+        resumeId={resumeId}
+        title={title}
+      />
+    );
+  })}
       <Button
         type="button"
         className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
