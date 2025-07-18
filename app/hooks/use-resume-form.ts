@@ -21,7 +21,7 @@ import { EResumeSteps } from "~/lib/constants";
 import { fetchWithAuth } from "~/utils/fetchWithAuth";
 import { generateUUID } from "~/utils/security";
 
-type ResumeFormData = {
+export type ResumeFormData = {
   objective: string;
   contact: Contact;
   experiences: (Omit<
@@ -30,6 +30,8 @@ type ResumeFormData = {
   > & {
     employmentType: EmploymentType;
     locationType: LocationType;
+    current: boolean;
+    website?: string | null;
   })[];
   educations: Omit<Education, "resumeId" | "createdAt" | "updatedAt">[];
   skills: (Omit<
@@ -88,11 +90,12 @@ export function useResumeForm(
             country: "",
           },
       experiences:
-        initialResume.experiences?.map((exp: Experience) => ({
+        initialResume.experiences?.map((exp: Experience & { website?: string | null }) => ({
           ...exp,
           id: exp.id ?? generateUUID(),
           startDate: exp.startDate ? new Date(exp.startDate) : new Date(),
           endDate: exp.endDate ? new Date(exp.endDate) : null,
+          website: exp.website ?? null,
         })) ?? [],
       educations:
         initialResume.educations?.map((edu: Education) => ({

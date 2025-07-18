@@ -12,7 +12,7 @@ function getQueryParam(name: string) {
 }
 
 export default function ResumeGeneratorDetail() {
-  const [resume, setResume] = useState<any>(null);
+  const [resume, setResume] = useState(null);
   const [resumeStep, setResumeStep] = useState<EResumeSteps>(EResumeSteps.PERSONAL);
   const id = getQueryParam("id");
   console.log("ResumeGeneratorDetail() :: resume:", resume);
@@ -21,7 +21,7 @@ export default function ResumeGeneratorDetail() {
     async function fetchResume() {
       if (!id) return;
       const res = await fetchWithAuth(`/api/resume/${id}`);
-      if (res.data && res.data.resume) {
+      if (res.data?.resume) {
         setResume(res.data.resume);
       }
     }

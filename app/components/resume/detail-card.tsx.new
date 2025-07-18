@@ -2,11 +2,9 @@
 
 import { ChevronDown, GripHorizontal, Trash2, Info } from "lucide-react";
 import { Button } from "~/components/ui/button";
-import { forwardRef, useState } from "react";
-import type { ReactNode } from "react";
+import { forwardRef, useState, type ReactNode } from "react";
 import { cn } from "~/lib/utils";
 
-// DragHandle Component
 interface DragHandleProps extends React.HTMLAttributes<HTMLButtonElement> {
   'aria-label'?: string;
   'aria-describedby'?: string;
@@ -28,7 +26,6 @@ export const DragHandle = forwardRef<HTMLButtonElement, DragHandleProps>(
 
 DragHandle.displayName = 'DragHandle';
 
-// DetailCard Component
 interface DetailCardProps {
   id: string;
   index: number;
@@ -49,7 +46,8 @@ export const DetailCard = forwardRef<HTMLDivElement, DetailCardProps>(({
   dragHandleProps,
 }, ref) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  
+  console.log('Rendering DetailCard with id:', id, 'title:', title, 'isOpen:', isOpen);
+
   return (
     <div 
       ref={ref}
@@ -57,7 +55,6 @@ export const DetailCard = forwardRef<HTMLDivElement, DetailCardProps>(({
       data-draggable-id={id}
     >
       <button
-        type="button"
         className="w-full flex justify-between items-center p-3 sm:p-4 rounded-t-xl rounded-b-none bg-muted hover:bg-secondary border-b border-dashed border-muted cursor-pointer select-none"
         onClick={(e) => {
           e.preventDefault();
@@ -68,10 +65,7 @@ export const DetailCard = forwardRef<HTMLDivElement, DetailCardProps>(({
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
-          <DragHandle 
-            {...dragHandleProps} 
-            aria-label={`Drag ${title || 'item'} to reorder`} 
-          />
+          <DragHandle {...dragHandleProps} aria-label={`Drag ${title || 'item'} to reorder`} />
           <div className="flex flex-col min-w-0">
             <div className="flex items-center gap-1.5 sm:gap-2">
               <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-primary/10 text-primary flex-shrink-0">
@@ -118,7 +112,6 @@ export const DetailCard = forwardRef<HTMLDivElement, DetailCardProps>(({
 
 DetailCard.displayName = 'DetailCard';
 
-// DetailCardField Component
 interface DetailCardFieldProps {
   label: string;
   icon: ReactNode;
@@ -127,9 +120,13 @@ interface DetailCardFieldProps {
   helpText?: string;
 }
 
-export function DetailCardField(props: DetailCardFieldProps) {
-  const { label, icon, children, className = "", helpText } = props;
-  
+export function DetailCardField({
+  label,
+  icon,
+  children,
+  className = "",
+  helpText,
+}: DetailCardFieldProps) {
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between">
@@ -147,5 +144,3 @@ export function DetailCardField(props: DetailCardFieldProps) {
     </div>
   );
 }
-
-export default DetailCard;

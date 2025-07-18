@@ -22,20 +22,29 @@ import React, { useCallback, useMemo, useRef } from "react";
 import { Textarea } from "~/components/ui/textarea";
 import CertificationSection from "~/components/resume/certification-section";
 import EducationSection from "~/components/resume/education-section";
-import ExperienceSection from "~/components/resume/experience-section";
+import { ExperienceSectionDnD, type ExperienceItem } from "~/components/resume/experience-section-dnd";
+import type { Control, UseFormSetValue } from "react-hook-form";
+
+// Extend the ExperienceItem type to match the form data
+interface ResumeFormExperienceItem extends Omit<ExperienceItem, 'id'> {
+  id: string;
+  resumeId: string;
+}
 import HonorsAwardsSection from "~/components/resume/honors-awards-section";
 import ProjectSection from "~/components/resume/project-section";
 import SkillsSection from "~/components/resume/skills-section";
 import { Button } from "~/components/ui/button";
 import { ResumeSteps } from "../resume-steps";
 import { exportResumeToDocx } from "~/utils/docx-exporter";
+import type { ResumeFormData } from "~/hooks/use-resume-form";
 import ContactSection from "./contact-section";
 
 // Memoized form components to prevent unnecessary re-renders
-const PersonalStep = React.memo(({ control }: { control: any }) => (
-  <>
-    <ContactSection control={control} />
-    <FormField
+const PersonalStep = React.memo(
+  ({ control }: { control: Control<ResumeFormData> }) => (
+    <>
+      <ContactSection control={control} />
+      <FormField
       control={control}
       name="objective"
       render={({ field }) => (
@@ -123,14 +132,13 @@ export const ResumeSection = ({
         return <PersonalStep control={form.control} />;
       case EResumeSteps.EXPERIENCE:
         return (
-          <ExperienceSection
-            experienceSectionFields={experienceFields}
+          <ExperienceSectionDnD
+            resumeId={resume?.id || ''}
             control={form.control}
             setValue={form.setValue}
-            getValues={form.getValues}
-            removeExperience={removeExperience}
+            experienceFields={experienceFields as ExperienceItem[]}
             appendExperience={appendExperience}
-            resumeId={resume?.id}
+            removeExperience={removeExperience}
           />
         );
       case EResumeSteps.EDUCATION:

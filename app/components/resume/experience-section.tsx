@@ -3,37 +3,36 @@
 import type { Experience } from "@prisma/client";
 import { EmploymentType, LocationType } from "@prisma/client";
 import { Plus } from "lucide-react";
-import type React from "react";
 import { memo } from "react";
-import { cn } from "~/lib/utils";
-import {
-  type Control,
-  type UseFormGetValues,
-  type UseFormSetValue,
-  useWatch,
-} from "react-hook-form";
-import { MonthYearPicker } from "~/components/month-year-picker";
+import { useWatch } from "react-hook-form";
+import type { Control, FieldValues, UseFormGetValues, UseFormSetValue } from "react-hook-form";
+
 import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/components/ui/form";
+import { DetailCard, DetailCardField } from "./detail-card";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
+import { Textarea } from "~/components/ui/textarea";
+import { Checkbox } from "~/components/ui/checkbox";
+import { MonthYearPicker } from "../month-year-picker";
 import { RichTextEditor } from "../rich-text-editor";
-import { generateUUID } from "~/utils/security";
-import { DetailCard } from "./detail-card";
+import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
+import { cn } from "~/lib/utils";
+
+interface ExperienceFormValues extends FieldValues {
+  experiences: Array<{
+    id: string;
+    title: string;
+    company: string;
+    location: string;
+    employmentType: EmploymentType;
+    locationType: LocationType;
+    startDate: Date | null;
+    endDate: Date | null;
+    description: string;
+    current: boolean;
+  }>;
+}
 
 interface ExperienceSectionProps {
   experienceSectionFields: (Omit<
@@ -43,20 +42,20 @@ interface ExperienceSectionProps {
     employmentType: EmploymentType;
     locationType: LocationType;
   })[];
-  control: Control<any>;
+  control: Control<ExperienceFormValues>;
   removeExperience: (index: number) => void;
-  setValue: UseFormSetValue<any>;
-  getValues: UseFormGetValues<any>;
-  appendExperience: (experience: Experience) => void;
+  setValue: UseFormSetValue<ExperienceFormValues>;
+  getValues: UseFormGetValues<ExperienceFormValues>;
+  appendExperience: (experience: Omit<Experience, 'id' | 'resumeId' | 'createdAt' | 'updatedAt'>) => void;
   resumeId: string;
 }
 
 interface ExperienceItemProps {
   fieldId: string;
   index: number;
-  control: Control<any>;
+  control: Control<ExperienceFormValues>;
   removeExperience: (index: number) => void;
-  setValue: UseFormSetValue<any>;
+  setValue: UseFormSetValue<ExperienceFormValues>;
   resumeId: string;
   title: string;
 }
@@ -78,6 +77,16 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
       name: `experiences.${index}.endDate`,
     });
     const isPresent = endDateValue === null;
+
+    const handleDateSelect = (date: Date | null, fieldName: 'startDate' | 'endDate', index: number) => {
+      if (date) {
+        date.setHours(0, 0, 0, 0);
+      }
+      setValue(`experiences.${index}.${fieldName}`, date, {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    };
 
     return (
       <DetailCard
@@ -192,18 +201,9 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                 <FormLabel>Start Date</FormLabel>
                 <MonthYearPicker
                   date={startDateValue}
-                  onSelect={(date) => {
-                    const newDate = date ? new Date(date) : null;
-                    if (newDate) {
-                      newDate.setHours(0, 0, 0, 0);
-                    }
-                    setValue(`experiences.${index}.startDate`, newDate, {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                    });
-                  }}
+                  onSelect={(date: Date | null) => handleDateSelect(date, 'startDate', index)}
                 />
-                { }
+                { /* Add space here */ }
               </div>
               <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
@@ -237,7 +237,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                 {!isPresent && (
                   <MonthYearPicker
                     date={endDateValue}
-                    onSelect={(date) => {
+                    onSelect={(date: Date | null) => {
                       const newDate = date ? new Date(date) : null;
                       if (newDate) {
                         newDate.setHours(0, 0, 0, 0);
@@ -311,32 +311,28 @@ const ExperienceSection: React.FC<ExperienceSectionProps> = ({
         onClick={(e) => {
           e.stopPropagation();
           appendExperience({
-            id: generateUUID(),
             title: "",
             company: "",
             location: "",
-            startDate: new Date(),
-            endDate: new Date(),
-            description: "",
             employmentType: EmploymentType.FULL_TIME,
-            locationType: LocationType.HYBRID,
-            resumeId,
+            locationType: LocationType.ON_SITE,
+            startDate: new Date(),
+            endDate: null,
+            description: "",
           });
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.stopPropagation();
             appendExperience({
-              id: generateUUID(),
               title: "",
               company: "",
               location: "",
+              employmentType: EmploymentType.FULL_TIME,
+              locationType: LocationType.ON_SITE,
               startDate: new Date(),
-              endDate: new Date(),
+              endDate: null,
               description: "",
-              employmentType: "FULL_TIME",
-              locationType: "HYBRID",
-              resumeId,
             });
           }
         }}
