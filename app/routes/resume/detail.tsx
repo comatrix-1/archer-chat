@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ResumeComponent from "~/components/resume";
 import { ResumeSection } from "~/components/resume/resume-section";
+import ResumeSectionGemini from "~/components/resume/resume-section-gemini";
 import { Button } from "~/components/ui/button";
 import { EResumeSteps } from "~/lib/constants";
 import { fetchWithAuth } from "~/utils/fetchWithAuth";
@@ -38,7 +39,8 @@ export default function ResumeGeneratorDetail() {
       </Button>
       {resume ? (
         // <ResumeComponent initialResume={resume} />
-        <ResumeSection initialResume={resume} resumeStep={resumeStep} />
+        // <ResumeSection initialResume={resume} resumeStep={resumeStep} />
+        <ResumeSectionGemini />
       ) : (
         <div>resume not found.</div>
       )}
