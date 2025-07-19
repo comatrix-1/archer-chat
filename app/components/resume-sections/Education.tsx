@@ -53,7 +53,7 @@ export function Education({ initialData, onSave }: EducationProps) {
     defaultValues: { education: initialData },
   });
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, move } = useFieldArray({
     control,
     name: 'education',
   });
@@ -89,8 +89,10 @@ export function Education({ initialData, onSave }: EducationProps) {
       const oldIndex = fields.findIndex((field) => field.id === active.id);
       const newIndex = fields.findIndex((field) => field.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1) {
-        // The reordering will be reflected in the form state automatically
-        // We'll update the order in the parent component via onSave
+        // Update the local form state immediately for a responsive UI
+        move(oldIndex, newIndex);
+        
+        // Also notify the parent of the change
         const newOrder = arrayMove([...fields], oldIndex, newIndex);
         onSave(newOrder);
       }
@@ -173,10 +175,11 @@ interface SortableEducationItemProps {
 const SortableEducationItem = React.memo(({ field, index, control, removeEducation }: SortableEducationItemProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: field.id });
 
-  const style = {
+  const style: React.CSSProperties = {
     transform: CSS.Transform ? CSS.Transform.toString(transform) : undefined,
-    transition,
-    opacity: isDragging ? 0.5 : 1,
+    transition: transition as string,
+    zIndex: isDragging ? 1 : 'auto',
+    position: 'relative' as const,
   };
 
   return (
