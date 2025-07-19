@@ -6,7 +6,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/componen
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { useResumeStore } from '../../states/resumeStore';
+// No longer using Zustand for form state
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import {
   DndContext,
@@ -42,21 +42,20 @@ const educationSchema = z.object({
 
 type EducationFormValues = z.infer<typeof educationSchema>;
 
-export function Education() {
-  const educationData = useResumeStore((state) => state.resume.education);
-  const addEducation = useResumeStore((state) => state.addEducation);
-  const removeEducation = useResumeStore((state) => state.removeEducation);
-  const updateEducation = useResumeStore((state) => state.updateEducation);
-  const reorderEducation = useResumeStore((state) => state.reorderEducation);
+interface EducationProps {
+  readonly initialData: EducationFormItem[];
+  readonly onSave: (data: EducationFormItem[]) => void;
+}
 
+export function Education({ initialData, onSave }: EducationProps) {
   const { control, handleSubmit } = useForm<EducationFormValues>({
     resolver: zodResolver(educationSchema),
-    defaultValues: { education: educationData },
+    defaultValues: { education: initialData },
   });
 
-  const { fields, update, remove } = useFieldArray<EducationFormValues>({
+  const { fields, append, remove } = useFieldArray({
     control,
-    name: 'education' as const,
+    name: 'education',
   });
 
   const sensors = useSensors(
@@ -90,33 +89,39 @@ export function Education() {
       const oldIndex = fields.findIndex((field) => field.id === active.id);
       const newIndex = fields.findIndex((field) => field.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1) {
+        // The reordering will be reflected in the form state automatically
+        // We'll update the order in the parent component via onSave
         const newOrder = arrayMove([...fields], oldIndex, newIndex);
-        newOrder.forEach((item, index) => {
-          update(index, item);
-        });
-        reorderEducation(newOrder.map(item => item.id));
+        onSave(newOrder);
       }
     }
   };
 
-  const handleRemoveEducation = (index: number, id: string) => {
-    console.log('handleRemoveEducation() index: ', index, 'id: ', id);
+  const handleAddEducation = () => {
+    append({
+      id: crypto.randomUUID(),
+      degree: '',
+      institution: '',
+      location: '',
+      startDate: '',
+      endDate: '',
+      gpa: ''
+    });
+  };
+
+  const handleRemoveEducation = (index: number) => {
     remove(index);
-    removeEducation(id);
   };
 
   const onSubmit = (data: EducationFormValues) => {
-    for (const edu of data.education) {
-      updateEducation(edu.id, edu);
-    }
-    console.log("Education Updated:", data);
+    onSave(data.education);
   };
 
   return (
     <Card>
       <CardHeader className="flex flex-row justify-between items-center">
         <CardTitle>Education</CardTitle>
-        <Button onClick={addEducation} size="sm" className="flex items-center gap-1">
+        <Button onClick={handleAddEducation} size="sm" className="flex items-center gap-1">
           <Plus className="h-4 w-4" /> Add Education
         </Button>
       </CardHeader>
@@ -130,7 +135,7 @@ export function Education() {
                     field={field}
                     index={index}
                     control={control}
-                    removeEducation={() => handleRemoveEducation(index, field.id)}
+                    removeEducation={() => handleRemoveEducation(index)}
                   />
                 </div>
               ))}
@@ -147,7 +152,7 @@ export function Education() {
 }
 
 // Type for education item in the form
-interface EducationFormItem {
+export interface EducationFormItem {
   id: string;
   degree: string;
   institution: string;
@@ -174,126 +179,110 @@ const SortableEducationItem = React.memo(({ field, index, control, removeEducati
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const handleUpdate = React.useCallback(<K extends keyof EducationFormItem>(
-    key: K,
-    value: EducationFormItem[K]
-  ) => {
-    useResumeStore.getState().updateEducation(field.id, { [key]: value } as Partial<EducationFormItem>);
-  }, [field.id]);
-
   return (
     <div ref={setNodeRef} style={style} className={`border rounded-lg p-4 mb-4 bg-white shadow-sm ${isDragging ? 'ring-2 ring-blue-500' : ''}`}>
       <div className="flex items-center mb-3">
         <div {...listeners} {...attributes} className="cursor-grab p-2 hover:bg-gray-200 rounded-md">
           <GripVertical className="h-5 w-5 text-gray-500" />
         </div>
-        <div className="ml-3 font-semibold text-lg flex-grow">{field.degree || 'New Degree'}</div>
+        <div className="ml-3 font-semibold text-lg flex-grow">
+          <Controller
+            name={`education.${index}.degree`}
+            control={control}
+            render={({ field }) => <span>{field.value || 'New Degree'}</span>}
+          />
+        </div>
         <Button variant="ghost" size="icon" onClick={removeEducation} className="ml-auto">
           <Trash2 className="h-4 w-4 text-red-500" />
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor={`degree-${index}`}>Degree</Label>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor={`education.${index}.degree`}>Degree</Label>
           <Controller
             name={`education.${index}.degree`}
             control={control}
             render={({ field }) => (
               <Input
-                id={`degree-${index}`}
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('degree', e.target.value);
-                }}
+                {...field}
+                id={`education.${index}.degree`}
+                placeholder="e.g., Bachelor of Science"
               />
             )}
           />
         </div>
-        <div>
-          <Label htmlFor={`institution-${index}`}>Institution</Label>
+
+        <div className="space-y-2">
+          <Label htmlFor={`education.${index}.institution`}>Institution</Label>
           <Controller
             name={`education.${index}.institution`}
             control={control}
             render={({ field }) => (
               <Input
-                id={`institution-${index}`}
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('institution', e.target.value);
-                }}
+                {...field}
+                id={`education.${index}.institution`}
+                placeholder="e.g., University of Example"
               />
             )}
           />
         </div>
-        <div>
-          <Label htmlFor={`location-${index}`}>Location</Label>
+
+        <div className="space-y-2">
+          <Label htmlFor={`education.${index}.location`}>Location</Label>
           <Controller
             name={`education.${index}.location`}
             control={control}
             render={({ field }) => (
               <Input
-                id={`location-${index}`}
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('location', e.target.value);
-                }}
+                {...field}
+                id={`education.${index}.location`}
+                placeholder="e.g., City, Country"
               />
             )}
           />
         </div>
-        <div>
-          <Label htmlFor={`startDate-${index}`}>Start Date</Label>
+
+        <div className="space-y-2">
+          <Label htmlFor={`education.${index}.startDate`}>Start Date</Label>
           <Controller
             name={`education.${index}.startDate`}
             control={control}
             render={({ field }) => (
               <Input
-                id={`startDate-${index}`}
-                type="month"
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('startDate', e.target.value);
-                }}
+                {...field}
+                type="date"
+                id={`education.${index}.startDate`}
               />
             )}
           />
         </div>
-        <div>
-          <Label htmlFor={`endDate-${index}`}>End Date</Label>
+
+        <div className="space-y-2">
+          <Label htmlFor={`education.${index}.endDate`}>End Date</Label>
           <Controller
             name={`education.${index}.endDate`}
             control={control}
             render={({ field }) => (
               <Input
-                id={`endDate-${index}`}
-                type="month"
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('endDate', e.target.value);
-                }}
+                {...field}
+                type="date"
+                id={`education.${index}.endDate`}
               />
             )}
           />
         </div>
-        <div>
-          <Label htmlFor={`gpa-${index}`}>GPA</Label>
+
+        <div className="space-y-2">
+          <Label htmlFor={`education.${index}.gpa`}>GPA (Optional)</Label>
           <Controller
             name={`education.${index}.gpa`}
             control={control}
             render={({ field }) => (
               <Input
-                id={`gpa-${index}`}
-                value={field.value || ''}
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('gpa', e.target.value);
-                }}
+                {...field}
+                id={`education.${index}.gpa`}
+                placeholder="e.g., 3.8/4.0"
               />
             )}
           />

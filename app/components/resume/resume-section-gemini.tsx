@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import type { EducationFormItem } from '../resume-sections/Education';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ContactInfo } from '../resume-sections/ContactInfo';
@@ -57,6 +58,14 @@ const ResumeSteps = ({
 const ResumeSectionGemini = () => {
   const [currentStep, setCurrentStep] = useState<EResumeSteps>(EResumeSteps.CONTACT);
 
+  const [educationData, setEducationData] = useState<EducationFormItem[]>([]);
+
+  const handleSaveEducation = (data: EducationFormItem[]) => {
+    setEducationData(data);
+    // Here you would typically save to your backend or state management
+    console.log('Education data saved:', data);
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case EResumeSteps.CONTACT:
@@ -66,7 +75,12 @@ const ResumeSectionGemini = () => {
       case EResumeSteps.EXPERIENCE:
         return <Experience />;
       case EResumeSteps.EDUCATION:
-        return <Education />;
+        return (
+          <Education 
+            initialData={educationData} 
+            onSave={handleSaveEducation} 
+          />
+        );
       case EResumeSteps.SKILLS:
         return <Skills />;
       case EResumeSteps.PROJECTS:
