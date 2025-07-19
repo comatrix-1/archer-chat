@@ -55,7 +55,7 @@ export function Experience() {
   const removeExperience = useResumeStore((state) => state.removeExperience);
   const reorderExperiences = useResumeStore((state) => state.reorderExperiences);
 
-  const { control, handleSubmit, reset, setValue } = useForm<ExperienceFormValues>({
+  const { control, handleSubmit, setValue } = useForm<ExperienceFormValues>({
     resolver: zodResolver(experienceSchema),
     defaultValues: { experiences: experiences },
   });

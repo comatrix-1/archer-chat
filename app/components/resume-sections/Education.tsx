@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useResumeStore } from '../../states/resumeStore';
-import type { Education as EducationType } from '~/types/resume';
 import { Plus, Trash2, GripVertical } from 'lucide-react';
 import {
   DndContext,
@@ -50,19 +49,14 @@ export function Education() {
   const updateEducation = useResumeStore((state) => state.updateEducation);
   const reorderEducation = useResumeStore((state) => state.reorderEducation);
 
-  const { control, handleSubmit, reset } = useForm<EducationFormValues>({
+  const { control, handleSubmit } = useForm<EducationFormValues>({
     resolver: zodResolver(educationSchema),
-    defaultValues: { education: [] },
+    defaultValues: { education: educationData },
   });
 
-  React.useEffect(() => {
-    reset({ education: educationData });
-  }, [educationData, reset]);
-
-  const { fields, update } = useFieldArray<EducationFormValues>({
+  const { fields, update, remove } = useFieldArray<EducationFormValues>({
     control,
-    name: 'education',
-    keyName: 'id'
+    name: 'education' as const,
   });
 
   const sensors = useSensors(
@@ -105,6 +99,12 @@ export function Education() {
     }
   };
 
+  const handleRemoveEducation = (index: number, id: string) => {
+    console.log('handleRemoveEducation() index: ', index, 'id: ', id);
+    remove(index);
+    removeEducation(id);
+  };
+
   const onSubmit = (data: EducationFormValues) => {
     for (const edu of data.education) {
       updateEducation(edu.id, edu);
@@ -130,7 +130,7 @@ export function Education() {
                     field={field}
                     index={index}
                     control={control}
-                    removeEducation={() => removeEducation(field.id)}
+                    removeEducation={() => handleRemoveEducation(index, field.id)}
                   />
                 </div>
               ))}
@@ -146,9 +146,20 @@ export function Education() {
   );
 }
 
+// Type for education item in the form
+interface EducationFormItem {
+  id: string;
+  degree: string;
+  institution: string;
+  location?: string;
+  startDate?: string;
+  endDate?: string;
+  gpa?: string;
+}
+
 // Helper component for each sortable education item
 interface SortableEducationItemProps {
-  field: FieldArrayWithId<EducationFormValues, 'education', 'id'>;
+  field: FieldArrayWithId<{ education: EducationFormItem[] }, 'education'>;
   index: number;
   control: Control<EducationFormValues>;
   removeEducation: () => void;
@@ -163,8 +174,11 @@ const SortableEducationItem = React.memo(({ field, index, control, removeEducati
     opacity: isDragging ? 0.5 : 1,
   };
 
-  const handleUpdate = React.useCallback((key: keyof EducationType, value: string) => {
-    useResumeStore.getState().updateEducation(field.id, { [key]: value } as Partial<EducationType>);
+  const handleUpdate = React.useCallback(<K extends keyof EducationFormItem>(
+    key: K,
+    value: EducationFormItem[K]
+  ) => {
+    useResumeStore.getState().updateEducation(field.id, { [key]: value } as Partial<EducationFormItem>);
   }, [field.id]);
 
   return (
