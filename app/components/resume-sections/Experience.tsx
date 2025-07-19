@@ -55,18 +55,20 @@ export function Experience() {
   const removeExperience = useResumeStore((state) => state.removeExperience);
   const reorderExperiences = useResumeStore((state) => state.reorderExperiences);
 
-  const { control, handleSubmit, reset } = useForm<ExperienceFormValues>({
+  const { control, handleSubmit, reset, setValue } = useForm<ExperienceFormValues>({
     resolver: zodResolver(experienceSchema),
-    defaultValues: { experiences: [] }, // Will be reset with actual data
+    defaultValues: { experiences: experiences },
   });
 
+  // Update form when experiences change from the store
   React.useEffect(() => {
-    reset({ experiences: experiences });
-  }, [experiences, reset]);
+    setValue('experiences', experiences);
+  }, [experiences, setValue]);
 
-  const { fields, move } = useFieldArray({
+  const { fields, move, remove } = useFieldArray({
     control,
     name: 'experiences',
+    keyName: 'formId', // Prevent key conflicts with our existing 'id' field
   });
 
   const sensors = useSensors(
@@ -99,6 +101,11 @@ export function Experience() {
         reorderExperiences(arrayMove(fields, oldIndex, newIndex).map(item => item.id));
       }
     }
+  };
+
+  const handleRemoveExperience = (index: number, id: string) => {
+    remove(index);
+    removeExperience(id);
   };
 
   const onSubmit = (data: ExperienceFormValues) => {
@@ -137,7 +144,7 @@ export function Experience() {
                   field={field}
                   index={index}
                   control={control}
-                  removeExperience={() => removeExperience(field.id)}
+                  removeExperience={() => handleRemoveExperience(index, field.id)}
                   handleUpdate={(key, value) => updateExperience(field.id, { ...field, [key]: value })}
                 />
               ))}
@@ -195,7 +202,12 @@ const SortableExperienceItem = ({
         <Button
           variant="ghost"
           size="icon"
-          onClick={removeExperience}
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            removeExperience();
+          }}
           className="ml-auto"
         >
           <Trash2 className="h-4 w-4 text-red-500" />
