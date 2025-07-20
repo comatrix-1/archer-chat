@@ -44,6 +44,11 @@ export function DatePicker({ selectedDate, onSelect, disabled }: Readonly<DatePi
             }}
             disabled={disabled}
           />
+          <div className="w-full flex">
+            <Button variant="outline" size="sm" onClick={() => onSelect(undefined)} className="mx-auto mb-2">
+              Clear
+            </Button>
+          </div>
         </PopoverContent>
       </Popover>
     </div>

@@ -2,6 +2,7 @@ import { useFormContext } from "react-hook-form";
 import type { ResumeFormData } from "~/types/resume";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
+import { DatePicker } from "../ui/date-picker";
 
 interface CertificationItemProps {
     index: number;
@@ -9,6 +10,16 @@ interface CertificationItemProps {
 
 export const CertificationItem = ({ index }: CertificationItemProps) => {
     const form = useFormContext<ResumeFormData>();
+
+    const handleDateSelect = (date: Date | undefined, fieldName: 'issueDate' | 'expirationDate', index: number) => {
+        if (date) {
+            date.setHours(0, 0, 0, 0);
+        }
+        form.setValue(`certifications.${index}.${fieldName}`, date, {
+            shouldValidate: true,
+            shouldDirty: true,
+        });
+    };
 
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -45,11 +56,12 @@ export const CertificationItem = ({ index }: CertificationItemProps) => {
                     <FormItem>
                         <FormLabel>Issue Date</FormLabel>
                         <FormControl>
-                            <Input
+                        <DatePicker selectedDate={field.value ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'issueDate', index)} />
+                            {/* <Input
                                 type="date"
                                 value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
                                 onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
-                            />
+                            /> */}
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -62,11 +74,7 @@ export const CertificationItem = ({ index }: CertificationItemProps) => {
                     <FormItem>
                         <FormLabel>Expiration Date (if applicable)</FormLabel>
                         <FormControl>
-                            <Input
-                                type="date"
-                                value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                                onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
-                            />
+                            <DatePicker selectedDate={field.value ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'expirationDate', index)} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>

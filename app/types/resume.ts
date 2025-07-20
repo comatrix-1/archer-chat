@@ -36,15 +36,6 @@ export const experienceSchema = z.object({
 export type TExperienceItem = z.infer<typeof experienceItemSchema>;
 export type TExperienceFormValues = z.infer<typeof experienceSchema>;
 
-export type ResumeFormData = {
-  contactInfo: TContactInfo;
-  summary: string;
-  experiences: TExperienceItem[];
-  educations: TEducationItem[];
-  skills: TSkill[];
-  certifications: TCertification[];
-};
-
 const educationItemSchema = z.object({
   id: z.string(),
   degree: z.string().min(1, 'Degree is required'),
@@ -95,4 +86,24 @@ const certificationSchema = z.object({
 });
 
 export type TCertification = z.infer<typeof certificationSchema>;
+
+const projectItemSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, 'Project title is required'),
+  description: z.string().optional(),
+  startDate: z.date().nullable().optional(),
+  endDate: z.date().nullable().optional(),
+});
+
+export type TProjectItem = z.infer<typeof projectItemSchema>;
+
+export type ResumeFormData = {
+  contactInfo: TContactInfo;
+  summary: string;
+  experiences: TExperienceItem[];
+  educations: TEducationItem[];
+  skills: TSkill[];
+  certifications: TCertification[];
+  projects: TProjectItem[];
+};
 

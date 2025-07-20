@@ -1,226 +1,112 @@
 "use client";
 
-import type { Project } from "@prisma/client";
+import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
-import type React from "react";
-import { memo } from "react";
-import {
-  type Control,
-  type UseFormGetValues,
-  type UseFormSetValue,
-  useWatch,
-} from "react-hook-form";
-import { MonthYearPicker } from "~/components/month-year-picker";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
+import { Form } from "~/components/ui/form";
+import { cn } from "~/lib/utils";
+import type { ResumeFormData } from "~/types/resume";
 import { generateUUID } from "~/utils/security";
-import { RichTextEditor } from "../rich-text-editor";
-import { DetailCard } from "./detail-card";
+import { SortableItem } from "../ui/sortable-item";
+import { ProjectItem } from "./project-item";
 
-interface ProjectSectionProps {
-  projectFields: Omit<Project, "resumeId">[];
-  control: Control<any>;
-  appendProject: (field: Project) => void;
-  removeProject: (index: number) => void;
-  setValue: UseFormSetValue<any>;
-  getValues: UseFormGetValues<any>;
-  resumeId: string;
-}
+export function ProjectSection() {
+  const form = useFormContext<ResumeFormData>();
 
-interface ProjectItemProps {
-  fieldId: string;
-  index: number;
-  control: Control<any>;
-  removeProject: (index: number) => void;
-  setValue: UseFormSetValue<any>;
-  resumeId: string;
-  title: string;
-}
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: (event) => {
+        const { code } = event;
+        switch (code) {
+          case 'ArrowLeft':
+          case 'ArrowRight':
+            return { x: code === 'ArrowRight' ? 1 : -1, y: 0 };
+          case 'ArrowUp':
+          case 'ArrowDown':
+            return { x: 0, y: code === 'ArrowDown' ? 1 : -1 };
+          default:
+            return { x: 0, y: 0 };
+        }
+      },
+    })
+  );
 
-const ProjectItem: React.FC<ProjectItemProps> = memo(
-  ({
-    fieldId,
-    index,
-    control,
-    setValue,
-    removeProject,
-    title,
-  }) => {
-    const startDateValue = useWatch({
-      control,
-      name: `projects.${index}.startDate`,
+  const { fields, move, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'projects',
+    keyName: 'formId',
+  });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      const oldIndex = fields.findIndex((field) => field.formId === active.id);
+      const newIndex = fields.findIndex((field) => field.formId === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        move(oldIndex, newIndex);
+      }
+    }
+  };
+
+  const addProject = () => {
+    append({
+      id: generateUUID(),
+      title: "",
+      description: "",
+      startDate: null,
+      endDate: null,
     });
-    const endDateValue = useWatch({
-      control,
-      name: `projects.${index}.endDate`,
-    });
-    const isPresent = endDateValue === null;
+  };
 
-    return (
-      <DetailCard
-        key={index}
-        id={fieldId}
-        index={index}
-        title={title}
-        onDelete={() => removeProject(index)}
-      >
-        <FormField
-          control={control}
-          name={`projects.${index}.title`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Project Title</FormLabel>
-              <FormControl>
-                <Input placeholder="Project title" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <FormLabel>Start Date</FormLabel>
-            <MonthYearPicker
-              date={startDateValue}
-              onSelect={(date) => {
-                const newDate = date ? new Date(date) : null;
-                if (newDate) newDate.setHours(0, 0, 0, 0);
-                setValue(`projects.${index}.startDate`, newDate, {
-                  shouldValidate: true,
-                  shouldDirty: true,
-                });
-              }}
-            />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-1">
-              <FormLabel>End Date</FormLabel>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id={`project-present-${index}`}
-                  checked={isPresent}
-                  onCheckedChange={(checked) => {
-                    setValue(
-                      `projects.${index}.endDate`,
-                      checked ? null : new Date(),
-                      { shouldValidate: true, shouldDirty: true }
-                    );
-                  }}
-                />
-                <label
-                  htmlFor={`project-present-${index}`}
-                  className="text-sm font-medium"
-                >
-                  Present
-                </label>
-              </div>
-            </div>
-            {!isPresent && (
-              <MonthYearPicker
-                date={endDateValue}
-                onSelect={(date) => {
-                  const newDate = date ? new Date(date) : null;
-                  if (newDate) newDate.setHours(0, 0, 0, 0);
-                  setValue(`projects.${index}.endDate`, newDate, {
-                    shouldValidate: true,
-                    shouldDirty: true,
-                  });
-                }}
-              />
-            )}
-          </div>
-        </div>
-        <FormField
-          control={control}
-          name={`projects.${index}.description`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description (Optional)</FormLabel>
-              <FormControl>
-                <RichTextEditor
-                  content={field.value}
-                  onChange={field.onChange}
-                  placeholder="Describe the project..."
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </DetailCard>
-    );
-  }
-);
-ProjectItem.displayName = "ProjectItem";
-
-const ProjectSection: React.FC<ProjectSectionProps> = ({
-  projectFields,
-  control,
-  getValues,
-  setValue,
-  removeProject,
-  appendProject,
-  resumeId,
-}) => {
-  if (!projectFields || projectFields.length === 0) {
-    return <p>{NO_ITEMS_DESCRIPTION}</p>;
-  }
   return (
-    <div className="space-y-4 flex flex-col items-stretch">
-      {projectFields.map((field, index) => (
-        <ProjectItem
-          key={field.id}
-          fieldId={field.id}
-          index={index}
-          control={control}
-          setValue={setValue}
-          removeProject={removeProject}
-          resumeId={resumeId}
-          title={field.title}
-        />
-      ))}
-      <Button
-        type="button"
-        className="w-full max-w-md mx-auto"
-        onClick={(e) => {
-          e.stopPropagation();
-          appendProject({
-            id: generateUUID(),
-            title: "",
-            startDate: new Date(),
-            endDate: null,
-            description: "",
-            resumeId,
-          });
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
+    <div className="space-y-4">
+      <Form {...form}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={fields.map(field => field.formId)}
+            strategy={verticalListSortingStrategy}
+          >
+            {fields.map((field, index) => (
+              <SortableItem
+                key={field.formId}
+                id={field.formId}
+                onRemove={() => remove(index)}
+                className="mb-4"
+                dragHandleAriaLabel="Drag to reorder project"
+                removeButtonAriaLabel="Remove project"
+              >
+                <ProjectItem index={index} />
+              </SortableItem>
+            ))}
+          </SortableContext>
+        </DndContext>
+        <Button
+          type="button"
+          className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
+          onClick={(e) => {
             e.stopPropagation();
-            appendProject({
-              id: generateUUID(),
-              title: "",
-              startDate: new Date(),
-              endDate: null,
-              description: "",
-              resumeId,
-            });
-          }
-        }}
-      >
-        <Plus size={16} />
-        <span>Add Project</span>
-      </Button>
+            addProject();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation();
+              addProject();
+            }
+          }}
+        >
+          <Plus size={16} />
+          <span>Add Project</span>
+        </Button>
+      </Form>
     </div>
   );
-};
+}
 
 export default ProjectSection;

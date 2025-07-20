@@ -10,6 +10,7 @@ import { Form } from '../ui/form';
 import { EducationSection } from './education-section';
 import ExperienceSection from './experience-section';
 import { SkillsSection } from './skills-section';
+import ProjectSection from './project-section';
 
 enum EEmploymentType {
   FULL_TIME = 'FULL_TIME',
@@ -124,7 +125,7 @@ const ResumeSectionGemini = () => {
       case EResumeSteps.SKILLS:
         return <SkillsSection />;
       case EResumeSteps.PROJECTS:
-        return null;
+        return <ProjectSection />;
       case EResumeSteps.CERTIFICATIONS:
         return <CertificationSection />;
       default:
