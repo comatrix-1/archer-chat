@@ -1,22 +1,15 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem, SelectLabel } from "@/components/ui/select";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SortableItem } from "@/components/ui/sortable-item";
 import { memo } from "react";
 import type { Control, UseFormSetValue } from "react-hook-form";
-import { useWatch } from "react-hook-form"
-import { useResumeStore } from "~/states/resumeStore";
-import { MonthYearPicker } from "@/components/month-year-picker";
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { SortableItem } from "@/components/ui/sortable-item";
-import { date, z } from "zod";
-import DetailCard from "./detail-card";
+import { useWatch } from "react-hook-form";
+import { z } from "zod";
 import { RichTextEditor } from "../rich-text-editor";
-import { Label } from "../ui/label";
-import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
-import { setDate } from "date-fns";
-import { ChevronDownIcon, Calendar } from "lucide-react";
-import { Button } from "@/components/ui/button"
 import { DatePicker } from "../ui/date-picker";
+import { Label } from "../ui/label";
 
 export enum EEmploymentType {
     FULL_TIME = 'FULL_TIME',
