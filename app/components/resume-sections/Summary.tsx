@@ -1,5 +1,4 @@
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useFormContext } from 'react-hook-form';
 import type { ResumeFormData } from '@/types/resume';
@@ -37,9 +36,6 @@ export function Summary() {
           </div>
         </div>
       </CardContent>
-      <CardFooter>
-        <Button type="submit">Save Summary</Button>
-      </CardFooter>
     </Card>
   );
 }
