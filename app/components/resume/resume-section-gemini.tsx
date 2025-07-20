@@ -93,8 +93,8 @@ const ResumeSectionGemini = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <main className="flex-1 p-8 ml-64">
+    <div className="flex min-h-screen">
+      <main className="flex-1 p-8">
         <Card className="p-6">
           <ResumeSteps currentStep={currentStep} setCurrentStep={setCurrentStep} />
           {renderStep()}
