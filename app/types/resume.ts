@@ -1,60 +1,41 @@
-// export interface ContactInfo {
-//   fullName: string;
-//   email: string;
-//   phone: string;
-//   linkedin?: string;
-//   github?: string;
-//   portfolio?: string;
-//   address?: string;
-// }
+import { z } from "zod";
 
-// export interface Experience {
-//   id: string; // For drag and drop and unique identification
-//   jobTitle: string;
-//   company: string;
-//   location: string;
-//   startDate: Date;
-//   endDate: Date;
-//   description: string[]; // Array of bullet points
-// }
+export enum EEmploymentType {
+  FULL_TIME = 'FULL_TIME',
+  PART_TIME = 'PART_TIME',
+  SELF_EMPLOYED = 'SELF_EMPLOYED',
+  FREELANCE = 'FREELANCE',
+  CONTRACT = 'CONTRACT',
+  INTERNSHIP = 'INTERNSHIP',
+  APPRENTICESHIP = 'APPRENTICESHIP',
+  SEASONAL = 'SEASONAL',
+}
 
-// export interface Education {
-//   id: string;
-//   degree: string;
-//   institution: string;
-//   location: string;
-//   startDate: string;
-//   endDate: string;
-//   gpa?: string;
-// }
+export enum ELocationType {
+  ON_SITE = 'ON_SITE',
+  HYBRID = 'HYBRID',
+  REMOTE = 'REMOTE',
+}
 
-// export interface Skill {
-//   name: string;
-// }
+export const experienceItemSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, 'Job title is required'),
+  employmentType: z.nativeEnum(EEmploymentType),
+  locationType: z.nativeEnum(ELocationType),
+  company: z.string().min(1, 'Company is required'),
+  location: z.string(),
+  startDate: z.date(),
+  endDate: z.date().nullable().optional(),
+  description: z.string(),
+});
 
-// export interface Project {
-//   id: string;
-//   name: string;
-//   description: string;
-//   link?: string;
-//   technologies?: string[];
-// }
+export const experienceSchema = z.object({
+  experiences: z.array(experienceItemSchema),
+});
 
-// export interface Certification {
-//   id: string;
-//   name: string;
-//   issuingOrganization: string;
-//   date: string;
-// }
+export type TExperienceItem = z.infer<typeof experienceItemSchema>;
+export type TExperienceFormValues = z.infer<typeof experienceSchema>;
 
-// export interface ResumeData {
-//   contactInfo: ContactInfo;
-//   summary: string;
-//   experiences: Experience[];
-//   education: Education[];
-//   skills: Skill[];
-//   projects: Project[];
-//   certifications: Certification[];
-// }
-
-// export type ResumeSection = keyof ResumeData;
+export type ResumeFormData = {
+  experiences: TExperienceItem[];
+};
