@@ -11,6 +11,7 @@ import type { ResumeFormData } from "~/types/resume";
 import { generateUUID } from "~/utils/security";
 import { SortableItem } from "../ui/sortable-item";
 import { ProjectItem } from "./project-item";
+import { SectionCard } from "./section-card";
 
 export function ProjectSection() {
   const form = useFormContext<ResumeFormData>();
@@ -62,50 +63,46 @@ export function ProjectSection() {
   };
 
   return (
-    <div className="space-y-4">
-      <Form {...form}>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={fields.map(field => field.formId)}
-            strategy={verticalListSortingStrategy}
+    <SectionCard title="Projects" description="Add your projects.">
+      <div className="space-y-4">
+        <Form {...form}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
-            {fields.map((field, index) => (
-              <SortableItem
-                key={field.formId}
-                id={field.formId}
-                onRemove={() => remove(index)}
-                className="mb-4"
-                dragHandleAriaLabel="Drag to reorder project"
-                removeButtonAriaLabel="Remove project"
-              >
-                <ProjectItem index={index} />
-              </SortableItem>
-            ))}
-          </SortableContext>
-        </DndContext>
-        <Button
-          type="button"
-          className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
-          onClick={(e) => {
-            e.stopPropagation();
-            addProject();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
+            <SortableContext
+              items={fields.map(field => field.formId)}
+              strategy={verticalListSortingStrategy}
+            >
+              {fields.map((field, index) => (
+                <SortableItem
+                  key={field.formId}
+                  id={field.formId}
+                  onRemove={() => remove(index)}
+                  className="mb-4"
+                  dragHandleAriaLabel="Drag to reorder project"
+                  removeButtonAriaLabel="Remove project"
+                >
+                  <ProjectItem index={index} />
+                </SortableItem>
+              ))}
+            </SortableContext>
+          </DndContext>
+          <Button
+            type="button"
+            className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
+            onClick={(e) => {
               e.stopPropagation();
               addProject();
-            }
-          }}
-        >
-          <Plus size={16} />
-          <span>Add Project</span>
-        </Button>
-      </Form>
-    </div>
+            }}
+          >
+            <Plus size={16} />
+            <span>Add Project</span>
+          </Button>
+        </Form>
+      </div>
+    </SectionCard>
   );
 }
 

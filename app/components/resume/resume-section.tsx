@@ -37,7 +37,7 @@ import { Button } from "~/components/ui/button";
 import { ResumeSteps } from "../resume-steps";
 import { exportResumeToDocx } from "~/utils/docx-exporter";
 import type { ResumeFormData } from "~/hooks/use-resume-form";
-import ContactSection from "./contact-section";
+import {ContactSection} from "./contact-section";
 
 // Memoized form components to prevent unnecessary re-renders
 const PersonalStep = React.memo(

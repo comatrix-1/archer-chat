@@ -15,9 +15,10 @@ interface DatePickerProps {
   selectedDate: Date | undefined;
   onSelect: (date: Date | undefined) => void;
   disabled?: boolean;
+  isClearable: boolean;
 }
 
-export function DatePicker({ selectedDate, onSelect, disabled }: Readonly<DatePickerProps>) {
+export function DatePicker({ selectedDate, onSelect, disabled, isClearable }: Readonly<DatePickerProps>) {
   const [open, setOpen] = React.useState(false)
 
   return (
@@ -44,11 +45,12 @@ export function DatePicker({ selectedDate, onSelect, disabled }: Readonly<DatePi
             }}
             disabled={disabled}
           />
-          <div className="w-full flex">
+
+          {isClearable ? <div className="w-full flex">
             <Button variant="outline" size="sm" onClick={() => onSelect(undefined)} className="mx-auto mb-2">
               Clear
             </Button>
-          </div>
+          </div> : null}
         </PopoverContent>
       </Popover>
     </div>

@@ -56,12 +56,7 @@ export const CertificationItem = ({ index }: CertificationItemProps) => {
                     <FormItem>
                         <FormLabel>Issue Date</FormLabel>
                         <FormControl>
-                        <DatePicker selectedDate={field.value ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'issueDate', index)} />
-                            {/* <Input
-                                type="date"
-                                value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                                onChange={(e) => field.onChange(e.target.value ? new Date(e.target.value) : null)}
-                            /> */}
+                            <DatePicker selectedDate={field.value ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'issueDate', index)} isClearable={false} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -74,7 +69,7 @@ export const CertificationItem = ({ index }: CertificationItemProps) => {
                     <FormItem>
                         <FormLabel>Expiration Date (if applicable)</FormLabel>
                         <FormControl>
-                            <DatePicker selectedDate={field.value ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'expirationDate', index)} />
+                            <DatePicker selectedDate={field.value ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'expirationDate', index)} isClearable={true} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>

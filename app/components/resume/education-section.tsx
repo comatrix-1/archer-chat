@@ -1,16 +1,17 @@
 "use client";
 
-import { Plus } from "lucide-react";
-import { useFieldArray, useFormContext } from "react-hook-form";
 import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { Plus } from "lucide-react";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "~/components/ui/button";
 import { Form } from "~/components/ui/form";
 import { cn } from "~/lib/utils";
-import { generateUUID } from "~/utils/security";
-import { EducationItem } from "./education-item";
 import type { ResumeFormData } from "~/types/resume";
+import { generateUUID } from "~/utils/security";
 import { SortableItem } from "../ui/sortable-item";
+import { EducationItem } from "./education-item";
+import { SectionCard } from "./section-card";
 
 export function EducationSection() {
   const form = useFormContext<ResumeFormData>();
@@ -66,41 +67,43 @@ export function EducationSection() {
   };
 
   return (
-    <div className="space-y-4">
-      <Form {...form}>
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={fields.map(field => field.formId)} strategy={verticalListSortingStrategy}>
-            {fields.map((field, index) => (
-              <SortableItem
-                key={field.formId}
-                id={field.formId}
-                onRemove={() => remove(index)}
-                className="mb-4"
-                dragHandleAriaLabel="Drag to reorder experience"
-                removeButtonAriaLabel="Remove experience"
-              >
-                <EducationItem
-                  index={index}
-                />
-              </SortableItem>
-            ))}
-          </SortableContext>
-        </DndContext>
-        <Button
-          type="button"
-          className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
-          onClick={addEducation}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.stopPropagation();
-              addEducation();
-            }
-          }}
-        >
-          <Plus size={16} />
-          <span>Add Education</span>
-        </Button>
-      </Form>
-    </div>
+    <SectionCard title="Education" description="Add your educational background.">
+      <div className="space-y-4">
+        <Form {...form}>
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={fields.map(field => field.formId)} strategy={verticalListSortingStrategy}>
+              {fields.map((field, index) => (
+                <SortableItem
+                  key={field.formId}
+                  id={field.formId}
+                  onRemove={() => remove(index)}
+                  className="mb-4"
+                  dragHandleAriaLabel="Drag to reorder experience"
+                  removeButtonAriaLabel="Remove experience"
+                >
+                  <EducationItem
+                    index={index}
+                  />
+                </SortableItem>
+              ))}
+            </SortableContext>
+          </DndContext>
+          <Button
+            type="button"
+            className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
+            onClick={addEducation}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.stopPropagation();
+                addEducation();
+              }
+            }}
+          >
+            <Plus size={16} />
+            <span>Add Education</span>
+          </Button>
+        </Form>
+      </div>
+    </SectionCard>
   );
 }

@@ -74,163 +74,138 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
     };
 
     return (
-        <>
-            <div className="flex gap-2">
-                <FormField
-                    control={form.control}
-                    name={`experiences.${index}.title`}
-                    render={({ field }) => (
-                        <FormItem className="flex-1 flex flex-col h-full">
-                            <FormLabel>Title</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Job title" {...field} value={field.value ?? ''} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+                control={form.control}
+                name={`experiences.${index}.title`}
+                render={({ field }) => (
+                    <FormItem className="col-span-2">
+                        <FormLabel>Title</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Job title" {...field} value={field.value ?? ''} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
 
-
-            </div>
-
-            <div className="flex gap-2">
-                <FormField
-                    control={form.control}
-                    name={`experiences.${index}.company`}
-                    render={({ field }) => (
-                        <FormItem className="flex-1 flex flex-col h-full">
-                            <FormLabel>Company</FormLabel>
-                            <FormControl>
-                                <Input placeholder="Company name" {...field} />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name={`experiences.${index}.employmentType`}
-                    render={({ field }) => (
-                        <FormItem className="flex-1 flex flex-col h-full">
-                            <FormLabel>Employment Type</FormLabel>
-                            <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                            >
-                                <FormControl>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select employment type" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {Object.values(EEmploymentType).map((type) => (
-                                        <SelectItem key={type} value={type}>
-                                            {type.replace("_", " ").charAt(0).toUpperCase() +
-                                                type.replace("_", " ").slice(1).toLowerCase()}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
-
-
-
-            <div className="flex gap-2">
-                <FormField
-                    control={form.control}
-                    name={`experiences.${index}.location`}
-                    render={({ field }) => (
-                        <FormItem className="flex-1 flex flex-col h-full">
-                            <FormLabel>Location</FormLabel>
-                            <FormControl>
-                                <Input
-                                    placeholder="e.g. Johor Bahru, Malaysia"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name={`experiences.${index}.locationType`}
-                    render={({ field }) => (
-                        <FormItem className="flex-1 flex flex-col h-full">
-                            <FormLabel>Location Type</FormLabel>
-                            <Select
-                                onValueChange={field.onChange}
-                                defaultValue={field.value}
-                            >
-                                <FormControl>
-                                    <SelectTrigger className="w-full">
-                                        <SelectValue placeholder="Select location type" />
-                                    </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                    {Object.values(ELocationType).map((type) => (
-                                        <SelectItem key={type} value={type}>
-                                            {type.replace("_", " ").charAt(0).toUpperCase() +
-                                                type.replace("_", " ").slice(1).toLowerCase()}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <FormMessage />
-                        </FormItem>
-                    )}
-                />
-            </div>
-            <div className="flex gap-2">
-                <div className="flex-1">
-                    <FormLabel>Start Date</FormLabel>
-                    <DatePicker selectedDate={startDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'startDate', index)} />
-                </div>
-                <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                        <FormLabel>End Date</FormLabel>
-
-                    </div>
-
-                    <DatePicker selectedDate={endDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'endDate', index)} disabled={endDateValue === null} />
-
-                    <div className="flex items-center space-x-2">
-                        <Checkbox
-                            id={`present-${index}`}
-                            checked={endDateValue === null}
-                            onCheckedChange={(checked) => {
-                                if (checked) {
-                                    form.setValue(`experiences.${index}.endDate`, null, {
-                                        shouldValidate: true,
-                                        shouldDirty: true,
-                                    });
-                                } else {
-                                    form.setValue(`experiences.${index}.endDate`, new Date(), {
-                                        shouldValidate: true,
-                                        shouldDirty: true,
-                                    });
-                                }
-                            }}
-                        />
-                        <Label
-                            htmlFor={`present-${index}`}
-                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            <FormField
+                control={form.control}
+                name={`experiences.${index}.company`}
+                render={({ field }) => (
+                    <FormItem className="col-span-1">
+                        <FormLabel>Company</FormLabel>
+                        <FormControl>
+                            <Input placeholder="Company name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+            <FormField
+                control={form.control}
+                name={`experiences.${index}.employmentType`}
+                render={({ field }) => (
+                    <FormItem className="col-span-1">
+                        <FormLabel>Employment Type</FormLabel>
+                        <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
                         >
-                            I still work here
-                        </Label>
-                    </div>
-                </div>
-            </div>
+                            <FormControl>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select employment type" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {Object.values(EEmploymentType).map((type) => (
+                                    <SelectItem key={type} value={type}>
+                                        {type.replace("_", " ").charAt(0).toUpperCase() +
+                                            type.replace("_", " ").slice(1).toLowerCase()}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+
+            <FormField
+                control={form.control}
+                name={`experiences.${index}.location`}
+                render={({ field }) => (
+                    <FormItem className="col-span-1">
+                        <FormLabel>Location</FormLabel>
+                        <FormControl>
+                            <Input
+                                placeholder="e.g. Johor Bahru, Malaysia"
+                                {...field}
+                            />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+
+            <FormField
+                control={form.control}
+                name={`experiences.${index}.locationType`}
+                render={({ field }) => (
+                    <FormItem className="col-span-1">
+                        <FormLabel>Location Type</FormLabel>
+                        <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                        >
+                            <FormControl>
+                                <SelectTrigger className="w-full">
+                                    <SelectValue placeholder="Select location type" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {Object.values(ELocationType).map((type) => (
+                                    <SelectItem key={type} value={type}>
+                                        {type.replace("_", " ").charAt(0).toUpperCase() +
+                                            type.replace("_", " ").slice(1).toLowerCase()}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+
+            <FormField
+                control={form.control}
+                name={`experiences.${index}.startDate`}
+                render={({ field }) => (
+                    <FormItem className="col-span-1">
+                        <FormLabel>Start Date</FormLabel>
+                        <DatePicker selectedDate={startDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'startDate', index)} isClearable={false} />
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
+
+            <FormField
+                control={form.control}
+                name={`experiences.${index}.endDate`}
+                render={({ field }) => (
+                    <FormItem className="col-span-1">
+                        <FormLabel>End Date</FormLabel>
+                        <DatePicker selectedDate={endDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'endDate', index)} isClearable={true} />
+                        <FormMessage />
+                    </FormItem>
+                )}
+            />
 
             <FormField
                 control={form.control}
                 name={`experiences.${index}.description`}
                 render={({ field }) => (
-                    <FormItem>
+                    <FormItem className='col-span-2'>
                         <FormLabel>Description</FormLabel>
                         <FormControl>
                             <RichTextEditor
@@ -243,7 +218,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                     </FormItem>
                 )}
             />
-        </>
+        </div>
     );
 },
 );

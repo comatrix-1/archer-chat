@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { ResumeFormData } from '~/types/resume';
 import CertificationSection from './certification-section';
-import { ContactInfo } from '../resume-sections/ContactInfo';
-import { Summary } from '../resume-sections/Summary';
+import { ContactSection } from './contact-section';
+import { Summary } from './summary-section';
 import { Form } from '../ui/form';
 import { EducationSection } from './education-section';
 import ExperienceSection from './experience-section';
@@ -115,7 +115,7 @@ const ResumeSectionGemini = () => {
   const renderStep = () => {
     switch (currentStep) {
       case EResumeSteps.CONTACT:
-        return <ContactInfo />;
+        return <ContactSection />;
       case EResumeSteps.SUMMARY:
         return <Summary />;
       case EResumeSteps.EXPERIENCE:
@@ -129,7 +129,7 @@ const ResumeSectionGemini = () => {
       case EResumeSteps.CERTIFICATIONS:
         return <CertificationSection />;
       default:
-        return <ContactInfo />;
+        return <ContactSection />;
     }
   };
 

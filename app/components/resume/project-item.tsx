@@ -66,6 +66,7 @@ export function ProjectItem({ index }: ProjectItemProps) {
               <DatePicker
                 selectedDate={field.value ?? undefined}
                 onSelect={(date: Date | undefined) => handleDateSelect(date, 'startDate', index)}
+                isClearable={false}
               />
             </FormControl>
             <FormMessage />
@@ -83,6 +84,7 @@ export function ProjectItem({ index }: ProjectItemProps) {
               <DatePicker
                 selectedDate={field.value ?? undefined}
                 onSelect={(date: Date | undefined) => handleDateSelect(date, 'endDate', index)}
+                isClearable={true}
               />
             </FormControl>
             <FormMessage />

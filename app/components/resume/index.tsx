@@ -18,7 +18,7 @@ import {
 import { Plus } from "lucide-react";
 import * as React from "react";
 import CertificationSection from "~/components/resume/certification-section";
-import ContactSection from "~/components/resume/contact-section";
+import {ContactSection} from "~/components/resume/contact-section";
 import {EducationSection} from "~/components/resume/education-section";
 import ExperienceSection from "~/components/resume/experience-section";
 import HonorsAwardsSection from "~/components/resume/honors-awards-section";

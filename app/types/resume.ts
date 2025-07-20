@@ -60,6 +60,8 @@ export const contactInfoSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   email: z.string().email('Invalid email address'),
   phone: z.string().min(1, 'Phone number is required'),
+  country: z.string().optional(),
+  city: z.string().optional(),
   address: z.string().optional(),
   linkedin: z.string().url().optional(),
   github: z.string().url().optional(),

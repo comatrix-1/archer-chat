@@ -12,6 +12,7 @@ import type { ResumeFormData } from "~/types/resume";
 import { generateUUID } from "~/utils/security";
 import { SortableItem } from "../ui/sortable-item";
 import ExperienceItem, { EEmploymentType, ELocationType } from "./experience-item";
+import { SectionCard } from "./section-card";
 
 const ExperienceSection = () => {
   const form = useFormContext<ResumeFormData>();
@@ -70,56 +71,52 @@ const ExperienceSection = () => {
 
 
   return (
-    <div className="space-y-4">
-      <Form {...form}>
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={handleDragEnd}
-        >
-          <SortableContext
-            items={fields.map(field => field.id)}
-            strategy={verticalListSortingStrategy}
+    <SectionCard title="Experience" description="Add your work experience.">
+      <div className="space-y-4">
+        <Form {...form}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
           >
+            <SortableContext
+              items={fields.map(field => field.id)}
+              strategy={verticalListSortingStrategy}
+            >
 
-            {fields.map((field, index) => {
-              return (
-                <SortableItem
-                  key={field.id}
-                  id={field.id}
-                  onRemove={() => remove(index)}
-                  className="mb-4"
-                  dragHandleAriaLabel="Drag to reorder experience"
-                  removeButtonAriaLabel="Remove experience"
-                >
-                  <ExperienceItem
-                    index={index}
-                  />
-                </SortableItem>
-              );
-            })}
-          </SortableContext>
-        </DndContext>
-        <Button
-          type="button"
-          className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
-          onClick={(e) => {
-            console.log('addExperience()')
-            e.stopPropagation();
-            addExperience();
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
+              {fields.map((field, index) => {
+                return (
+                  <SortableItem
+                    key={field.id}
+                    id={field.id}
+                    onRemove={() => remove(index)}
+                    className="mb-4"
+                    dragHandleAriaLabel="Drag to reorder experience"
+                    removeButtonAriaLabel="Remove experience"
+                  >
+                    <ExperienceItem
+                      index={index}
+                    />
+                  </SortableItem>
+                );
+              })}
+            </SortableContext>
+          </DndContext>
+          <Button
+            type="button"
+            className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
+            onClick={(e) => {
+              console.log('addExperience()')
               e.stopPropagation();
               addExperience();
-            }
-          }}
-        >
-          <Plus size={16} />
-          <span>Add Experience</span>
-        </Button>
-      </Form>
-    </div>
+            }}
+          >
+            <Plus size={16} />
+            <span>Add Experience</span>
+          </Button>
+        </Form>
+      </div>
+    </SectionCard>
   );
 };
 
