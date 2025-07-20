@@ -10,8 +10,8 @@ import { Form } from "~/components/ui/form";
 import { cn } from "~/lib/utils";
 import type { ResumeFormData } from "~/types/resume";
 import { generateUUID } from "~/utils/security";
-import ExperienceItem, { EEmploymentType, ELocationType } from "./experience-item";
 import { SortableItem } from "../ui/sortable-item";
+import ExperienceItem, { EEmploymentType, ELocationType } from "./experience-item";
 
 const ExperienceSection = () => {
   const form = useFormContext<ResumeFormData>();
@@ -93,7 +93,6 @@ const ExperienceSection = () => {
                   removeButtonAriaLabel="Remove experience"
                 >
                   <ExperienceItem
-                    field={field}
                     index={index}
                   />
                 </SortableItem>

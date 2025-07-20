@@ -4,15 +4,14 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { ResumeFormData } from "~/types/resume";
-import { DatePicker } from "../ui/date-picker";
 import { RichTextEditor } from "../rich-text-editor";
+import { DatePicker } from "../ui/date-picker";
 
 interface EducationItemProps {
-    field: ResumeFormData["educations"][number];
     index: number;
 }
 
-export function EducationItem({ field, index }: Readonly<EducationItemProps>) {
+export function EducationItem({ index }: Readonly<EducationItemProps>) {
     const form = useFormContext<ResumeFormData>();
 
     const startDateValue = useWatch({

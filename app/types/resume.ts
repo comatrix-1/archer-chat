@@ -42,6 +42,7 @@ export type ResumeFormData = {
   experiences: TExperienceItem[];
   educations: TEducationItem[];
   skills: TSkill[];
+  certifications: TCertification[];
 };
 
 const educationItemSchema = z.object({
@@ -82,4 +83,16 @@ const skillSchema = z.object({
 });
 
 export type TSkill = z.infer<typeof skillSchema>;
+
+const certificationSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, 'Certification name is required'),
+  issuer: z.string().min(1, 'Issuer is required'),
+  issueDate: z.date().optional(),
+  expirationDate: z.date().nullable().optional(),
+  credentialId: z.string().optional(),
+  credentialUrl: z.string().url().optional(),
+});
+
+export type TCertification = z.infer<typeof certificationSchema>;
 

@@ -1,267 +1,143 @@
 "use client";
 
-import type { LicenseCertification } from "@prisma/client";
+import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Plus } from "lucide-react";
-import type React from "react";
-import { memo } from "react";
-import {
-  type Control,
-  type UseFormGetValues,
-  type UseFormSetValue,
-  useWatch,
-} from "react-hook-form";
-import { MonthYearPicker } from "~/components/month-year-picker";
+import { Form, useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
+import { cn } from "~/lib/utils";
+import type { ResumeFormData } from "~/types/resume";
 import { generateUUID } from "~/utils/security";
-import { DetailCard } from "./detail-card";
-interface CertificationSectionProps {
-  certificationFields: Omit<
-    LicenseCertification,
-    "resumeId" | "createdAt" | "updatedAt"
-  >[];
-  control: Control<any>;
-  setValue: UseFormSetValue<any>;
-  getValues: UseFormGetValues<any>;
-  appendCertification: (certification: LicenseCertification) => void;
-  removeCertification: (index: number) => void;
-  resumeId: string;
-}
-interface CertificationItemProps {
-  fieldId: string;
-  index: number;
-  control: Control<any>;
-  setValue: UseFormSetValue<any>;
-  removeCertification: (index: number) => void;
-  resumeId: string;
-  title: string;
-}
-const CertificationItem: React.FC<CertificationItemProps> = memo(({
-  fieldId,
-  index,
-  control,
-  setValue,
-  removeCertification,
-  resumeId,
-  title,
-}) => {
-    const issueDateValue = useWatch({
-      control,
-      name: `licenseCertifications.${index}.issueDate`,
-    });
+import { SortableItem } from "../ui/sortable-item";
+import { CertificationItem } from "./certification-item";
 
-    const expiryDateValue = useWatch({
-      control,
-      name: `licenseCertifications.${index}.expiryDate`,
-    });
+export function CertificationSection() {
+  const form = useFormContext<ResumeFormData>();
+  const { fields, move, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'certifications',
+    keyName: 'formId',
+  });
 
-    const hasNoExpiry = expiryDateValue === null;
-
-    return (
-      <DetailCard
-        key={fieldId}
-        id={fieldId}
-        index={index}
-        title={title}
-        onDelete={() => removeCertification(index)}
-      >
-        <FormField
-          control={control}
-          name={`licenseCertifications.${index}.name`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Certification Name</FormLabel>
-              <FormControl>
-                <Input
-                  className="font-medium text-lg"
-                  placeholder="e.g. AWS Solutions Architect"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name={`licenseCertifications.${index}.issuer`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Issuing Organization</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g. Amazon Web Services" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <div className="flex gap-2">
-          <div className="flex-1">
-            <FormLabel>Issue Date</FormLabel>
-            <MonthYearPicker
-              date={issueDateValue}
-              onSelect={(date) => {
-                const newDate = date ? new Date(date) : null;
-                if (newDate) {
-                  newDate.setHours(0, 0, 0, 0);
-                }
-                setValue(
-                  `licenseCertifications.${index}.issueDate`,
-                  newDate,
-                  { shouldValidate: true, shouldDirty: true },
-                );
-              }}
-              startDate={new Date(new Date().getFullYear() - 50, 0, 1)}
-              endDate={new Date()}
-            />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center justify-between mb-1">
-              <FormLabel>Expiry Date</FormLabel>
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id={`no-expiry-${index}`}
-                  checked={hasNoExpiry}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setValue(
-                        `licenseCertifications.${index}.expiryDate`,
-                        null,
-                        { shouldValidate: true, shouldDirty: true },
-                      );
-                    } else {
-                      setValue(
-                        `licenseCertifications.${index}.expiryDate`,
-                        new Date(),
-                        { shouldValidate: true, shouldDirty: true },
-                      );
-                    }
-                  }}
-                />
-                <label
-                  htmlFor={`no-expiry-${index}`}
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  No expiry
-                </label>
-              </div>
-            </div>
-            {!hasNoExpiry && (
-              <MonthYearPicker
-                date={expiryDateValue}
-                onSelect={(date) => {
-                  const newDate = date ? new Date(date) : null;
-                  if (newDate) {
-                    newDate.setHours(0, 0, 0, 0);
-                  }
-                  setValue(
-                    `licenseCertifications.${index}.expiryDate`,
-                    newDate,
-                    { shouldValidate: true, shouldDirty: true },
-                  );
-                }}
-                startDate={new Date(new Date().getFullYear() - 15, 0, 1)}
-                endDate={new Date(new Date().getFullYear() + 15, 11, 31)}
-              />
-            )}
-          </div>
-        </div>
-        <FormField
-          control={control}
-          name={`licenseCertifications.${index}.credentialId`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Credential ID (Optional)</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Credential ID or URL"
-                  {...field}
-                  value={field.value ?? ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </DetailCard>
-    );
-  },
-);
-
-CertificationItem.displayName = "CertificationItem";
-
-const CertificationSection: React.FC<CertificationSectionProps> = ({
-  certificationFields,
-  control,
-  appendCertification,
-  removeCertification,
-  setValue,
-  getValues,
-  resumeId,
-}) => {
-  if (!certificationFields || certificationFields.length === 0) {
-    return <p>{NO_ITEMS_DESCRIPTION}</p>;
-  }
-  return (
-    <div className="space-y-4 flex flex-col items-stretch">
-      {certificationFields.map((field, index) => {
-    const title = getValues(`licenseCertifications.${index}.name`) ?? `Certification #${index + 1}`;
-    return (
-      <CertificationItem
-        key={field.id}
-        fieldId={field.id}
-        index={index}
-        control={control}
-        setValue={setValue}
-        removeCertification={removeCertification}
-        resumeId={resumeId}
-        title={title}
-      />
-    );
-  })}
-      <Button
-        type="button"
-        className="w-full max-w-md my-2 mx-auto"
-        onClick={(e) => {
-          e.stopPropagation();
-          appendCertification({
-            id: generateUUID(),
-            name: "",
-            issuer: "",
-            issueDate: new Date(),
-            expiryDate: null,
-            credentialId: null,
-            resumeId,
-          });
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.stopPropagation();
-            appendCertification({
-              id: generateUUID(),
-              name: "",
-              issuer: "",
-              issueDate: new Date(),
-              expiryDate: null,
-              credentialId: null,
-              resumeId,
-            });
-          }
-        }}
-      >
-        <Plus size={16} />
-        <span>Add Certification</span>
-      </Button>
-    </div>
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: (event) => {
+        const { code } = event;
+        switch (code) {
+          case 'ArrowLeft':
+          case 'ArrowRight':
+            return { x: code === 'ArrowRight' ? 1 : -1, y: 0 };
+          case 'ArrowUp':
+          case 'ArrowDown':
+            return { x: 0, y: code === 'ArrowDown' ? 1 : -1 };
+          default:
+            return { x: 0, y: 0 };
+        }
+      },
+    })
   );
-};
+
+  const addCertification = () => {
+    append({
+      id: generateUUID(),
+      name: '',
+      issuer: '',
+      issueDate: new Date(),
+      expirationDate: null,
+      credentialId: '',
+      credentialUrl: '',
+    });
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    console.log('handleDragEnd() active: ', active, ' over: ', over)
+    if (over && active.id !== over.id) {
+      const oldIndex = fields.findIndex((field) => field.id === active.id);
+      const newIndex = fields.findIndex((field) => field.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        console.log('handleDragEnd() moving')
+        move(oldIndex, newIndex);
+      }
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Form {...form}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={fields.map(field => field.id)}
+            strategy={verticalListSortingStrategy}
+          >
+
+            {fields.map((field, index) => {
+              return (
+                <SortableItem
+                  key={field.id}
+                  id={field.id}
+                  onRemove={() => remove(index)}
+                  className="mb-4"
+                  dragHandleAriaLabel="Drag to reorder experience"
+                  removeButtonAriaLabel="Remove experience"
+                >
+                  <CertificationItem
+                    index={index}
+                  />
+                </SortableItem>
+              );
+            })}
+          </SortableContext>
+        </DndContext>
+        <Button
+          type="button"
+          className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
+          onClick={(e) => {
+            console.log('addCertification()')
+            e.stopPropagation();
+            addCertification();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation();
+              addCertification();
+            }
+          }}
+        >
+          <Plus size={16} />
+          <span>Add Certification</span>
+        </Button>
+      </Form>
+    </div>
+  )
+
+  // return (
+  //   <Card>
+  //     <CardHeader>
+  //       <CardTitle>Certifications</CardTitle>
+  //       <CardDescription>
+  //         Add any professional certifications you have earned.
+  //       </CardDescription>
+  //     </CardHeader>
+  //     <CardContent className="space-y-4">
+  //       {fields.map((field, index) => (
+
+  //       ))}
+  //       <Button
+  //         type="button"
+  //         className="w-full"
+  //         onClick={handleAddCertification}
+  //       >
+  //         <Plus className="mr-2 h-4 w-4" /> Add Certification
+  //       </Button>
+  //     </CardContent>
+  //   </Card>
+  // );
+}
+
 export default CertificationSection;

@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import type { ResumeFormData } from '~/types/resume';
-import { Certifications } from '../resume-sections/Certifications';
+import CertificationSection from './certification-section';
 import { ContactInfo } from '../resume-sections/ContactInfo';
 import { Summary } from '../resume-sections/Summary';
 import { Form } from '../ui/form';
@@ -126,7 +126,7 @@ const ResumeSectionGemini = () => {
       case EResumeSteps.PROJECTS:
         return null;
       case EResumeSteps.CERTIFICATIONS:
-        return <Certifications />;
+        return <CertificationSection />;
       default:
         return <ContactInfo />;
     }

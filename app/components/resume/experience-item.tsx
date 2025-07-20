@@ -46,12 +46,10 @@ const experienceSchema = z.object({
 type TExperienceItem = z.infer<typeof experienceSchema>;
 
 interface ExperienceItemProps {
-    field: TExperienceItem["experiences"][number];
     index: number;
 }
 
 const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
-    field,
     index,
 }) => {
     const form = useFormContext<ResumeFormData>();

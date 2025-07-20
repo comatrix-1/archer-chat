@@ -80,7 +80,6 @@ export function EducationSection() {
                 removeButtonAriaLabel="Remove experience"
               >
                 <EducationItem
-                  field={field}
                   index={index}
                 />
               </SortableItem>
