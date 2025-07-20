@@ -1,18 +1,15 @@
 import React, { useState } from 'react';
-import type { EducationFormItem } from '../resume-sections/Education';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { ContactInfo } from '../resume-sections/ContactInfo';
 import { Summary } from '../resume-sections/Summary';
-import { Experience } from '../resume-sections/Experience';
-import { Education } from '../resume-sections/Education';
 import { Skills } from '../resume-sections/Skills';
-import { Projects } from '../resume-sections/Projects';
 import { Certifications } from '../resume-sections/Certifications';
 import ExperienceSection from './experience-section';
 import { useForm } from 'react-hook-form';
 import { Form } from '../ui/form';
 import { EducationSection } from './education-section';
+import type { ResumeFormData } from '~/types/resume';
 
 enum EEmploymentType {
   FULL_TIME = 'FULL_TIME',
@@ -42,6 +39,19 @@ const experienceData = [
     "startDate": new Date("2017-07-13T00:00:00.000Z"),
     "endDate": null,
     "description": "<p>test1</p>"
+  }
+];
+
+const educationData = [
+  {
+    "id": "45cf45b4-7055-42fb-8df1-9a97511a363c",
+    "school": "test1",
+    "degree": "test1",
+    "fieldOfStudy": "test1",
+    "startDate": new Date("2017-07-13T00:00:00.000Z"),
+    "endDate": null,
+    "location": "test1",
+    "gpa": 4.0
   }
 ];
 
@@ -93,15 +103,13 @@ const ResumeSteps = ({
 const ResumeSectionGemini = () => {
   const [currentStep, setCurrentStep] = useState<EResumeSteps>(EResumeSteps.CONTACT);
 
-  const [educationData, setEducationData] = useState<EducationFormItem[]>([]);
-
-  const handleSaveEducation = (data: EducationFormItem[]) => {
-    setEducationData(data);
-    // Here you would typically save to your backend or state management
-    console.log('Education data saved:', data);
-  };
-
-  const form = useForm()
+  const form = useForm<ResumeFormData>({
+    defaultValues: {
+      summary: '',
+      experiences: experienceData,
+      educations: educationData,
+    },
+  })
 
   const renderStep = () => {
     switch (currentStep) {
@@ -112,13 +120,11 @@ const ResumeSectionGemini = () => {
       case EResumeSteps.EXPERIENCE:
         return <ExperienceSection />;
       case EResumeSteps.EDUCATION:
-        return (
-          <EducationSection />
-        );
+        return <EducationSection />;
       case EResumeSteps.SKILLS:
         return <Skills />;
       case EResumeSteps.PROJECTS:
-        return <Projects />;
+        return null;
       case EResumeSteps.CERTIFICATIONS:
         return <Certifications />;
       default:
