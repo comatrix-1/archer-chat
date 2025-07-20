@@ -74,10 +74,7 @@ const ResumeSectionGemini = () => {
       case EResumeSteps.SUMMARY:
         return <Summary />;
       case EResumeSteps.EXPERIENCE:
-        return <>
-        {/* <Experience /> */}
-        <ExperienceSection />
-        </>;
+        return <ExperienceSection />;
       case EResumeSteps.EDUCATION:
         return (
           <Education
@@ -100,6 +97,7 @@ const ResumeSectionGemini = () => {
     <div className="flex min-h-screen">
       <main className="flex-1 p-8">
         <Card className="p-6">
+          <Button onClick={() => console.log('educationData: ', educationData)}>Save</Button>
           <ResumeSteps currentStep={currentStep} setCurrentStep={setCurrentStep} />
           {renderStep()}
           <div className="flex justify-between mt-6">

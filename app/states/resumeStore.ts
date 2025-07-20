@@ -48,7 +48,7 @@ const experienceItemSchema = z.object({
   location: z.string(),
   startDate: z.date(),
   endDate: z.date().nullable().optional(),
-  description: z.array(z.string()).transform((arr) => arr.filter(Boolean)),
+  description: z.string(),
 });
 
 const experienceSchema = z.object({
@@ -107,6 +107,7 @@ interface ResumeState {
   updateExperience: (id: string, experience: Partial<TExperienceItem>) => void;
   removeExperience: (id: string) => void;
   reorderExperiences: (newOrder: string[]) => void;
+  setExperiences: (experiences: TExperienceItem[]) => void;
   addEducation: () => void;
   updateEducation: (id: string, education: Partial<Education>) => void;
   removeEducation: (id: string) => void;
@@ -168,7 +169,7 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
             location: "",
             startDate: new Date(),
             endDate: new Date(),
-            description: [""],
+            description: "",
           },
         ],
       },
@@ -199,6 +200,13 @@ export const useResumeStore = create<ResumeState>((set, get) => ({
         resume: { ...state.resume, experiences: reordered },
       };
     }),
+  setExperiences: (experiences) =>
+    set((state) => ({
+      resume: {
+        ...state.resume,
+        experiences: [...experiences],
+      },
+    })),
 
   // Education
   addEducation: () =>
