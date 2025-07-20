@@ -2,11 +2,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { SortableItem } from "@/components/ui/sortable-item";
 import { memo } from "react";
-import type { Control, UseFormSetValue } from "react-hook-form";
-import { useWatch } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { z } from "zod";
+import type { ResumeFormData } from "~/types/resume";
 import { RichTextEditor } from "../rich-text-editor";
 import { DatePicker } from "../ui/date-picker";
 import { Label } from "../ui/label";
@@ -49,48 +48,38 @@ type TExperienceItem = z.infer<typeof experienceSchema>;
 interface ExperienceItemProps {
     field: TExperienceItem["experiences"][number];
     index: number;
-    control: Control<TExperienceItem>;
-    setValue: UseFormSetValue<TExperienceItem>;
-    removeExperience: () => void;
 }
 
 const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
     field,
     index,
-    control,
-    setValue,
-    removeExperience,
 }) => {
+    const form = useFormContext<ResumeFormData>();
+
     const startDateValue = useWatch({
-        control,
+        control: form.control,
         name: `experiences.${index}.startDate`,
     }) ?? new Date();
     const endDateValue = useWatch({
-        control,
+        control: form.control,
         name: `experiences.${index}.endDate`,
     }) ?? null;
 
-    const handleDateSelect = (date: Date | null, fieldName: 'startDate' | 'endDate', index: number) => {
+    const handleDateSelect = (date: Date | undefined, fieldName: 'startDate' | 'endDate', index: number) => {
         if (date) {
             date.setHours(0, 0, 0, 0);
         }
-        setValue(`experiences.${index}.${fieldName}`, date, {
+        form.setValue(`experiences.${index}.${fieldName}`, date, {
             shouldValidate: true,
             shouldDirty: true,
         });
     };
 
     return (
-        <SortableItem
-            id={field.id}
-            onRemove={removeExperience}
-            className="mb-4"
-            dragHandleAriaLabel="Drag to reorder experience"
-            removeButtonAriaLabel="Remove experience"
-        >
+        <>
             <div className="flex gap-2">
                 <FormField
-                    control={control}
+                    control={form.control}
                     name={`experiences.${index}.title`}
                     render={({ field }) => (
                         <FormItem className="flex-1 flex flex-col h-full">
@@ -108,7 +97,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
 
             <div className="flex gap-2">
                 <FormField
-                    control={control}
+                    control={form.control}
                     name={`experiences.${index}.company`}
                     render={({ field }) => (
                         <FormItem className="flex-1 flex flex-col h-full">
@@ -121,7 +110,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                     )}
                 />
                 <FormField
-                    control={control}
+                    control={form.control}
                     name={`experiences.${index}.employmentType`}
                     render={({ field }) => (
                         <FormItem className="flex-1 flex flex-col h-full">
@@ -154,7 +143,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
 
             <div className="flex gap-2">
                 <FormField
-                    control={control}
+                    control={form.control}
                     name={`experiences.${index}.location`}
                     render={({ field }) => (
                         <FormItem className="flex-1 flex flex-col h-full">
@@ -170,7 +159,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                     )}
                 />
                 <FormField
-                    control={control}
+                    control={form.control}
                     name={`experiences.${index}.locationType`}
                     render={({ field }) => (
                         <FormItem className="flex-1 flex flex-col h-full">
@@ -201,7 +190,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
             <div className="flex gap-2">
                 <div className="flex-1">
                     <FormLabel>Start Date</FormLabel>
-                    <DatePicker selectedDate={startDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date ?? null, 'startDate', index)} />
+                    <DatePicker selectedDate={startDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'startDate', index)} />
                 </div>
                 <div className="flex-1">
                     <div className="flex items-center justify-between">
@@ -209,7 +198,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
 
                     </div>
 
-                    <DatePicker selectedDate={endDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date ?? null, 'endDate', index)} disabled={endDateValue === null} />
+                    <DatePicker selectedDate={endDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'endDate', index)} disabled={endDateValue === null} />
 
                     <div className="flex items-center space-x-2">
                         <Checkbox
@@ -217,12 +206,12 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                             checked={endDateValue === null}
                             onCheckedChange={(checked) => {
                                 if (checked) {
-                                    setValue(`experiences.${index}.endDate`, null, {
+                                    form.setValue(`experiences.${index}.endDate`, null, {
                                         shouldValidate: true,
                                         shouldDirty: true,
                                     });
                                 } else {
-                                    setValue(`experiences.${index}.endDate`, new Date(), {
+                                    form.setValue(`experiences.${index}.endDate`, new Date(), {
                                         shouldValidate: true,
                                         shouldDirty: true,
                                     });
@@ -240,7 +229,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
             </div>
 
             <FormField
-                control={control}
+                control={form.control}
                 name={`experiences.${index}.description`}
                 render={({ field }) => (
                     <FormItem>
@@ -256,7 +245,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                     </FormItem>
                 )}
             />
-        </SortableItem>
+        </>
     );
 },
 );

@@ -21,7 +21,7 @@ import {
 import React, { useCallback, useMemo, useRef } from "react";
 import { Textarea } from "~/components/ui/textarea";
 import CertificationSection from "~/components/resume/certification-section";
-import EducationSection from "~/components/resume/education-section";
+import {EducationSection} from "~/components/resume/education-section";
 import { ExperienceSectionDnD, type ExperienceItem } from "~/components/resume/experience-section-dnd";
 import type { Control, UseFormSetValue } from "react-hook-form";
 

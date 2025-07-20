@@ -8,9 +8,10 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Button } from "~/components/ui/button";
 import { Form } from "~/components/ui/form";
 import { cn } from "~/lib/utils";
-import type { ResumeFormData, TExperienceFormValues } from "~/types/resume";
+import type { ResumeFormData } from "~/types/resume";
 import { generateUUID } from "~/utils/security";
 import ExperienceItem, { EEmploymentType, ELocationType } from "./experience-item";
+import { SortableItem } from "../ui/sortable-item";
 
 const ExperienceSection = () => {
   const form = useFormContext<ResumeFormData>();
@@ -34,11 +35,12 @@ const ExperienceSection = () => {
     })
   );
 
-  const { fields, move, remove, append } = useFieldArray<TExperienceFormValues, 'experiences', 'formId'>({
+  const { fields, move, remove, append } = useFieldArray({
     control: form.control,
     name: 'experiences',
     keyName: 'formId', // Prevent key conflicts with our existing 'id' field
   });
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     console.log('handleDragEnd() active: ', active, ' over: ', over)
@@ -50,10 +52,6 @@ const ExperienceSection = () => {
         move(oldIndex, newIndex);
       }
     }
-  };
-
-  const handleRemoveExperience = (index: number, id: string) => {
-    remove(index);
   };
 
   const addExperience = () => {
@@ -86,14 +84,19 @@ const ExperienceSection = () => {
 
             {fields.map((field, index) => {
               return (
-                <ExperienceItem
+                <SortableItem
                   key={field.id}
-                  field={field}
-                  index={index}
-                  control={form.control}
-                  setValue={form.setValue}
-                  removeExperience={() => handleRemoveExperience(index, field.id)}
-                />
+                  id={field.id}
+                  onRemove={() => remove(index)}
+                  className="mb-4"
+                  dragHandleAriaLabel="Drag to reorder experience"
+                  removeButtonAriaLabel="Remove experience"
+                >
+                  <ExperienceItem
+                    field={field}
+                    index={index}
+                  />
+                </SortableItem>
               );
             })}
           </SortableContext>

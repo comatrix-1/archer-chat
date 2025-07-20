@@ -12,6 +12,7 @@ import { Certifications } from '../resume-sections/Certifications';
 import ExperienceSection from './experience-section';
 import { useForm } from 'react-hook-form';
 import { Form } from '../ui/form';
+import { EducationSection } from './education-section';
 
 enum EEmploymentType {
   FULL_TIME = 'FULL_TIME',
@@ -109,15 +110,10 @@ const ResumeSectionGemini = () => {
       case EResumeSteps.SUMMARY:
         return <Summary />;
       case EResumeSteps.EXPERIENCE:
-        return <ExperienceSection
-          initialData={{ experiences: experienceData }}
-        />;
+        return <ExperienceSection />;
       case EResumeSteps.EDUCATION:
         return (
-          <Education
-            initialData={educationData}
-            onSave={handleSaveEducation}
-          />
+          <EducationSection />
         );
       case EResumeSteps.SKILLS:
         return <Skills />;

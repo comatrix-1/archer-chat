@@ -1,5 +1,5 @@
 import React from 'react';
-import { useForm, useFieldArray, Controller, type Control, type FieldArrayWithId } from 'react-hook-form';
+import { useForm, useFieldArray, Controller, type Control, type FieldArrayWithId, useFormContext } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
@@ -25,37 +25,16 @@ import {
 } from '@dnd-kit/sortable';
 // Using default keyboard coordinates from @dnd-kit/core
 import { CSS } from '@dnd-kit/utilities';
+import type { ResumeFormData } from '~/types/resume';
 
-const educationItemSchema = z.object({
-  id: z.string(),
-  degree: z.string().min(1, 'Degree is required'),
-  institution: z.string().min(1, 'Institution is required'),
-  location: z.string().optional(),
-  startDate: z.string().optional(),
-  endDate: z.string().optional(),
-  gpa: z.string().optional(),
-});
 
-const educationSchema = z.object({
-  education: z.array(educationItemSchema),
-});
 
-type EducationFormValues = z.infer<typeof educationSchema>;
-
-interface EducationProps {
-  readonly initialData: EducationFormItem[];
-  readonly onSave: (data: EducationFormItem[]) => void;
-}
-
-export function Education({ initialData, onSave }: EducationProps) {
-  const { control, handleSubmit } = useForm<EducationFormValues>({
-    resolver: zodResolver(educationSchema),
-    defaultValues: { education: initialData },
-  });
+export function Education() {
+  const form = useFormContext<ResumeFormData>();
 
   const { fields, append, remove, move } = useFieldArray({
-    control,
-    name: 'education',
+    control: form.control,
+    name: 'educations',
   });
 
   const sensors = useSensors(
@@ -85,19 +64,17 @@ export function Education({ initialData, onSave }: EducationProps) {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
+    console.log('handleDragEnd() active: ', active, ' over: ', over)
     if (over && active.id !== over.id) {
       const oldIndex = fields.findIndex((field) => field.id === active.id);
       const newIndex = fields.findIndex((field) => field.id === over.id);
       if (oldIndex !== -1 && newIndex !== -1) {
-        // Update the local form state immediately for a responsive UI
+        console.log('handleDragEnd() moving')
         move(oldIndex, newIndex);
-        
-        // Also notify the parent of the change
-        const newOrder = arrayMove([...fields], oldIndex, newIndex);
-        onSave(newOrder);
       }
     }
   };
+
 
   const handleAddEducation = () => {
     append({
@@ -115,10 +92,6 @@ export function Education({ initialData, onSave }: EducationProps) {
     remove(index);
   };
 
-  const onSubmit = (data: EducationFormValues) => {
-    onSave(data.education);
-  };
-
   return (
     <Card>
       <CardHeader className="flex flex-row justify-between items-center">
@@ -128,7 +101,6 @@ export function Education({ initialData, onSave }: EducationProps) {
         </Button>
       </CardHeader>
       <CardContent>
-        <form id="education-form" onSubmit={handleSubmit(onSubmit)}>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={fields.map(field => field.id)} strategy={verticalListSortingStrategy}>
               {fields.map((field, index) => (
@@ -144,7 +116,6 @@ export function Education({ initialData, onSave }: EducationProps) {
             </SortableContext>
           </DndContext>
           {!fields.length && <p className="text-center text-muted-foreground">No education added yet.</p>}
-        </form>
       </CardContent>
       <CardFooter>
         <Button type="submit" form="education-form">Save Education</Button>
@@ -168,7 +139,7 @@ export interface EducationFormItem {
 interface SortableEducationItemProps {
   field: FieldArrayWithId<{ education: EducationFormItem[] }, 'education'>;
   index: number;
-  control: Control<EducationFormValues>;
+  control: Control<ResumeFormData>;
   removeEducation: () => void;
 }
 

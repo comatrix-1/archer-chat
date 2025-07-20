@@ -38,4 +38,25 @@ export type TExperienceFormValues = z.infer<typeof experienceSchema>;
 
 export type ResumeFormData = {
   experiences: TExperienceItem[];
+  educations: TEducationItem[];
 };
+
+const educationItemSchema = z.object({
+  id: z.string(),
+  degree: z.string().min(1, 'Degree is required'),
+  school: z.string().min(1, 'School is required'),
+  location: z.string().optional(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
+  gpa: z.number().optional(),
+  gpaMax: z.number().optional(),
+  description: z.string().optional(),
+  fieldOfStudy: z.string().optional(),
+});
+
+const educationSchema = z.object({
+  education: z.array(educationItemSchema),
+});
+
+export type TEducationItem = z.infer<typeof educationItemSchema>;
+export type TEducationFormValues = z.infer<typeof educationSchema>;
