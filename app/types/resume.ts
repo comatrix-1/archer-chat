@@ -37,6 +37,7 @@ export type TExperienceItem = z.infer<typeof experienceItemSchema>;
 export type TExperienceFormValues = z.infer<typeof experienceSchema>;
 
 export type ResumeFormData = {
+  contactInfo: TContactInfo;
   summary: string;
   experiences: TExperienceItem[];
   educations: TEducationItem[];
@@ -61,3 +62,15 @@ const educationSchema = z.object({
 
 export type TEducationItem = z.infer<typeof educationItemSchema>;
 export type TEducationFormValues = z.infer<typeof educationSchema>;
+
+export const contactInfoSchema = z.object({
+  fullName: z.string().min(1, 'Full name is required'),
+  email: z.string().email('Invalid email address'),
+  phone: z.string().min(1, 'Phone number is required'),
+  address: z.string().optional(),
+  linkedin: z.string().url().optional(),
+  github: z.string().url().optional(),
+  portfolio: z.string().url().optional(),
+});
+
+export type TContactInfo = z.infer<typeof contactInfoSchema>; 
