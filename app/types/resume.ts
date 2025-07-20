@@ -41,6 +41,7 @@ export type ResumeFormData = {
   summary: string;
   experiences: TExperienceItem[];
   educations: TEducationItem[];
+  skills: TSkill[];
 };
 
 const educationItemSchema = z.object({
@@ -74,3 +75,11 @@ export const contactInfoSchema = z.object({
 });
 
 export type TContactInfo = z.infer<typeof contactInfoSchema>; 
+
+const skillSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, 'Skill name is required'),
+});
+
+export type TSkill = z.infer<typeof skillSchema>;
+

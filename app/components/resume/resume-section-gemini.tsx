@@ -1,15 +1,15 @@
-import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import type { ResumeFormData } from '~/types/resume';
+import { Certifications } from '../resume-sections/Certifications';
 import { ContactInfo } from '../resume-sections/ContactInfo';
 import { Summary } from '../resume-sections/Summary';
-import { Skills } from '../resume-sections/Skills';
-import { Certifications } from '../resume-sections/Certifications';
-import ExperienceSection from './experience-section';
-import { useForm } from 'react-hook-form';
 import { Form } from '../ui/form';
 import { EducationSection } from './education-section';
-import type { ResumeFormData } from '~/types/resume';
+import ExperienceSection from './experience-section';
+import { SkillsSection } from './skills-section';
 
 enum EEmploymentType {
   FULL_TIME = 'FULL_TIME',
@@ -122,7 +122,7 @@ const ResumeSectionGemini = () => {
       case EResumeSteps.EDUCATION:
         return <EducationSection />;
       case EResumeSteps.SKILLS:
-        return <Skills />;
+        return <SkillsSection />;
       case EResumeSteps.PROJECTS:
         return null;
       case EResumeSteps.CERTIFICATIONS:

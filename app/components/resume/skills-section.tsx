@@ -1,211 +1,85 @@
-"use client";
-
-import { SkillCategory, SkillProficiency } from "@prisma/client";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2 } from "lucide-react";
-import type React from "react";
-import { useMemo } from "react";
-import { Button } from "~/components/ui/button";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "~/components/ui/select";
-import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
-import { cn } from "~/lib/utils";
+import { useState } from "react";
+import type { ResumeFormData } from "~/types/resume";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { generateUUID } from "~/utils/security";
 
-interface SkillField {
-  id: string;
-  name: string;
-  proficiency: SkillProficiency;
-  category: SkillCategory;
-}
+export function SkillsSection() {
+  const form = useFormContext<ResumeFormData>();
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'skills',
+    keyName: 'formId',
+  });
 
-interface SkillsSectionProps {
-  skills: SkillField[];
-  control: any;
-  appendSkill: (skill: SkillField) => void;
-  removeSkill: (index: number) => void;
-}
+  const [currentSkill, setCurrentSkill] = useState("");
 
-const SKILL_CATEGORY_OPTIONS = Object.values(SkillCategory);
-const SKILL_PROFICIENCY_OPTIONS = Object.values(SkillProficiency);
-
-const SkillsSection: React.FC<SkillsSectionProps> = ({
-  skills,
-  control,
-  appendSkill,
-  removeSkill,
-}) => {
-  const groupedSkills = useMemo(() => {
-    return skills.reduce(
-      (acc, skill, index) => {
-        const category = skill.category || SkillCategory.TECHNICAL;
-        if (!acc[category]) {
-          acc[category] = [];
-        }
-
-        acc[category].push({ ...skill, originalIndex: index });
-        return acc;
-      },
-      {} as Record<string, (SkillField & { originalIndex: number })[]>,
-    );
-  }, [skills]);
-
-  if (!skills || skills.length === 0) {
-    return <p>{NO_ITEMS_DESCRIPTION}</p>;
-  }
+  const handleAddSkill = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (currentSkill.trim()) {
+      append({
+        id: generateUUID(),
+        name: currentSkill.trim(),
+      });
+      setCurrentSkill("");
+    }
+  };
 
   return (
-      <div className="space-y-4 flex flex-col items-stretch">
-        {Object.entries(groupedSkills).map(([category, categorySkills]) => (
-          <div
-            key={category}
-            className="space-y-3 border-l-2 pl-4 border-muted"
-          >
-            <h3 className="text-md font-semibold text-muted-foreground">
-              {category}
-            </h3>
-            {categorySkills.map((field) => (
-              <div
-                key={field.id}
-                className="group flex items-end justify-between w-full gap-2 py-1 text-sm"
-              >
-                {}
-                <div className="w-1/4">
-                  <FormField
-                    control={control}
-                    name={`skills.${field.originalIndex}.category`}
-                    render={({ field: renderField }) => (
-                      <FormItem>
-                        <FormLabel>Category</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={renderField.value}
-                            onValueChange={renderField.onChange}
-                            defaultValue={renderField.value}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Category" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {SKILL_CATEGORY_OPTIONS.map((cat) => (
-                                <SelectItem key={cat} value={cat}>
-                                  {cat
-                                    .replace("_", " ")
-                                    .charAt(0)
-                                    .toUpperCase() +
-                                    cat
-                                      .replace("_", " ")
-                                      .slice(1)
-                                      .toLowerCase()}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="w-2/4">
-                  <FormField
-                    control={control}
-                    name={`skills.${field.originalIndex}.name`}
-                    render={({ field: renderField }) => (
-                      <FormItem>
-                        <FormLabel>Skill Name</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Skill name" {...renderField} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <div className="w-1/4">
-                  <FormField
-                    control={control}
-                    name={`skills.${field.originalIndex}.proficiency`}
-                    render={({ field: renderField }) => (
-                      <FormItem>
-                        <FormLabel>Proficiency</FormLabel>
-                        <FormControl>
-                          <Select
-                            value={renderField.value}
-                            onValueChange={renderField.onChange}
-                            defaultValue={renderField.value}
-                          >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Level" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {SKILL_PROFICIENCY_OPTIONS.map((prof) => (
-                                <SelectItem key={prof} value={prof}>
-                                  {prof.charAt(0).toUpperCase() +
-                                    prof.slice(1).toLowerCase()}
-                                </SelectItem>
-                              ))}
-                              {}
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                <Button
-                  type="button"
-                  variant="destructive"
-                  onClick={() => removeSkill(field.originalIndex)}
-                >
-                  <Trash2 size={16} />
-                </Button>
-              </div>
-            ))}
-          </div>
-        ))}
-      <Button
-        type="button"
-        className={cn("w-full max-w-md my-2 mx-auto")}
-        onClick={(e) => {
-          e.stopPropagation();
-          appendSkill({
-            id: generateUUID(),
-            name: "",
-            proficiency: SkillProficiency.BEGINNER,
-            category: SkillCategory.TECHNICAL,
-          });
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.stopPropagation();
-            appendSkill({
-              id: generateUUID(),
-              name: "",
-              proficiency: SkillProficiency.BEGINNER,
-              category: SkillCategory.TECHNICAL,
-            });
-          }
-        }}
-      >
-        <Plus size={16} />
-        <span>Add skill</span>
-      </Button>
-      </div>
-  );
-};
+    <Card>
+      <CardHeader>
+        <CardTitle>Skills</CardTitle>
+        <CardDescription>
+          Add relevant skills. Press Enter or click 'Add' to add a skill.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
 
-export default SkillsSection;
+          <form onSubmit={handleAddSkill} className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="Add a skill"
+              value={currentSkill}
+              onChange={(e) => setCurrentSkill(e.target.value)}
+              className="flex-1"
+            />
+            <Button type="submit" size="sm">
+              <Plus className="h-4 w-4 mr-1" /> Add
+            </Button>
+          </form>
+
+          <div className="flex flex-wrap gap-2">
+            {fields && fields.length > 0 ? (
+              fields.map((field, index) => (
+                <Badge
+                  key={field.id}
+                  variant="secondary"
+                  className="text-sm px-2 pl-5"
+                >
+                  {field.name}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 sm:h-8 sm:w-8 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    onClick={() => remove(index)}
+                    aria-label="Remove skill"
+                  >
+                    <Trash2 className="size-3.5 sm:size-4" />
+                  </Button>
+                </Badge>
+              ))
+            ) : (
+              <p className="text-muted-foreground m-auto text-center text-sm">No skills added yet</p>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}

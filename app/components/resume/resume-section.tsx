@@ -32,7 +32,7 @@ interface ResumeFormExperienceItem extends Omit<ExperienceItem, 'id'> {
 }
 import HonorsAwardsSection from "~/components/resume/honors-awards-section";
 import ProjectSection from "~/components/resume/project-section";
-import SkillsSection from "~/components/resume/skills-section";
+import {SkillsSection} from "~/components/resume/skills-section";
 import { Button } from "~/components/ui/button";
 import { ResumeSteps } from "../resume-steps";
 import { exportResumeToDocx } from "~/utils/docx-exporter";
