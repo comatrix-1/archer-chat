@@ -1,345 +1,166 @@
 "use client";
 
-import type { Experience } from "@prisma/client";
-import { EmploymentType, LocationType } from "@prisma/client";
 import { Plus } from "lucide-react";
-import { memo } from "react";
-import { useWatch } from "react-hook-form";
-import type { Control, FieldValues, UseFormGetValues, UseFormSetValue } from "react-hook-form";
+import { useEffect } from "react";
+import { useFieldArray, useForm } from "react-hook-form";
 
+import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, arrayMove, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from 'zod';
 import { Button } from "~/components/ui/button";
-import { DetailCard, DetailCardField } from "./detail-card";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "~/components/ui/select";
-import { Textarea } from "~/components/ui/textarea";
-import { Checkbox } from "~/components/ui/checkbox";
-import { MonthYearPicker } from "../month-year-picker";
-import { RichTextEditor } from "../rich-text-editor";
-import { NO_ITEMS_DESCRIPTION } from "~/lib/constants";
+import { Form } from "~/components/ui/form";
 import { cn } from "~/lib/utils";
+import { useResumeStore } from "~/states/resumeStore";
+import ExperienceItem from "./experience-item";
 
-interface ExperienceFormValues extends FieldValues {
-  experiences: Array<{
-    id: string;
-    title: string;
-    company: string;
-    location: string;
-    employmentType: EmploymentType;
-    locationType: LocationType;
-    startDate: Date | null;
-    endDate: Date | null;
-    description: string;
-    current: boolean;
-  }>;
+export enum EEmploymentType {
+  FULL_TIME = 'FULL_TIME',
+  PART_TIME = 'PART_TIME',
+  SELF_EMPLOYED = 'SELF_EMPLOYED',
+  FREELANCE = 'FREELANCE',
+  CONTRACT = 'CONTRACT',
+  INTERNSHIP = 'INTERNSHIP',
+  APPRENTICESHIP = 'APPRENTICESHIP',
+  SEASONAL = 'SEASONAL',
 }
 
-interface ExperienceSectionProps {
-  experienceSectionFields: (Omit<
-    Experience,
-    "resumeId" | "createdAt" | "updatedAt" | "employmentType" | "locationType"
-  > & {
-    employmentType: EmploymentType;
-    locationType: LocationType;
-  })[];
-  control: Control<ExperienceFormValues>;
-  removeExperience: (index: number) => void;
-  setValue: UseFormSetValue<ExperienceFormValues>;
-  getValues: UseFormGetValues<ExperienceFormValues>;
-  appendExperience: (experience: Omit<Experience, 'id' | 'resumeId' | 'createdAt' | 'updatedAt'>) => void;
-  resumeId: string;
+export enum ELocationType {
+  ON_SITE = 'ON_SITE',
+  HYBRID = 'HYBRID',
+  REMOTE = 'REMOTE',
 }
 
-interface ExperienceItemProps {
-  fieldId: string;
-  index: number;
-  control: Control<ExperienceFormValues>;
-  removeExperience: (index: number) => void;
-  setValue: UseFormSetValue<ExperienceFormValues>;
-  resumeId: string;
-  title: string;
-}
+const experienceItemSchema = z.object({
+  id: z.string(),
+  title: z.string().min(1, 'Job title is required'),
+  employmentType: z.nativeEnum(EEmploymentType),
+  locationType: z.nativeEnum(ELocationType),
+  company: z.string().min(1, 'Company is required'),
+  location: z.string(),
+  startDate: z.date(),
+  endDate: z.date().nullable().optional(),
+  description: z.array(z.string()).transform(arr => arr.filter(Boolean)),
+});
 
-const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
-  fieldId,
-  index,
-  control,
-  setValue,
-  removeExperience,
-  title,
-}) => {
-    const startDateValue = useWatch({
-      control,
-      name: `experiences.${index}.startDate`,
-    });
-    const endDateValue = useWatch({
-      control,
-      name: `experiences.${index}.endDate`,
-    });
-    const isPresent = endDateValue === null;
+const experienceSchema = z.object({
+  experiences: z.array(experienceItemSchema),
+});
 
-    const handleDateSelect = (date: Date | null, fieldName: 'startDate' | 'endDate', index: number) => {
-      if (date) {
-        date.setHours(0, 0, 0, 0);
+type TExperienceItem = z.infer<typeof experienceItemSchema>;
+type TExperienceFormValues = z.infer<typeof experienceSchema>;
+
+const ExperienceSection = () => {
+  const experiences = useResumeStore((state) => state.resume.experiences);
+  const addExperience = useResumeStore((state) => state.addExperience);
+  const updateExperience = useResumeStore((state) => state.updateExperience);
+  const removeExperience = useResumeStore((state) => state.removeExperience);
+  const reorderExperiences = useResumeStore((state) => state.reorderExperiences);
+
+  const form = useForm<TExperienceFormValues>({
+    resolver: zodResolver(experienceSchema),
+    defaultValues: {
+      experiences: experiences.map((exp: TExperienceItem) => ({
+        ...exp,
+        endDate: null,
+      }))
+    },
+  });
+
+  useEffect(() => {
+    form.setValue('experiences', experiences);
+  }, [experiences, form.setValue]);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: (event) => {
+        const { code } = event;
+        switch (code) {
+          case 'ArrowLeft':
+          case 'ArrowRight':
+            return { x: code === 'ArrowRight' ? 1 : -1, y: 0 };
+          case 'ArrowUp':
+          case 'ArrowDown':
+            return { x: 0, y: code === 'ArrowDown' ? 1 : -1 };
+          default:
+            return { x: 0, y: 0 };
+        }
+      },
+    })
+  );
+
+  const { fields, move, remove } = useFieldArray<TExperienceFormValues, 'experiences', 'formId'>({
+    control: form.control,
+    name: 'experiences',
+    keyName: 'formId', // Prevent key conflicts with our existing 'id' field
+  });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    console.log('handleDragEnd() active: ', active, ' over: ', over)
+    if (over && active.id !== over.id) {
+      const oldIndex = fields.findIndex((field) => field.id === active.id);
+      const newIndex = fields.findIndex((field) => field.id === over.id);
+      if (oldIndex !== -1 && newIndex !== -1) {
+        console.log('handleDragEnd() moving')
+        move(oldIndex, newIndex);
+        reorderExperiences(arrayMove(fields, oldIndex, newIndex).map(item => item.id));
       }
-      setValue(`experiences.${index}.${fieldName}`, date, {
-        shouldValidate: true,
-        shouldDirty: true,
-      });
-    };
+    }
+  };
 
-    return (
-      <DetailCard
-        key={fieldId}
-        id={fieldId}
-        index={index}
-        title={title}
-        onDelete={() => removeExperience(index)}
-      >
-        <FormField
-          control={control}
-          name={`experiences.${index}.title`}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Title</FormLabel>
-              <FormControl>
-                <Input placeholder="Job title" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-            <FormField
-              control={control}
-              name={`experiences.${index}.employmentType`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Employment Type</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select employment type" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.values(EmploymentType).map((type) => (
-                        <SelectItem key={type} value={type}>
-                          {type.replace("_", " ").charAt(0).toUpperCase() +
-                            type.replace("_", " ").slice(1).toLowerCase()}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={control}
-              name={`experiences.${index}.company`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Company</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Company name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex gap-2">
-              <FormField
-                control={control}
-                name={`experiences.${index}.location`}
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormLabel>Location</FormLabel>
-                    <FormControl>
-                      <Input
-                        placeholder="e.g. Johor Bahru, Malaysia"
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={control}
-                name={`experiences.${index}.locationType`}
-                render={({ field }) => (
-                  <FormItem className="flex-1">
-                    <FormLabel>Location Type</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select location type" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {Object.values(LocationType).map((type) => (
-                          <SelectItem key={type} value={type}>
-                            {type.replace("_", " ").charAt(0).toUpperCase() +
-                              type.replace("_", " ").slice(1).toLowerCase()}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div className="flex gap-2">
-              <div className="flex-1">
-                <FormLabel>Start Date</FormLabel>
-                <MonthYearPicker
-                  date={startDateValue}
-                  onSelect={(date: Date | null) => handleDateSelect(date, 'startDate', index)}
-                />
-                { /* Add space here */ }
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <FormLabel>End Date</FormLabel>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`present-${index}`}
-                      checked={isPresent}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setValue(`experiences.${index}.endDate`, null, {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                        } else {
-                          setValue(`experiences.${index}.endDate`, new Date(), {
-                            shouldValidate: true,
-                            shouldDirty: true,
-                          });
-                        }
-                      }}
-                    />
-                    <label
-                      htmlFor={`present-${index}`}
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Present
-                    </label>
-                  </div>
-                </div>
-                {!isPresent && (
-                  <MonthYearPicker
-                    date={endDateValue}
-                    onSelect={(date: Date | null) => {
-                      const newDate = date ? new Date(date) : null;
-                      if (newDate) {
-                        newDate.setHours(0, 0, 0, 0);
-                      }
-                      setValue(`experiences.${index}.endDate`, newDate, {
-                        shouldValidate: true,
-                        shouldDirty: true,
-                      });
-                    }}
-                  />
-                )}
-                { }
-              </div>
-            </div>
-            <FormField
-              control={control}
-              name={`experiences.${index}.description`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description (Optional)</FormLabel>
-                  <FormControl>
-                    { }
-                    <RichTextEditor
-                      content={field.value}
-                      onChange={field.onChange}
-                      placeholder="Describe your responsibilities and achievements..."
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </DetailCard>
-    );
-  },
-);
-ExperienceItem.displayName = "ExperienceItem";
+  const handleRemoveExperience = (index: number, id: string) => {
+    remove(index);
+    removeExperience(id);
+  };
 
-const ExperienceSection: React.FC<ExperienceSectionProps> = ({
-  experienceSectionFields: experienceFields,
-  control,
-  getValues,
-  setValue,
-  removeExperience,
-  appendExperience,
-  resumeId,
-}) => {
-  if (!experienceFields || experienceFields.length === 0) {
-    return <p>{NO_ITEMS_DESCRIPTION}</p>;
-  }
   return (
     <div className="space-y-4">
-      {experienceFields.map((field, index) => {
-    const title = getValues(`experiences.${index}.title`) ?? `Experience #${index + 1}`;
-    return (
-      <ExperienceItem
-        key={field.id}
-        fieldId={field.id}
-        index={index}
-        control={control}
-        setValue={setValue}
-        removeExperience={removeExperience}
-        resumeId={resumeId}
-        title={title}
-      />
-    );
-  })}
-      <Button
-        type="button"
-        className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
-        onClick={(e) => {
-          e.stopPropagation();
-          appendExperience({
-            title: "",
-            company: "",
-            location: "",
-            employmentType: EmploymentType.FULL_TIME,
-            locationType: LocationType.ON_SITE,
-            startDate: new Date(),
-            endDate: null,
-            description: "",
-          });
-        }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
+      <Form {...form}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={fields.map(field => field.id)}
+            strategy={verticalListSortingStrategy}
+          >
+
+            {fields.map((field, index) => {
+              return (
+                <ExperienceItem
+                  key={field.id}
+                  field={field}
+                  index={index}
+                  control={form.control}
+                  setValue={form.setValue}
+                  removeExperience={() => handleRemoveExperience(index, field.id)}
+                />
+              );
+            })}
+          </SortableContext>
+        </DndContext>
+        <Button
+          type="button"
+          className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
+          onClick={(e) => {
+            console.log('addExperience()')
             e.stopPropagation();
-            appendExperience({
-              title: "",
-              company: "",
-              location: "",
-              employmentType: EmploymentType.FULL_TIME,
-              locationType: LocationType.ON_SITE,
-              startDate: new Date(),
-              endDate: null,
-              description: "",
-            });
-          }
-        }}
-      >
-        <Plus size={16} />
-        <span>Add Experience</span>
-      </Button>
+            addExperience();
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.stopPropagation();
+              addExperience();
+            }
+          }}
+        >
+          <Plus size={16} />
+          <span>Add Experience</span>
+        </Button>
+      </Form>
     </div>
   );
 };

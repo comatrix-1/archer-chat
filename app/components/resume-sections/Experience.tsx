@@ -1,5 +1,6 @@
 import React from 'react';
 import { useForm, useFieldArray, Controller } from 'react-hook-form';
+import type { Control } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
@@ -7,12 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { useResumeStore } from '../../states/resumeStore';
-import type { 
-  ExperienceFormValues, 
-  SortableExperienceItemProps 
-} from './types';
+import type { ExperienceFormValues } from './types';
 
-import { GripVertical, Plus, Trash2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { DescriptionBullets } from './DescriptionBullets';
 import {
   DndContext,
@@ -27,8 +25,25 @@ import {
   SortableContext,
   arrayMove,
   verticalListSortingStrategy,
-  useSortable,
 } from '@dnd-kit/sortable';
+import { SortableItem } from '@/components/ui/sortable-item';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '../ui/form';
+
+interface ExperienceItemProps {
+  field: {
+    id: string;
+    jobTitle: string;
+    company: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+    description: string[];
+  };
+  index: number;
+  control: Control<ExperienceFormValues>;
+  removeExperience: () => void;
+  handleUpdate: (key: keyof ExperienceItemProps['field'], value: string | string[]) => void;
+}
 
 
 
@@ -139,7 +154,7 @@ export function Experience() {
               strategy={verticalListSortingStrategy}
             >
               {fields.map((field, index) => (
-                <SortableExperienceItem
+                <ExperienceItem
                   key={field.id}
                   field={field}
                   index={index}
@@ -160,163 +175,130 @@ export function Experience() {
   );
 }
 
-
-
-const SortableExperienceItem = ({
+const ExperienceItem: React.FC<ExperienceItemProps> = ({
   field,
   index,
   control,
   removeExperience,
   handleUpdate,
-}: SortableExperienceItemProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: field.id });
-
-  const style = {
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    zIndex: isDragging ? 1000 : 1,
-  };
-
+}) => {
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      {...attributes}
-      className={`border rounded-lg p-4 mb-4 bg-white shadow-sm ${isDragging ? 'ring-2 ring-blue-500' : ''}`}
+    <SortableItem
+      id={field.id}
+      onRemove={removeExperience}
+      className="mb-4"
+      dragHandleAriaLabel="Drag to reorder experience"
+      removeButtonAriaLabel="Remove experience"
     >
-      <div className="flex items-center mb-3">
-        <div {...listeners} {...attributes} className="cursor-grab p-2 hover:bg-gray-200 rounded-md">
-          <GripVertical className="h-5 w-5 text-gray-500" />
-        </div>
-        <div className="ml-3 font-semibold text-lg flex-grow">
+      <div className="w-full">
+        <div className="font-semibold text-lg mb-4">
           {field.jobTitle || 'New Position'}
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            removeExperience();
-          }}
-          className="ml-auto"
-        >
-          <Trash2 className="h-4 w-4 text-red-500" />
-        </Button>
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor={`jobTitle-${field.id}`}>Job Title</Label>
+            <Controller
+              name={`experiences.${index}.jobTitle`}
+              control={control}
+              render={({ field: controllerField }) => (
+                <Input
+                  id={`jobTitle-${field.id}`}
+                  value={controllerField.value}
+                  placeholder="e.g., Senior Software Engineer"
+                  onChange={(e) => {
+                    controllerField.onChange(e);
+                    handleUpdate('jobTitle', e.target.value);
+                  }}
+                />
+              )}
+            />
+          </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        <div>
-          <Label htmlFor={`jobTitle-${field.id}`}>Job Title</Label>
-          <Controller
-            name={`experiences.${index}.jobTitle`}
-            control={control}
-            render={({ field }) => (
-              <Input
-                id={`jobTitle-${field.name}`}
-                value={field.value}
-                placeholder="e.g., Senior Software Engineer"
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('jobTitle', e.target.value);
-                }}
-              />
-            )}
-          />
+          <div>
+            <Label htmlFor={`company-${field.id}`}>Company</Label>
+            <Controller
+              name={`experiences.${index}.company`}
+              control={control}
+              render={({ field: controllerField }) => (
+                <Input
+                  id={`company-${field.id}`}
+                  value={controllerField.value}
+                  placeholder="e.g., Tech Corp Inc."
+                  onChange={(e) => {
+                    controllerField.onChange(e);
+                    handleUpdate('company', e.target.value);
+                  }}
+                />
+              )}
+            />
+          </div>
+          <div>
+            <Label htmlFor={`location-${field.id}`}>Location</Label>
+            <Controller
+              name={`experiences.${index}.location`}
+              control={control}
+              render={({ field: controllerField }) => (
+                <Input
+                  id={`location-${field.id}`}
+                  value={controllerField.value || ''}
+                  placeholder="e.g., San Francisco, CA"
+                  onChange={(e) => {
+                    controllerField.onChange(e);
+                    handleUpdate('location', e.target.value);
+                  }}
+                />
+              )}
+            />
+          </div>
+          <div>
+            <Label htmlFor={`startDate-${field.id}`}>Start Date</Label>
+            <Controller
+              name={`experiences.${index}.startDate`}
+              control={control}
+              render={({ field: controllerField }) => (
+                <Input
+                  id={`startDate-${field.id}`}
+                  type="month"
+                  value={controllerField.value || ''}
+                  placeholder="Start Date"
+                  onChange={(e) => {
+                    controllerField.onChange(e);
+                    handleUpdate('startDate', e.target.value);
+                  }}
+                />
+              )}
+            />
+          </div>
+          <div>
+            <Label htmlFor={`endDate-${field.id}`}>End Date</Label>
+            <Controller
+              name={`experiences.${index}.endDate`}
+              control={control}
+              render={({ field: controllerField }) => (
+                <Input
+                  id={`endDate-${field.id}`}
+                  type="month"
+                  value={controllerField.value || ''}
+                  placeholder="End Date (or present)"
+                  onChange={(e) => {
+                    controllerField.onChange(e);
+                    handleUpdate('endDate', e.target.value);
+                  }}
+                />
+              )}
+            />
+          </div>
         </div>
-        <div>
-          <Label htmlFor={`company-${field.id}`}>Company</Label>
-          <Controller
-            name={`experiences.${index}.company`}
-            control={control}
-            render={({ field }) => (
-              <Input
-                id={`company-${field.name}`}
-                value={field.value}
-                placeholder="e.g., Tech Corp Inc."
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('company', e.target.value);
-                }}
-              />
-            )}
-          />
-        </div>
-        <div>
-          <Label htmlFor={`location-${field.id}`}>Location</Label>
-          <Controller
-            name={`experiences.${index}.location`}
-            control={control}
-            render={({ field }) => (
-              <Input
-                id={`location-${field.name}`}
-                value={field.value || ''}
-                placeholder="e.g., San Francisco, CA"
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('location', e.target.value);
-                }}
-              />
-            )}
-          />
-        </div>
-        <div>
-          <Label htmlFor={`startDate-${field.id}`}>Start Date</Label>
-          <Controller
-            name={`experiences.${index}.startDate`}
-            control={control}
-            render={({ field }) => (
-              <Input
-                id={`startDate-${field.name}`}
-                type="month"
-                value={field.value || ''}
-                placeholder="Start Date"
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('startDate', e.target.value);
-                }}
-              />
-            )}
-          />
-        </div>
-        <div>
-          <Label htmlFor={`endDate-${field.id}`}>End Date</Label>
-          <Controller
-            name={`experiences.${index}.endDate`}
-            control={control}
-            render={({ field }) => (
-              <Input
-                id={`endDate-${field.name}`}
-                type="month"
-                value={field.value || ''}
-                placeholder="End Date (or present)"
-                onChange={(e) => {
-                  field.onChange(e);
-                  handleUpdate('endDate', e.target.value);
-                }}
-              />
-            )}
-          />
-        </div>
-      </div>
 
-      <DescriptionBullets
-        control={control}
-        index={index}
-        fieldId={field.id}
-        onUpdate={(key, value) => handleUpdate(key, value)}
-      />
-    </div>
+        <DescriptionBullets
+          control={control}
+          index={index}
+          fieldId={field.id}
+          onUpdate={(key, value) => handleUpdate(key, value)}
+        />
+      </div>
+    </SortableItem>
   );
 };
 
-SortableExperienceItem.displayName = 'SortableExperienceItem'; // For debugging
+ExperienceItem.displayName = 'ExperienceItem'; // For debugging

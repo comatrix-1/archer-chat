@@ -9,6 +9,7 @@ import { Education } from '../resume-sections/Education';
 import { Skills } from '../resume-sections/Skills';
 import { Projects } from '../resume-sections/Projects';
 import { Certifications } from '../resume-sections/Certifications';
+import ExperienceSection from './experience-section';
 
 enum EResumeSteps {
   CONTACT = 'Contact',
@@ -73,12 +74,15 @@ const ResumeSectionGemini = () => {
       case EResumeSteps.SUMMARY:
         return <Summary />;
       case EResumeSteps.EXPERIENCE:
-        return <Experience />;
+        return <>
+        {/* <Experience /> */}
+        <ExperienceSection />
+        </>;
       case EResumeSteps.EDUCATION:
         return (
-          <Education 
-            initialData={educationData} 
-            onSave={handleSaveEducation} 
+          <Education
+            initialData={educationData}
+            onSave={handleSaveEducation}
           />
         );
       case EResumeSteps.SKILLS:
