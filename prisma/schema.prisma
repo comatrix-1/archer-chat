@@ -22,33 +22,35 @@ model User {
 model Resume {
   id             String  @id @default(cuid())
   userId         String
-  objective      String  @default("")
+  summary        String  @default("")
   contactId      String  @unique
   conversationId String?
 
-  experiences           Experience[] // One profile has many experiences
-  educations            Education[] // One profile has many educations
-  skills                Skill[] // One profile has many skills
-  honorsAwards          HonorsAwards[] // One profile has many honors/awards
-  licenseCertifications LicenseCertification[] // One profile has many licenses/certifications
-  projects              Project[] // One profile has many projects
+  experiences   Experience[]
+  educations    Education[]
+  skills        Skill[]
+  awards        Award[]
+  certifications Certification[]
+  projects      Project[]
 
   contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   conversation Conversation?
 
-  @@unique([userId, conversationId]) // Composite unique key
+  @@unique([userId, conversationId])
 }
 
 model Contact {
   id          String        @id @default(cuid())
-  phone       String        @default("")
+  fullName    String        @default("")
   email       String        @default("")
-  name        String        @default("")
-  linkedin    String?
-  portfolio   String?
-  city        String        @default("")
-  country     String        @default("")
+  phone       String        @default("")
+  address     String?       @default("")
+  city        String?       @default("")
+  country     String?       @default("")
+  linkedin    String?       @default("")
+  github      String?       @default("")
+  portfolio   String?       @default("")
   Resume      Resume?
   CoverLetter CoverLetter[]
 }
@@ -107,7 +109,7 @@ model Project {
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
-model LicenseCertification {
+model Certification {
   id           String    @id @default(cuid())
   name         String
   issuer       String
@@ -119,12 +121,12 @@ model LicenseCertification {
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
-model HonorsAwards {
+model Award {
   id          String   @id @default(cuid())
   title       String
   issuer      String
-  date        DateTime
-  description String?
+  date        DateTime?
+  description String   @default("")
 
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)

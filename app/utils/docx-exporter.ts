@@ -2,8 +2,8 @@ import type {
   Contact,
   Education,
   EmploymentType,
-  HonorsAwards,
-  LicenseCertification,
+  Award,
+  Certification,
   LocationType,
   Experience as PrismaExperience,
   Skill as PrismaSkill,
@@ -43,11 +43,11 @@ type ResumeFormData = {
     category: SkillCategory | string;
     proficiency: SkillProficiency | string;
   })[];
-  licenseCertifications: Omit<
-    LicenseCertification,
+  certifications: Omit<
+    Certification,
     "resumeId" | "createdAt" | "updatedAt"
   >[];
-  honorsAwards: Omit<HonorsAwards, "resumeId" | "createdAt" | "updatedAt">[];
+  awards: Omit<Award, "resumeId" | "createdAt" | "updatedAt">[];
   projects: Omit<Project, "resumeId" | "createdAt" | "updatedAt">[];
 };
 
@@ -111,7 +111,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     new Paragraph({
       children: [
         new TextRun({
-          text: resumeData.contact.name ?? "Your Name",
+          text: resumeData.contact.fullName ?? "Your Name",
           size: NAME_FONT_SIZE,
           bold: true,
         }),
@@ -445,9 +445,9 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     });
   }
 
-  if (resumeData.licenseCertifications?.length) {
+  if (resumeData.certifications?.length) {
     sections.push(createSectionHeading("Licenses & Certifications"));
-    resumeData.licenseCertifications.forEach((cert) => {
+    resumeData.certifications.forEach((cert) => {
       const issueDate = cert.issueDate
         ? new Date(cert.issueDate).toLocaleDateString("en-US", {
             year: "numeric",
@@ -486,9 +486,9 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
     });
   }
 
-  if (resumeData.honorsAwards?.length) {
+  if (resumeData.awards?.length) {
     sections.push(createSectionHeading("Honors & Awards"));
-    resumeData.honorsAwards.forEach((award) => {
+    resumeData.awards.forEach((award) => {
       const awardDate = award.date
         ? new Date(award.date).toLocaleDateString("en-US", {
             year: "numeric",
@@ -558,7 +558,7 @@ export const exportResumeToDocx = async (resumeData: ResumeFormData) => {
   try {
     const blob = await Packer.toBlob(doc);
     const filename = `Resume - ${
-      resumeData.contact.name ?? "User"
+      resumeData.contact.fullName ?? "User"
     } - ${new Date().toLocaleString().replace(/[/,:]/g, "-").replace(/\s/g, "_")}.docx`;
     saveAs(blob, filename);
     console.log("Document generated and download initiated.");

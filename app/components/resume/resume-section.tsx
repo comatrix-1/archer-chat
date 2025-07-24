@@ -1,267 +1,135 @@
-import { useResumeForm } from "~/hooks/use-resume-form";
-import type {
-  Contact,
-  Education,
-  Experience,
-  HonorsAwards,
-  LicenseCertification,
-  Project,
-  Resume,
-  Skill,
-} from "@prisma/client";
-import { EResumeSteps } from "~/lib/constants";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "~/components/ui/form";
-import React, { useCallback, useMemo, useRef } from "react";
-import { Textarea } from "~/components/ui/textarea";
-import CertificationSection from "~/components/resume/certification-section";
-import {EducationSection} from "~/components/resume/education-section";
-import { ExperienceSectionDnD, type ExperienceItem } from "~/components/resume/experience-section-dnd";
-import type { Control, UseFormSetValue } from "react-hook-form";
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { EEmploymentType, ELocationType, EResumeSteps, steps, type IResumeItem, type ResumeFormData } from '~/types/resume';
+import CertificationSection from './certification-section';
+import { ContactSection } from './contact-section';
+import { SummarySection } from './summary-section';
+import { Form } from '../ui/form';
+import { EducationSection } from './education-section';
+import ExperienceSection from './experience-section';
+import { SkillsSection } from './skills-section';
+import ProjectSection from './project-section';
+import { AwardsSection } from './awards-section';
+import { ResumeSteps } from '../resume-steps';
 
-// Extend the ExperienceItem type to match the form data
-interface ResumeFormExperienceItem extends Omit<ExperienceItem, 'id'> {
-  id: string;
-  resumeId: string;
-}
-import HonorsAwardsSection from "~/components/resume/honors-awards-section";
-import ProjectSection from "~/components/resume/project-section";
-import {SkillsSection} from "~/components/resume/skills-section";
-import { Button } from "~/components/ui/button";
-import { ResumeSteps } from "../resume-steps";
-import { exportResumeToDocx } from "~/utils/docx-exporter";
-import type { ResumeFormData } from "~/hooks/use-resume-form";
-import {ContactSection} from "./contact-section";
+const experienceData = [
+  {
+    "id": "45cf45b4-7055-42fb-8df1-9a97511a363c",
+    "title": "1",
+    "employmentType": EEmploymentType.FULL_TIME,
+    "locationType": ELocationType.ON_SITE,
+    "company": "test1",
+    "location": "",
+    "startDate": new Date("2017-07-13T00:00:00.000Z"),
+    "endDate": null,
+    "description": "<p>test1</p>"
+  }
+];
 
-// Memoized form components to prevent unnecessary re-renders
-const PersonalStep = React.memo(
-  ({ control }: { control: Control<ResumeFormData> }) => (
-    <>
-      <ContactSection control={control} />
-      <FormField
-      control={control}
-      name="objective"
-      render={({ field }) => (
-        <FormItem>
-          <FormLabel>Objective</FormLabel>
-          <FormControl>
-            <Textarea
-              {...field}
-              placeholder="A passionate software engineer with 5+ years of experience..."
-              className="min-h-[120px]"
-            />
-          </FormControl>
-          <FormMessage />
-        </FormItem>
-      )}
-    />
-  </>
-));
-PersonalStep.displayName = "PersonalStep";
+const educationData = [
+  {
+    "id": "45cf45b4-7055-42fb-8df1-9a97511a363c",
+    "school": "test1",
+    "degree": "test1",
+    "fieldOfStudy": "test1",
+    "startDate": new Date("2017-07-13T00:00:00.000Z"),
+    "endDate": null,
+    "location": "test1",
+    "gpa": 4.0
+  }
+];
 
-export const ResumeSection = ({
-  initialResume,
-  resumeStep: initialResumeStep = EResumeSteps.PERSONAL,
-}: Readonly<{
-  initialResume: Resume & {
-    contact: Contact;
-    experiences: Experience[];
-    educations: Education[];
-    skills: Skill[];
-    honorsAwards: HonorsAwards[];
-    licenseCertifications: LicenseCertification[];
-    projects: Project[];
-  };
-  resumeStep?: EResumeSteps;
-}>) => {
-  const [currentStep, setCurrentStep] =
-    React.useState<EResumeSteps>(initialResumeStep);
-  console.log("Rendering ResumeSection with currentStep: ", currentStep);
+const ResumeSection = ({
+  resume,
+}: {
+  resume: ResumeFormData;
+}) => {
+  const [currentStep, setCurrentStep] = useState<EResumeSteps>(EResumeSteps.CONTACT);
 
-  const {
-    form,
-    formState,
-    handleSubmit,
-    loading,
-    resume,
-    skillFields,
-    experienceFields,
-    educationFields,
-    certificationFields,
-    honorsAwardsFields,
-    projectFields,
-    appendSkill,
-    appendExperience,
-    appendEducation,
-    appendCertification,
-    appendHonorsAward,
-    appendProject,
-    removeSkill,
-    removeExperience,
-    removeEducation,
-    removeCertification,
-    removeHonorsAward,
-    removeProject,
-    blocker,
-  } = useResumeForm(initialResume);
+  const form = useForm<ResumeFormData>({
+    defaultValues: {
+      summary: '',
+      experiences: experienceData,
+      educations: educationData,
+    },
+  })
 
-  const formRef = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (!resume) return;
+    form.setValue('contact', resume.contact);
+    form.setValue('summary', resume.summary);
+    form.setValue('experiences', resume.experiences);
+    form.setValue('educations', resume.educations);
+    form.setValue('skills', resume.skills);
+    form.setValue('certifications', resume.certifications);
+    form.setValue('projects', resume.projects);
+    form.setValue('awards', resume.awards);
 
-  // Memoize derived values
-  const steps = useMemo(() => Object.values(EResumeSteps), []);
-  const currentIndex = useMemo(
-    () => steps.indexOf(currentStep),
-    [currentStep, steps],
-  );
-  const isFirstStep = useMemo(() => currentIndex === 0, [currentIndex]);
-  const isLastStep = useMemo(
-    () => currentIndex === steps.length - 1,
-    [currentIndex, steps],
-  );
+  }, [resume, form])
 
-  // Memoize the step content to prevent unnecessary re-renders
-  const stepContent = useMemo(() => {
+  const renderStep = () => {
     switch (currentStep) {
-      case EResumeSteps.PERSONAL:
-        return <PersonalStep control={form.control} />;
+      case EResumeSteps.CONTACT:
+        return <ContactSection />;
+      case EResumeSteps.SUMMARY:
+        return <SummarySection />;
       case EResumeSteps.EXPERIENCE:
-        return (
-          <ExperienceSectionDnD
-            resumeId={resume?.id || ''}
-            control={form.control}
-            setValue={form.setValue}
-            experienceFields={experienceFields as ExperienceItem[]}
-            appendExperience={appendExperience}
-            removeExperience={removeExperience}
-          />
-        );
+        return <ExperienceSection />;
       case EResumeSteps.EDUCATION:
-        return (
-          <EducationSection
-            educationFields={educationFields}
-            control={form.control}
-            setValue={form.setValue}
-            getValues={form.getValues}
-            removeEducation={removeEducation}
-            appendEducation={(edu) => {
-              appendEducation(edu, {
-                shouldFocus: false,
-              });
-            }}
-          />
-        );
+        return <EducationSection />;
       case EResumeSteps.SKILLS:
-        return (
-          <SkillsSection
-            skills={skillFields}
-            control={form.control}
-            appendSkill={appendSkill}
-            removeSkill={removeSkill}
-          />
-        );
-      case EResumeSteps.CERTIFICATIONS:
-        return (
-          <CertificationSection
-            certificationFields={certificationFields}
-            control={form.control}
-            setValue={form.setValue}
-            getValues={form.getValues}
-            removeCertification={removeCertification}
-            appendCertification={appendCertification}
-            resumeId={resume?.id}
-          />
-        );
+        return <SkillsSection />;
       case EResumeSteps.PROJECTS:
-        return (
-          <ProjectSection
-            projectFields={projectFields}
-            control={form.control}
-            setValue={form.setValue}
-            getValues={form.getValues}
-            removeProject={removeProject}
-            appendProject={appendProject}
-            resumeId={resume?.id}
-          />
-        );
+        return <ProjectSection />;
+      case EResumeSteps.CERTIFICATIONS:
+        return <CertificationSection />;
       case EResumeSteps.AWARDS:
-        return (
-          <HonorsAwardsSection
-            honorsAwardsFields={honorsAwardsFields}
-            control={form.control}
-            setValue={form.setValue}
-            getValues={form.getValues}
-            removeHonorsAward={removeHonorsAward}
-            appendHonorsAward={appendHonorsAward}
-          />
-        );
+        return <AwardsSection />;
       default:
-        return null;
+        return <ContactSection />;
     }
-  }, [
-    currentStep,
-    form.control,
-    form.setValue,
-    form.getValues,
-    experienceFields,
-    educationFields,
-    skillFields,
-    certificationFields,
-    projectFields,
-    honorsAwardsFields,
-    removeExperience,
-    removeEducation,
-    removeSkill,
-    removeCertification,
-    removeProject,
-    removeHonorsAward,
-    appendExperience,
-    appendEducation,
-    appendSkill,
-    appendCertification,
-    appendProject,
-    appendHonorsAward,
-    resume?.id,
-  ]);
+  };
 
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => exportResumeToDocx(form.getValues())}
-        >
-          Export to DOCX
-        </Button>
-        <Button
-          variant={formState.isDirty ? "default" : "secondary"}
-          disabled={!formState.isDirty}
-          type="submit"
-        >
-          {formState.isDirty ? "Save Changes" : "No Changes"}
-        </Button>
-      </div>
-      <ResumeSteps currentStep={currentStep} setCurrentStep={setCurrentStep} />
-      <Form {...form}>
-        <form
-          id="resume-form"
-          method="post"
-          className="space-y-6 p-6 bg-card rounded-lg border transition-colors duration-200"
-          ref={formRef}
-          onSubmit={handleSubmit}
-          action="/api/resume"
-        >
-          <div className="min-h-[400px] transition-opacity duration-200">
-            {stepContent}
-          </div>
-        </form>
-      </Form>
+    <div className="flex min-h-screen">
+      <main className="flex-1 p-8">
+        <Form {...form}>
+          <Card className="p-6">
+            <Button onClick={() => console.log('form: ', form.getValues())}>Check form</Button>
+            <ResumeSteps currentStep={currentStep} setCurrentStep={setCurrentStep} />
+            {renderStep()}
+            <div className="flex justify-between mt-6">
+              <Button
+                variant="outline"
+                disabled={currentStep === EResumeSteps.CONTACT}
+                onClick={() => {
+                  const currentIndex = steps.findIndex((step) => step.id === currentStep);
+                  if (currentIndex > 0) {
+                    setCurrentStep(steps[currentIndex - 1].id);
+                  }
+                }}
+              >
+                Previous
+              </Button>
+              <Button
+                onClick={() => {
+                  const currentIndex = steps.findIndex((step) => step.id === currentStep);
+                  if (currentIndex < steps.length - 1) {
+                    setCurrentStep(steps[currentIndex + 1].id);
+                  }
+                }}
+                disabled={currentStep === EResumeSteps.CERTIFICATIONS}
+              >
+                Next
+              </Button>
+            </div>
+          </Card>
+        </Form>
+      </main>
     </div>
   );
 };
+
+export default ResumeSection;

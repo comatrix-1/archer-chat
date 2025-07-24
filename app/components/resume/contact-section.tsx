@@ -12,7 +12,7 @@ export const ContactSection = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
         <FormField
           control={form.control}
-          name="contactInfo.fullName"
+          name="contact.fullName"
           render={({ field: formField }) => (
             <FormItem>
               <FormLabel>Full Name</FormLabel>
@@ -26,7 +26,7 @@ export const ContactSection = () => {
 
         <FormField
           control={form.control}
-          name="contactInfo.email"
+          name="contact.email"
           render={({ field: formField }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
@@ -40,7 +40,7 @@ export const ContactSection = () => {
 
         <FormField
           control={form.control}
-          name="contactInfo.phone"
+          name="contact.phone"
           render={({ field: formField }) => (
             <FormItem>
               <FormLabel>Phone</FormLabel>
@@ -54,7 +54,7 @@ export const ContactSection = () => {
 
         <FormField
           control={form.control}
-          name="contactInfo.address"
+          name="contact.address"
           render={({ field: formField }) => (
             <FormItem>
               <FormLabel>Address</FormLabel>
@@ -68,7 +68,7 @@ export const ContactSection = () => {
 
         <FormField
           control={form.control}
-          name="contactInfo.linkedin"
+          name="contact.linkedin"
           render={({ field: formField }) => (
             <FormItem>
               <FormLabel>Linkedin</FormLabel>
@@ -82,7 +82,7 @@ export const ContactSection = () => {
 
         <FormField
           control={form.control}
-          name="contactInfo.github"
+          name="contact.github"
           render={({ field: formField }) => (
             <FormItem>
               <FormLabel>GitHub</FormLabel>
@@ -96,7 +96,7 @@ export const ContactSection = () => {
 
         <FormField
           control={form.control}
-          name="contactInfo.portfolio"
+          name="contact.portfolio"
           render={({ field: formField }) => (
             <FormItem>
               <FormLabel>Portfolio</FormLabel>

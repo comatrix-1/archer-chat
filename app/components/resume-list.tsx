@@ -15,23 +15,6 @@ import { fetchWithAuth } from "~/utils/fetchWithAuth";
 import { Button } from "./ui/button";
 import { Separator } from "./ui/separator";
 
-export interface ResumeItem {
-  id: string;
-  title: string;
-  jobDescription: string;
-  resume: string;
-  coverLetter: string;
-  conversation?: {
-    id: string;
-    title: string;
-    description?: string;
-    status?: string;
-    createdAt?: string;
-    updatedAt?: string;
-    resumeId?: string;
-    userId?: string;
-  };
-}
 function safeNavigateToDetail(id: string) {
   if (typeof window !== "undefined") {
     window.location.href = `/resume/detail?id=${id}`;
@@ -39,7 +22,7 @@ function safeNavigateToDetail(id: string) {
 }
 interface ResumeListProps {
   readonly masterResumeId: string | null;
-  readonly resumeList: ResumeItem[];
+  readonly resumeList: any[]; // TODO: fix type
 }
 
 export default function ResumeList({

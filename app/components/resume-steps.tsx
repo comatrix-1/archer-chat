@@ -1,10 +1,10 @@
 "use client";
 
-import * as React from "react";
 import { Check } from "lucide-react";
 import { Card } from "~/components/ui/card";
-import { EResumeSteps } from "~/lib/constants";
+import type { EResumeSteps } from "@/types/resume"
 import { cn } from "~/lib/utils";
+import { steps } from "~/types/resume";
 
 const StepIcon = ({ 
   active = false, 
@@ -28,21 +28,6 @@ const StepIcon = ({
     {completed ? <Check className="h-4 w-4" /> : step}
   </div>
 );
-
-export type Step = {
-  id: EResumeSteps;
-  title: EResumeSteps;
-};
-
-const steps: Step[] = [
-  { id: EResumeSteps.PERSONAL, title: EResumeSteps.PERSONAL },
-  { id: EResumeSteps.EXPERIENCE, title: EResumeSteps.EXPERIENCE },
-  { id: EResumeSteps.EDUCATION, title: EResumeSteps.EDUCATION },
-  { id: EResumeSteps.SKILLS, title: EResumeSteps.SKILLS },
-  { id: EResumeSteps.CERTIFICATIONS, title: EResumeSteps.CERTIFICATIONS },
-  { id: EResumeSteps.PROJECTS, title: EResumeSteps.PROJECTS },
-  { id: EResumeSteps.AWARDS, title: EResumeSteps.AWARDS },
-];
 
 interface ResumeStepsProps {
   currentStep: EResumeSteps;

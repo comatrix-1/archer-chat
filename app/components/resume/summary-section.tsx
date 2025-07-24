@@ -4,7 +4,7 @@ import type { ResumeFormData } from '@/types/resume';
 import { useFormContext } from 'react-hook-form';
 import { SectionCard } from './section-card';
 
-export function Summary() {
+export function SummarySection() {
   const form = useFormContext<ResumeFormData>()
 
   return (

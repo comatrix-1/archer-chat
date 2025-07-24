@@ -243,8 +243,8 @@ model Profile {
   experiences           Experience[] // One profile has many experiences
   educations            Education[] // One profile has many educations
   skills                Skill[] // One profile has many skills
-  honorsAwards          HonorsAwards[] // One profile has many honors/awards
-  licenseCertifications LicenseCertification[] // One profile has many licenses/certifications
+  awards          Award[] // One profile has many honors/awards
+  certifications LicenseCertification[] // One profile has many licenses/certifications
 
   contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -318,7 +318,7 @@ model LicenseCertification {
   profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
 
-model HonorsAwards {
+model awards {
   id          String   @id @default(cuid())
   title       String
   issuer      String

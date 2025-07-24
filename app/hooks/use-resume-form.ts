@@ -2,7 +2,7 @@ import type {
   Contact,
   Education,
   Experience,
-  HonorsAwards,
+  awards,
   LicenseCertification,
   Project,
   Resume,
@@ -45,7 +45,7 @@ export type ResumeFormData = {
     LicenseCertification,
     "resumeId" | "createdAt" | "updatedAt"
   >[];
-  honorsAwards: Omit<HonorsAwards, "resumeId" | "createdAt" | "updatedAt">[];
+  awards: Omit<awards, "resumeId" | "createdAt" | "updatedAt">[];
   projects: Omit<Project, "resumeId">[];
 };
 
@@ -55,7 +55,7 @@ export function useResumeForm(
     experiences: Experience[];
     educations: Education[];
     skills: Skill[];
-    honorsAwards: HonorsAwards[];
+    awards: awards[];
     licenseCertifications: LicenseCertification[];
     projects: Project[];
   }
@@ -121,8 +121,8 @@ export function useResumeForm(
             credentialId: cert.credentialId ?? null,
           })
         ) ?? [],
-      honorsAwards:
-        initialResume.honorsAwards?.map((award: HonorsAwards) => ({
+      awards:
+        initialResume.awards?.map((award: awards) => ({
           ...award,
           id: award.id ?? generateUUID(),
           date: award.date ? new Date(award.date) : new Date(),
@@ -167,7 +167,7 @@ export function useResumeForm(
     fields: honorsAwardsFields,
     append: appendHonorsAward,
     remove: removeHonorsAward,
-  } = useFieldArray({ control, name: "honorsAwards" });
+  } = useFieldArray({ control, name: "awards" });
 
   const {
     fields: projectFields,

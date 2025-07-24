@@ -3,7 +3,7 @@ import type {
   Contact,
   Education,
   Experience,
-  HonorsAwards,
+  awards,
   LicenseCertification,
   Project,
   Resume,
@@ -21,7 +21,7 @@ import CertificationSection from "~/components/resume/certification-section";
 import {ContactSection} from "~/components/resume/contact-section";
 import {EducationSection} from "~/components/resume/education-section";
 import ExperienceSection from "~/components/resume/experience-section";
-import HonorsAwardsSection from "~/components/resume/honors-awards-section";
+import HonorsAwardsSection from "~/components/resume/awards-section";
 import ProjectSection from "~/components/resume/project-section";
 import {SkillsSection} from "~/components/resume/skills-section";
 import {
@@ -63,7 +63,7 @@ export default function ResumeComponent({
     experiences: Experience[];
     educations: Education[];
     skills: Skill[];
-    honorsAwards: HonorsAwards[];
+    awards: awards[];
     licenseCertifications: LicenseCertification[];
     projects: Project[];
   };
@@ -431,7 +431,7 @@ export default function ResumeComponent({
               </AccordionContent>
             </AccordionItem>
             <AccordionItem
-              value="honorsAwards"
+              value="awards"
               className="border rounded-lg px-6"
             >
               <AccordionTrigger className="hover:no-underline">

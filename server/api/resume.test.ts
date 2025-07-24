@@ -79,16 +79,16 @@ describe("Resume API Tests", () => {
       data: {
         userId: testUser.id,
         conversationId: "",
-        objective: "Base template objective",
+        summary: "Base template summary",
         contactId: testContact.id,
       },
     });
   });
   afterAll(async () => {
-    await prisma.licenseCertification.deleteMany({
+    await prisma.certification.deleteMany({
       where: { resume: { userId: testUser.id } },
     });
-    await prisma.honorsAwards.deleteMany({
+    await prisma.award.deleteMany({
       where: { resume: { userId: testUser.id } },
     });
     await prisma.project.deleteMany({
@@ -119,7 +119,7 @@ describe("Resume API Tests", () => {
         id: testResume.id,
         userId: testUser.id,
         conversationId: "",
-        objective: "Base template objective",
+        summary: "Base template summary",
         contactId: testResume.contactId,
       },
     });
@@ -186,7 +186,7 @@ describe("Resume API Tests", () => {
         experiences: [],
         educations: [],
         skills: [],
-        honorsAwards: [],
+        awards: [],
         licenseCertifications: [],
         projects: [],
       };
@@ -208,7 +208,7 @@ describe("Resume API Tests", () => {
       expect(updatedContact?.email).toBe("updated@example.com");
       await prisma.resume.update({
         where: { id: testResume.id },
-        data: { objective: "Base template objective" },
+        data: { summary: "Base template summary" },
       });
     });
     test("should return 401 if the user is not authenticated", async () => {
@@ -238,7 +238,7 @@ describe("Resume API Tests", () => {
         experiences: [],
         educations: [],
         skills: [],
-        honorsAwards: [],
+        awards: [],
         licenseCertifications: [
           {
             name: "Faulty Certification to Trigger Error",
@@ -277,7 +277,7 @@ describe("Resume API Tests", () => {
         experiences: [],
         educations: [],
         skills: [],
-        honorsAwards: [],
+        awards: [],
         licenseCertifications: [],
         projects: [],
       };
@@ -301,8 +301,8 @@ describe("Resume API Tests", () => {
           experiences: true,
           educations: true,
           skills: true,
-          honorsAwards: true,
-          licenseCertifications: true,
+          awards: true,
+          certifications: true,
           projects: true,
         },
       });
@@ -310,8 +310,8 @@ describe("Resume API Tests", () => {
       expect(updatedResume?.experiences).toHaveLength(0);
       expect(updatedResume?.educations).toHaveLength(0);
       expect(updatedResume?.skills).toHaveLength(0);
-      expect(updatedResume?.honorsAwards).toHaveLength(0);
-      expect(updatedResume?.licenseCertifications).toHaveLength(0);
+      expect(updatedResume?.awards).toHaveLength(0);
+      expect(updatedResume?.certifications).toHaveLength(0);
       expect(updatedResume?.projects).toHaveLength(0);
     });
   });
@@ -356,7 +356,7 @@ describe("Resume API Tests", () => {
       });
 
       expect(["First concurrent update", "Second concurrent update"]).toContain(
-        finalResume?.objective,
+        finalResume?.summary,
       );
     });
   });
@@ -462,13 +462,13 @@ describe("Resume API Tests", () => {
           {
             userId: testUser.id,
             conversationId: "conversation1",
-            objective: "Test resume 1",
+            summary: "Test resume 1",
             contactId: contact1ForList.id,
           },
           {
             userId: testUser.id,
             conversationId: "conversation2",
-            objective: "Test resume 2",
+            summary: "Test resume 2",
             contactId: contact2ForList.id,
           },
         ],
@@ -520,7 +520,7 @@ describe("Resume API Tests", () => {
         data: {
           user: { connect: { id: testUser.id } },
           conversationId: "",
-          objective: "Base template objective",
+          summary: "Base template summary",
           contact: {
             create: {
               email: `base_contact_${Date.now()}@example.com`,
@@ -599,7 +599,7 @@ describe("Resume API Tests", () => {
             connect: { id: testUser.id },
           },
           conversationId: "conversation3",
-          objective: "Specific resume test",
+          summary: "Specific resume test",
           contact: {
             create: {
               email: `contact_for_resume2_get_test_${Date.now()}@example.com`,
@@ -639,7 +639,7 @@ describe("Resume API Tests", () => {
             connect: { id: testUser.id },
           },
           conversationId: "conversation4",
-          objective: "Resume to be deleted",
+          summary: "Resume to be deleted",
           contact: {
             create: {
               email: `contact_for_resume3_to_delete_${Date.now()}@example.com`,

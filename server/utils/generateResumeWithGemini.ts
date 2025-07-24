@@ -38,7 +38,7 @@ export async function generateResumeWithGemini({
       "Experience",
       "Education",
       "Skill",
-      "HonorsAwards",
+      "Awards",
       "LicenseCertification",
       "Project",
     ];
@@ -57,7 +57,7 @@ model Resume {
   experiences           Experience[]
   educations            Education[]
   skills                Skill[]
-  honorsAwards          HonorsAwards[]
+  awards                Awards[]
   licenseCertifications LicenseCertification[]
   projects              Project[]
 }`;

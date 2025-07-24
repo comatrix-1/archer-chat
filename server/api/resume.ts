@@ -1,8 +1,9 @@
 import type {
+  Award,
+  Certification,
+  Contact,
   Education,
   Experience,
-  HonorsAwards,
-  LicenseCertification,
   Project,
   Resume,
   Skill,
@@ -14,7 +15,6 @@ import {
   SkillProficiency,
 } from "@prisma/client";
 import { Hono } from "hono";
-import type { Context } from "hono";
 import { jwt as honoJwt } from "hono/jwt";
 import { userContextMiddleware } from "server/middleware/userContext.js";
 import prisma from "~/utils/prisma";
@@ -32,17 +32,17 @@ function isEmptyOrInvalidDate(val: any): boolean {
     !val ||
     (typeof val === "string" && val.trim() === "") ||
     val.toString().toLowerCase() === "present" ||
-    (typeof val === "string" && isNaN(Date.parse(val)))
+    (typeof val === "string" && Number.isNaN(Date.parse(val)))
   );
 }
 
 function formatDateString(dateStr: string): string | null {
   if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-    return new Date(dateStr + "T00:00:00.000Z").toISOString();
+    return new Date(`${dateStr}T00:00:00.000Z`).toISOString();
   }
 
   if (/^\d{4}-\d{2}$/.test(dateStr)) {
-    return new Date(dateStr + "-01T00:00:00.000Z").toISOString();
+    return new Date(`${dateStr}-01T00:00:00.000Z`).toISOString();
   }
 
   return null;
@@ -189,16 +189,17 @@ export const resumeRoute = new Hono<HonoEnv>()
         experiences: true,
         educations: true,
         skills: true,
-        honorsAwards: true,
-        licenseCertifications: true,
+        awards: true,
+        certifications: true,
         projects: true,
       },
     });
     if (resume) {
       return c.json({ resume });
-    } else {
-      console.log("Base resume template not found, creating new one");
-    }
+    } 
+
+    console.log("Base resume template not found, creating new one");
+
     const contact = await prisma.contact.create({
       data: {
         email: "",
@@ -213,7 +214,7 @@ export const resumeRoute = new Hono<HonoEnv>()
       data: {
         userId,
         conversationId: "",
-        objective: "",
+        summary: "",
         contactId: contact.id,
       },
       include: {
@@ -221,8 +222,8 @@ export const resumeRoute = new Hono<HonoEnv>()
         experiences: true,
         educations: true,
         skills: true,
-        honorsAwards: true,
-        licenseCertifications: true,
+        awards: true,
+        certifications: true,
         projects: true,
       },
     });
@@ -231,7 +232,7 @@ export const resumeRoute = new Hono<HonoEnv>()
   })
   .post("/", async (c) => {
     const authHeader = c.req.header("Authorization");
-    let payloadResume;
+    let payloadResume: any;
     try {
       const body = await c.req.json();
       payloadResume = body.resume ?? (body as Resume);
@@ -251,12 +252,12 @@ export const resumeRoute = new Hono<HonoEnv>()
       );
 
       const resumeData = payloadResume as Resume & {
-        contact: any;
+        contact: Contact;
         experiences: Experience[];
         educations: Education[];
         skills: Skill[];
-        honorsAwards: HonorsAwards[];
-        licenseCertifications: LicenseCertification[];
+        awards: Award[];
+        certifications: Certification[];
         projects: Project[];
       };
 
@@ -318,15 +319,15 @@ export const resumeRoute = new Hono<HonoEnv>()
             })),
           });
         }
-        await prisma.honorsAwards.deleteMany({
+        await prisma.award.deleteMany({
           where: { resumeId: resumeData.id },
         });
-        if (resumeData.honorsAwards?.length) {
-          await prisma.honorsAwards.createMany({
-            data: resumeData.honorsAwards.map((award: HonorsAwards) => ({
+        if (resumeData.awards?.length) {
+          await prisma.award.createMany({
+            data: resumeData.awards.map((award: Award) => ({
               ...award,
               resumeId: baseResume.id,
-              date: new Date(award.date),
+              date: award.date ? new Date(award.date) : null,
             })),
           });
         }
@@ -343,18 +344,18 @@ export const resumeRoute = new Hono<HonoEnv>()
             })),
           });
         }
-        await prisma.licenseCertification.deleteMany({
+        await prisma.certification.deleteMany({
           where: {
             resumeId: resumeData.id,
           },
         });
-        if (resumeData.licenseCertifications?.length) {
-          await prisma.licenseCertification.createMany({
-            data: resumeData.licenseCertifications.map(
-              (cert: LicenseCertification) => ({
+        if (resumeData.certifications?.length) {
+          await prisma.certification.createMany({
+            data: resumeData.certifications.map(
+              (cert: Certification) => ({
                 ...cert,
                 resumeId: baseResume.id,
-                issueDate: new Date(cert.issueDate),
+                issueDate: cert.issueDate ? new Date(cert.issueDate) : new Date(),
                 expiryDate: cert.expiryDate ? new Date(cert.expiryDate) : null,
               }),
             ),
@@ -368,15 +369,15 @@ export const resumeRoute = new Hono<HonoEnv>()
             },
           },
           data: {
-            objective: resumeData.objective,
+            summary: resumeData.summary,
           },
           include: {
             contact: true,
             experiences: true,
             educations: true,
             skills: true,
-            honorsAwards: true,
-            licenseCertifications: true,
+            awards: true,
+            certifications: true,
             projects: true,
           },
         });
@@ -398,7 +399,9 @@ export const resumeRoute = new Hono<HonoEnv>()
           },
           500,
         );
-      } else {
+      } 
+      
+      
         console.error(
           "An unknown error occurred during resume update (non-Error type):",
           error,
@@ -411,7 +414,6 @@ export const resumeRoute = new Hono<HonoEnv>()
           },
           500,
         );
-      }
     }
   })
   .put("/", async (c) => {
@@ -481,8 +483,8 @@ export const resumeRoute = new Hono<HonoEnv>()
         experiences: true,
         educations: true,
         skills: true,
-        honorsAwards: true,
-        licenseCertifications: true,
+        awards: true,
+        certifications: true,
         projects: true,
       },
     });
@@ -497,8 +499,8 @@ export const resumeRoute = new Hono<HonoEnv>()
       return c.json({ error: "Contact not found" }, 404);
     }
 
-    let generatedResume = "",
-      coverLetter = "";
+    let generatedResume = ""
+    let coverLetter = "";
     let savedResume = null;
     try {
       const result = await generateResumeWithGemini({
@@ -511,18 +513,18 @@ export const resumeRoute = new Hono<HonoEnv>()
       if (
         generatedResume &&
         typeof generatedResume === "object" &&
-        typeof (generatedResume as any).objective === "string" &&
-        Array.isArray((generatedResume as any).experiences) &&
-        Array.isArray((generatedResume as any).educations) &&
-        Array.isArray((generatedResume as any).skills)
+        typeof (generatedResume as { summary: string }).summary === "string" &&
+        Array.isArray((generatedResume as { experiences: Partial<Experience>[] }).experiences) &&
+        Array.isArray((generatedResume as { educations: Partial<Education>[] }).educations) &&
+        Array.isArray((generatedResume as { skills: Partial<Skill>[] }).skills)
       ) {
         const r = generatedResume as {
-          objective?: string;
+          summary?: string;
           experiences?: Partial<Experience>[];
           educations?: Partial<Education>[];
           skills?: Partial<Skill>[];
-          honorsAwards?: Partial<HonorsAwards>[];
-          licenseCertifications?: Partial<LicenseCertification>[];
+          awards?: Partial<Award>[];
+          certifications?: Partial<Certification>[];
           projects?: Partial<Project>[];
         };
 
@@ -536,10 +538,10 @@ export const resumeRoute = new Hono<HonoEnv>()
         });
         r.experiences = r.experiences?.map((exp) => sanitizeDates(exp)) ?? [];
         r.educations = r.educations?.map((edu) => sanitizeDates(edu)) ?? [];
-        r.honorsAwards =
-          r.honorsAwards?.map((award) => sanitizeDates(award)) ?? [];
-        r.licenseCertifications =
-          r.licenseCertifications?.map((cert) => sanitizeDates(cert)) ?? [];
+        r.awards =
+          r.awards?.map((award) => sanitizeDates(award)) ?? [];
+        r.certifications =
+          r.certifications?.map((cert) => sanitizeDates(cert)) ?? [];
         r.projects = r.projects?.map((project) => sanitizeDates(project)) ?? [];
         const createdConversation = await prisma.conversation.create({
           data: {
@@ -552,7 +554,7 @@ export const resumeRoute = new Hono<HonoEnv>()
           data: {
             userId,
             conversationId: createdConversation.id,
-            objective: r.objective ?? "",
+            summary: r.summary ?? "",
             contactId: newContact.id,
             experiences: {
               create: r.experiences?.map((exp) => ({
@@ -594,16 +596,16 @@ export const resumeRoute = new Hono<HonoEnv>()
                 ),
               })),
             },
-            honorsAwards: {
-              create: r.honorsAwards?.map((award) => ({
+            awards: {
+              create: r.awards?.map((award) => ({
                 title: award.title ?? "Untitled Award",
                 issuer: award.issuer ?? "Unknown Issuer",
                 date: award.date ? new Date(award.date) : new Date(),
                 description: award.description,
               })),
             },
-            licenseCertifications: {
-              create: r.licenseCertifications?.map((cert) => ({
+            certifications: {
+              create: r.certifications?.map((cert) => ({
                 name: cert.name ?? "Untitled Certification",
                 issuer: cert.issuer ?? "Unknown Issuer",
                 issueDate: cert.issueDate
@@ -629,8 +631,8 @@ export const resumeRoute = new Hono<HonoEnv>()
             experiences: true,
             educations: true,
             skills: true,
-            honorsAwards: true,
-            licenseCertifications: true,
+            awards: true,
+            certifications: true,
             projects: true,
             conversation: true,
           },
@@ -678,8 +680,8 @@ export const resumeRoute = new Hono<HonoEnv>()
         experiences: true,
         educations: true,
         skills: true,
-        honorsAwards: true,
-        licenseCertifications: true,
+        awards: true,
+        certifications: true,
         projects: true,
         conversation: true,
       },
@@ -700,8 +702,8 @@ export const resumeRoute = new Hono<HonoEnv>()
         experiences: true,
         educations: true,
         skills: true,
-        honorsAwards: true,
-        licenseCertifications: true,
+        awards: true,
+        certifications: true,
         projects: true,
         conversation: true,
       },

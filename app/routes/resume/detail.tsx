@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from "react";
-import ResumeComponent from "~/components/resume";
-import { ResumeSection } from "~/components/resume/resume-section";
-import ResumeSectionGemini from "~/components/resume/resume-section-gemini";
+import { useEffect, useState } from "react";
+import ResumeSection from "~/components/resume/resume-section";
 import { Button } from "~/components/ui/button";
-import { EResumeSteps } from "~/lib/constants";
+import { EResumeSteps } from "@/types/resume";
 import { fetchWithAuth } from "~/utils/fetchWithAuth";
 
 function getQueryParam(name: string) {
@@ -14,7 +12,7 @@ function getQueryParam(name: string) {
 
 export default function ResumeGeneratorDetail() {
   const [resume, setResume] = useState(null);
-  const [resumeStep, setResumeStep] = useState<EResumeSteps>(EResumeSteps.PERSONAL);
+  const [resumeStep, setResumeStep] = useState<EResumeSteps>(EResumeSteps.CONTACT);
   const id = getQueryParam("id");
   console.log("ResumeGeneratorDetail() :: resume:", resume);
 
@@ -38,9 +36,7 @@ export default function ResumeGeneratorDetail() {
         &larr; Back to list
       </Button>
       {resume ? (
-        // <ResumeComponent initialResume={resume} />
-        // <ResumeSection initialResume={resume} resumeStep={resumeStep} />
-        <ResumeSectionGemini />
+        <ResumeSection resume={resume} />
       ) : (
         <div>resume not found.</div>
       )}
