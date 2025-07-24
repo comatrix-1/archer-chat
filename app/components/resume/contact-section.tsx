@@ -40,6 +40,34 @@ export const ContactSection = () => {
 
         <FormField
           control={form.control}
+          name="contact.city"
+          render={({ field: formField }) => (
+            <FormItem>
+              <FormLabel>City</FormLabel>
+              <FormControl>
+                <Input placeholder="City" {...formField} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="contact.country"
+          render={({ field: formField }) => (
+            <FormItem>
+              <FormLabel>Country</FormLabel>
+              <FormControl>
+                <Input placeholder="Country" {...formField} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="contact.phone"
           render={({ field: formField }) => (
             <FormItem>
