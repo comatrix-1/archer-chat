@@ -183,7 +183,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                 render={({ field }) => (
                     <FormItem className="col-span-1">
                         <FormLabel>Start Date</FormLabel>
-                        <DatePicker selectedDate={startDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'startDate', index)} isClearable={false} />
+                        <DatePicker selectedDate={startDateValue ? new Date(startDateValue) : undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'startDate', index)} isClearable={false} />
                         <FormMessage />
                     </FormItem>
                 )}
@@ -195,7 +195,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                 render={({ field }) => (
                     <FormItem className="col-span-1">
                         <FormLabel>End Date</FormLabel>
-                        <DatePicker selectedDate={endDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'endDate', index)} isClearable={true} />
+                        <DatePicker selectedDate={endDateValue ? new Date(endDateValue) : undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'endDate', index)} isClearable={true} />
                         <FormMessage />
                     </FormItem>
                 )}

@@ -55,14 +55,17 @@ export function EducationSection() {
   };
 
   const addEducation = () => {
+    const currentDate = new Date();
+
     append({
       id: generateUUID(),
       school: "",
       degree: "",
       fieldOfStudy: "",
-      startDate: new Date(),
-      endDate: new Date(),
+      startDate: currentDate,
+      endDate: currentDate,
       gpa: 0,
+      description: "",
     });
   };
 

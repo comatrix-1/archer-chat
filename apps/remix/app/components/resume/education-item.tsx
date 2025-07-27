@@ -17,17 +17,15 @@ export function EducationItem({ index }: Readonly<EducationItemProps>) {
     const startDateValue = useWatch({
         control: form.control,
         name: `educations.${index}.startDate`,
-    }) ?? new Date();
+    });
+
     const endDateValue = useWatch({
         control: form.control,
         name: `educations.${index}.endDate`,
-    }) ?? null;
+    });
 
     const handleDateSelect = (date: Date | undefined, fieldName: 'startDate' | 'endDate', index: number) => {
-        if (date) {
-            date.setHours(0, 0, 0, 0);
-        }
-        form.setValue(`educations.${index}.${fieldName}`, date, {
+        form.setValue(`educations.${index}.${fieldName}`, date || null, {
             shouldValidate: true,
             shouldDirty: true,
         });
@@ -80,7 +78,11 @@ export function EducationItem({ index }: Readonly<EducationItemProps>) {
                 render={({ field: formField }) => (
                     <FormItem className="col-span-2">
                         <FormLabel>Start Date</FormLabel>
-                        <DatePicker selectedDate={startDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'startDate', index)} isClearable={false} />
+                        <DatePicker
+                            selectedDate={startDateValue ? new Date(startDateValue) : undefined}
+                            onSelect={(date: Date | undefined) => handleDateSelect(date, 'startDate', index)}
+                            isClearable={false}
+                        />
                         <FormMessage />
                     </FormItem>
                 )}
@@ -91,7 +93,11 @@ export function EducationItem({ index }: Readonly<EducationItemProps>) {
                 render={({ field: formField }) => (
                     <FormItem className="col-span-2">
                         <FormLabel>End Date</FormLabel>
-                        <DatePicker selectedDate={endDateValue ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'endDate', index)} isClearable={true} />
+                        <DatePicker
+                            selectedDate={endDateValue ? new Date(endDateValue) : undefined}
+                            onSelect={(date: Date | undefined) => handleDateSelect(date, 'endDate', index)}
+                            isClearable={true}
+                        />
                         <FormMessage />
                     </FormItem>
                 )}
@@ -123,6 +129,7 @@ export function EducationItem({ index }: Readonly<EducationItemProps>) {
                                 placeholder="GPA"
                                 step={0.1}
                                 {...formField}
+                                value={formField.value ?? ''} // Handle null values from database
                                 onChange={(e) =>
                                     formField.onChange(
                                         e.target.value === ""
@@ -141,30 +148,25 @@ export function EducationItem({ index }: Readonly<EducationItemProps>) {
                 control={form.control}
                 name={`educations.${index}.gpaMax`}
                 render={({ field: formField }) => (
-                    <FormField
-                        control={form.control}
-                        name={`educations.${index}.gpaMax`}
-                        render={({ field: formField }) => (
-                            <FormItem className="col-span-1">
-                                <FormLabel>Maximum GPA</FormLabel>
-                                <FormControl>
-                                    <Input
-                                        type="number"
-                                        placeholder="Max GPA"
-                                        {...formField}
-                                        onChange={(e) =>
-                                            formField.onChange(
-                                                e.target.value === ""
-                                                    ? undefined
-                                                    : Number(e.target.value)
-                                            )
-                                        }
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    <FormItem className="col-span-1">
+                        <FormLabel>Maximum GPA</FormLabel>
+                        <FormControl>
+                            <Input
+                                type="number"
+                                placeholder="Max GPA"
+                                {...formField}
+                                value={formField.value ?? ''} // Handle null values from database
+                                onChange={(e) =>
+                                    formField.onChange(
+                                        e.target.value === ""
+                                            ? undefined
+                                            : Number(e.target.value)
+                                    )
+                                }
+                            />
+                        </FormControl>
+                        <FormMessage />
+                    </FormItem>
                 )}
             />
 

@@ -38,11 +38,11 @@ const SortableItemComponent = ({
 
   const { role, ...restAttributes } = attributes;
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  
+
   const toggleOpen = useCallback((e: React.MouseEvent) => {
     // Don't toggle if clicking on drag handle or remove button
-    if ((e.target as HTMLElement).closest('button[aria-label*="Drag"]') ||
-        (e.target as HTMLElement).closest('button[aria-label*="Remove"]')) {
+    if ((e.target as HTMLElement).closest('[aria-label*="Drag"]') ||
+      (e.target as HTMLElement).closest('[aria-label*="Remove"]')) {
       return;
     }
     setIsOpen(prev => !prev);
@@ -75,63 +75,65 @@ const SortableItemComponent = ({
       )}
       data-draggable-id={id}
     >
-      <button 
+      <div
         className="w-full flex justify-between items-center p-3 sm:p-4 rounded-t-xl rounded-b-none bg-muted hover:bg-secondary border-b border-dashed border-muted select-none cursor-pointer transition-colors"
         onClick={toggleOpen}
-        type="button"
-        tabIndex={0}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault();
             setIsOpen(prev => !prev);
           }
         }}
+        role="button"
+        tabIndex={0}
         aria-expanded={isOpen}
       >
         <div className="flex items-center gap-2 sm:gap-3 overflow-hidden">
-          <button
-            type="button"
+          <div
             {...listeners}
             {...restAttributes}
             className={cn(
               'flex items-center justify-center',
+              'cursor-grab active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-md p-1.5 hover:bg-muted/50',
               dragHandleClassName
             )}
             aria-label={dragHandleAriaLabel}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.stopPropagation();
+                e.preventDefault();
+              }
+            }}
           >
             <GripHorizontal className="h-4 w-4 text-muted-foreground" />
-          </button>
-
-          <div className="flex items-center gap-2">
-            <ChevronDown className={cn(
-              'h-4 w-4 text-muted-foreground transition-transform duration-200',
-              isOpen && 'transform rotate-180'
-            )} />
-            <div className="flex flex-col min-w-0">
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="text-muted-foreground text-sm font-medium truncate">
-                  {isOpen ? 'Collapse' : 'Expand'}
-                </span>
-              </div>
-            </div>
           </div>
         </div>
-
-        {onRemove && (
+        <div className="flex items-center gap-2">
           <Button
             type="button"
             variant="ghost"
             size="icon"
-            className="h-7 w-7 sm:h-8 sm:w-8 rounded-full text-destructive hover:bg-destructive/10 hover:text-destructive"
-            onClick={handleRemove}
+            className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
             aria-label={removeButtonAriaLabel}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleRemove(e);
+            }}
           >
-            <Trash2 className="size-3.5 sm:size-4" />
+            <Trash2 className="h-4 w-4" />
           </Button>
-        )}
-      </button>
-
-      <div 
+          <ChevronDown
+            className={cn(
+              'h-4 w-4 text-muted-foreground transition-transform duration-200',
+              isOpen ? 'rotate-180' : ''
+            )}
+            aria-hidden="true"
+          />
+        </div>
+      </div>
+      <div
         className={cn(
           'overflow-hidden transition-all duration-200 ease-in-out',
           isOpen ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'

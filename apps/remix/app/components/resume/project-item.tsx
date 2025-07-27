@@ -64,7 +64,7 @@ export function ProjectItem({ index }: ProjectItemProps) {
             <FormLabel>Start Date</FormLabel>
             <FormControl>
               <DatePicker
-                selectedDate={field.value ?? undefined}
+                selectedDate={startDateValue ? new Date(startDateValue) : undefined}
                 onSelect={(date: Date | undefined) => handleDateSelect(date, 'startDate', index)}
                 isClearable={false}
               />
@@ -82,7 +82,7 @@ export function ProjectItem({ index }: ProjectItemProps) {
             <FormLabel>End Date</FormLabel>
             <FormControl>
               <DatePicker
-                selectedDate={field.value ?? undefined}
+                selectedDate={endDateValue ? new Date(endDateValue) : undefined}
                 onSelect={(date: Date | undefined) => handleDateSelect(date, 'endDate', index)}
                 isClearable={true}
               />

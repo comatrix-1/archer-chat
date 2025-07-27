@@ -1,7 +1,7 @@
 import { Button } from "@project/remix/app/components/ui/button"
 import { EResumeSteps } from "@project/remix/app/types/resume";
 
-export const ResumeSteps = ({
+export const ResumeNav = ({
     currentStep,
     setCurrentStep,
 }: {

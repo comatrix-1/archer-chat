@@ -12,34 +12,7 @@ import ExperienceSection from './experience-section';
 import { SkillsSection } from './skills-section';
 import ProjectSection from './project-section';
 import { AwardsSection } from './awards-section';
-import { ResumeSteps } from '../resume-steps';
-
-const experienceData = [
-  {
-    "id": "45cf45b4-7055-42fb-8df1-9a97511a363c",
-    "title": "1",
-    "employmentType": EEmploymentType.FULL_TIME,
-    "locationType": ELocationType.ON_SITE,
-    "company": "test1",
-    "location": "",
-    "startDate": new Date("2017-07-13T00:00:00.000Z"),
-    "endDate": null,
-    "description": "<p>test1</p>"
-  }
-];
-
-const educationData = [
-  {
-    "id": "45cf45b4-7055-42fb-8df1-9a97511a363c",
-    "school": "test1",
-    "degree": "test1",
-    "fieldOfStudy": "test1",
-    "startDate": new Date("2017-07-13T00:00:00.000Z"),
-    "endDate": null,
-    "location": "test1",
-    "gpa": 4.0
-  }
-];
+import { ResumeNav } from './resume-nav';
 
 const ResumeSection = ({
   resume,
@@ -51,8 +24,34 @@ const ResumeSection = ({
   const form = useForm<ResumeFormData>({
     defaultValues: {
       summary: '',
-      experiences: experienceData,
-      educations: educationData,
+      contact: {
+        fullName: '',
+        email: '',
+        phone: '',
+        city: '',
+        country: '',
+        address: '',
+        linkedin: '',
+        github: '',
+        portfolio: '',
+      },
+      experiences: [],
+      educations: [{
+        id: '',
+        school: '',
+        degree: '',
+        fieldOfStudy: '',
+        startDate: new Date(),
+        endDate: new Date(),
+        location: '',
+        gpa: 0,
+        gpaMax: 0,
+        description: ''
+      }],
+      skills: [],
+      certifications: [],
+      projects: [],
+      awards: [],
     },
   })
 
@@ -98,33 +97,8 @@ const ResumeSection = ({
         <Form {...form}>
           <Card className="p-6">
             <Button onClick={() => console.log('form: ', form.getValues())}>Check form</Button>
-            <ResumeSteps currentStep={currentStep} setCurrentStep={setCurrentStep} />
+            <ResumeNav currentStep={currentStep} setCurrentStep={setCurrentStep} />
             {renderStep()}
-            <div className="flex justify-between mt-6">
-              <Button
-                variant="outline"
-                disabled={currentStep === EResumeSteps.CONTACT}
-                onClick={() => {
-                  const currentIndex = steps.findIndex((step) => step.id === currentStep);
-                  if (currentIndex > 0) {
-                    setCurrentStep(steps[currentIndex - 1].id);
-                  }
-                }}
-              >
-                Previous
-              </Button>
-              <Button
-                onClick={() => {
-                  const currentIndex = steps.findIndex((step) => step.id === currentStep);
-                  if (currentIndex < steps.length - 1) {
-                    setCurrentStep(steps[currentIndex + 1].id);
-                  }
-                }}
-                disabled={currentStep === EResumeSteps.CERTIFICATIONS}
-              >
-                Next
-              </Button>
-            </div>
           </Card>
         </Form>
       </main>
