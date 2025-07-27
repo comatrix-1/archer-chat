@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { generateUUID } from "~/utils/security";
 import { authRoute } from "./api/auth";
-import { resumeRoute } from "./api/resume-basic";
+import { resumeRoute } from "./api/resume";
 
 const app = new Hono();
 app.use("*", async (c, next) => {

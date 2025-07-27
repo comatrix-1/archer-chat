@@ -33,7 +33,5 @@ export default function ResumeRoute() {
   if (!isLoggedIn) return <div className="p-8">Please login.</div>;
   if (!masterResumeId || !resumeList) return <div className="p-8">Loading...</div>;
 
-  return <p>testing</p>
-
-  // return <ResumeList masterResumeId={masterResumeId} resumeList={resumeList} />;
+  return <ResumeList masterResumeId={masterResumeId} resumeList={resumeList} />;
 }
