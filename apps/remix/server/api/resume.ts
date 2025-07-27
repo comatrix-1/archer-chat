@@ -1,3 +1,11 @@
+import type { PrismaClient } from "@prisma/client";
+import prisma from "@project/remix/app/utils/prisma.js";
+import { Hono } from "hono";
+import { jwt as honoJwt } from "hono/jwt";
+import { userContextMiddleware } from "server/middleware/userContext.js";
+import { sanitizeDates } from "server/utils/dates";
+import { mapToEmploymentType, mapToLocationType, mapToSkillCategory, mapToSkillProficiency } from "server/utils/mapping";
+import { generateResumeWithGemini } from "../utils/generateResumeWithGemini.js";
 import type {
     TAward,
     TCertification,
@@ -6,170 +14,9 @@ import type {
     TExperience,
     TProject,
     TResume,
-    TSkill,
-    TEmploymentType,
-    TLocationType,
-    TSkillCategory,
-    TSkillProficiency,
+    TSkill
 } from "./resume.types";
-import {
-    ZEmploymentTypeSchema,
-    ZLocationTypeSchema,
-    ZSkillCategorySchema,
-    ZSkillProficiencySchema,
-} from './resume.types'
-import { Hono } from "hono";
-import { jwt as honoJwt } from "hono/jwt";
-import { userContextMiddleware } from "server/middleware/userContext.js";
-import prisma from "@project/remix/app/utils/prisma.js";
-import { generateResumeWithGemini } from "../utils/generateResumeWithGemini.js";
-import type { PrismaClient } from "@prisma/client";
-
-interface HonoEnv {
-    Variables: {
-        user: { id: string };
-        jwtPayload: { userId: string;[key: string]: any };
-    };
-}
-
-function isEmptyOrInvalidDate(val: any): boolean {
-    return (
-        !val ||
-        (typeof val === "string" && val.trim() === "") ||
-        val.toString().toLowerCase() === "present" ||
-        (typeof val === "string" && Number.isNaN(Date.parse(val)))
-    );
-}
-
-function formatDateString(dateStr: string): string | null {
-    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-        return new Date(`${dateStr}T00:00:00.000Z`).toISOString();
-    }
-
-    if (/^\d{4}-\d{2}$/.test(dateStr)) {
-        return new Date(`${dateStr}-01T00:00:00.000Z`).toISOString();
-    }
-
-    return null;
-}
-
-function formatDateValue(val: any): string | null {
-    if (isEmptyOrInvalidDate(val)) {
-        return null;
-    }
-
-    if (typeof val === "string") {
-        const formatted = formatDateString(val);
-        if (formatted) {
-            return formatted;
-        }
-    }
-
-    try {
-        return new Date(val).toISOString();
-    } catch (e) {
-        console.error(`Failed to parse date value: ${val}`, e);
-        return null;
-    }
-}
-
-function processObject(obj: any, dateFields: string[]): any {
-    if (!obj || typeof obj !== "object") return obj;
-
-    const result = Array.isArray(obj) ? [...obj] : { ...obj };
-
-    for (const key in result) {
-        if (dateFields.includes(key)) {
-            result[key] = formatDateValue(result[key]);
-        } else if (Array.isArray(result[key])) {
-            result[key] = processObject(result[key], dateFields);
-        } else if (result[key] && typeof result[key] === "object") {
-            result[key] = processObject(result[key], dateFields);
-        }
-    }
-
-    return result;
-}
-
-function sanitizeDates(obj: any) {
-    const dateFields = [
-        "startDate",
-        "endDate",
-        "issueDate",
-        "expirationDate",
-        "expiryDate",
-        "date",
-    ];
-    return processObject(obj, dateFields);
-}
-
-export function mapToEmploymentType(type: string | undefined): TEmploymentType {
-    const validTypes = Object.values(ZEmploymentTypeSchema.enum);
-    if (type && validTypes.includes(type as TEmploymentType)) {
-        return type as TEmploymentType;
-    }
-    console.warn(`Invalid employment type: ${type}, defaulting to FULL_TIME`);
-    return ZEmploymentTypeSchema.enum.FULL_TIME;
-}
-
-export function mapToLocationType(type: string | undefined): TLocationType {
-    if (type && Object.values(ZLocationTypeSchema).includes(type as TLocationType)) {
-        return type as TLocationType;
-    }
-    const upperType = type?.toUpperCase().replace(/-/g, "_");
-    if (
-        upperType &&
-        Object.values(ZLocationTypeSchema).includes(upperType as TLocationType)
-    ) {
-        return upperType as TLocationType;
-    }
-    console.warn(`Invalid location type: ${type}, defaulting to ON_SITE`);
-    return ZLocationTypeSchema.enum.ON_SITE;
-}
-
-export function mapToSkillCategory(
-    category: string | undefined,
-): TSkillCategory {
-    if (
-        category &&
-        Object.values(ZSkillCategorySchema).includes(category as TSkillCategory)
-    ) {
-        return category as TSkillCategory;
-    }
-    const upperCategory = category?.toUpperCase();
-    if (
-        upperCategory &&
-        Object.values(ZSkillCategorySchema).includes(upperCategory as TSkillCategory)
-    ) {
-        return upperCategory as TSkillCategory;
-    }
-    console.warn(`Invalid skill category: ${category}, defaulting to TECHNICAL`);
-    return ZSkillCategorySchema.enum.TECHNICAL;
-}
-
-export function mapToSkillProficiency(
-    proficiency: string | undefined,
-): TSkillProficiency {
-    if (
-        proficiency &&
-        Object.values(ZSkillProficiencySchema).includes(proficiency as TSkillProficiency)
-    ) {
-        return proficiency as TSkillProficiency;
-    }
-    const upperProficiency = proficiency?.toUpperCase();
-    if (
-        upperProficiency &&
-        Object.values(ZSkillProficiencySchema).includes(
-            upperProficiency as TSkillProficiency,
-        )
-    ) {
-        return upperProficiency as TSkillProficiency;
-    }
-    console.warn(
-        `Invalid skill proficiency: ${proficiency}, defaulting to INTERMEDIATE`,
-    );
-    return ZSkillProficiencySchema.enum.INTERMEDIATE;
-}
+import type { HonoEnv } from "../router";
 
 const JWT_SECRET = process.env.JWT_SECRET ?? "your_secret_here";
 
@@ -735,7 +582,7 @@ export const resumeRoute = new Hono<HonoEnv>()
             if (!resume || resume.userId !== userId) {
                 return c.json({ error: "Not found" }, 404);
             }
-            await prisma.$transaction(async (tx) => {
+            await prisma.$transaction(async (tx: any) => {
                 console.log(`Attempting to delete resume with ID: ${id}`);
                 await tx.resume.delete({ where: { id } });
             });

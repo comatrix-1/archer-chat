@@ -2,8 +2,16 @@ import { Hono } from "hono";
 import { generateUUID } from "~/utils/security";
 import { authRoute } from "./api/auth";
 import { resumeRoute } from "./api/resume";
+import type { RequestIdVariables } from 'hono/request-id';
 
-const app = new Hono();
+export interface HonoEnv {
+  Variables: RequestIdVariables & {
+    user: { id: string };
+    jwtPayload: { userId: string;[key: string]: any };
+  };
+}
+
+const app = new Hono<HonoEnv>();
 app.use("*", async (c, next) => {
   c.header("X-Frame-Options", "DENY");
   c.header("X-Content-Type-Options", "nosniff");
