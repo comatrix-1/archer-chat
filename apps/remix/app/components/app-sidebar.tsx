@@ -34,6 +34,11 @@ const sidebarItems = [
     icon: Briefcase,
     to: "#",
   },
+  {
+    title: "JobTracker",
+    icon: Briefcase,
+    to: "/job-tracker",
+  },
 ];
 
 export function AppSidebar() {

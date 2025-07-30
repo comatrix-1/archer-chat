@@ -22,9 +22,10 @@ model User {
   name     String
   role     Role
 
-  resumes       Resume[]
-  conversations Conversation[]
-  CoverLetter   CoverLetter[]
+  resumes        Resume[]
+  conversations  Conversation[]
+  CoverLetter    CoverLetter[]
+  JobApplication JobApplication[]
 }
 
 model Resume {
@@ -34,12 +35,12 @@ model Resume {
   contactId      String  @unique
   conversationId String?
 
-  experiences   Experience[]
-  educations    Education[]
-  skills        Skill[]
-  awards        Award[]
+  experiences    Experience[]
+  educations     Education[]
+  skills         Skill[]
+  awards         Award[]
   certifications Certification[]
-  projects      Project[]
+  projects       Project[]
 
   contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -130,27 +131,27 @@ model Certification {
 }
 
 model Award {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   title       String
   issuer      String
   date        DateTime?
-  description String   @default("")
+  description String    @default("")
 
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 }
 
 model Conversation {
-  id          String    @id @default(cuid())
+  id          String               @id @default(cuid())
   title       String
   description String?
-  status      Status    @default(PENDING)
+  status      JobApplicationStatus @default(OPEN)
   userId      String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
   messages    Message[]
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resume      Resume?   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  resume      Resume?              @relation(fields: [resumeId], references: [id], onDelete: Cascade)
 
   resumeId String? @unique
 }
@@ -167,11 +168,13 @@ enum MessageContentType {
   TEXT
 }
 
-enum Status {
-  ACTIVE
-  PENDING
+enum JobApplicationStatus {
+  OPEN
+  APPLIED
+  SCREENING
   INTERVIEW
-  REJECTED
+  OFFER
+  CLOSED
   ACCEPTED
 }
 
@@ -210,6 +213,24 @@ model MessagePart {
   actionUrl   String?
   messageId   String?
   message     Message?               @relation(fields: [messageId], references: [id])
+}
+
+model JobApplication {
+  id              String               @id @default(cuid())
+  companyName     String
+  jobTitle        String
+  status          JobApplicationStatus @default(APPLIED)
+  jobLink         String?
+  resumePath      String?              @map("resume_path")
+  coverLetterPath String?              @map("cover_letter_path")
+  salary          String?
+  remarks         String?
+  userId          String
+  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime             @default(now()) @map("created_at")
+  updatedAt       DateTime             @updatedAt @map("updated_at")
+
+  @@map("job_applications")
 }
 
 model Message {

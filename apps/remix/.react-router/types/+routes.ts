@@ -30,6 +30,14 @@ type Pages = {
       "id": string;
     };
   };
+  "/job-tracker": {
+    params: {};
+  };
+  "/job-tracker/:id": {
+    params: {
+      "id": string;
+    };
+  };
   "/*": {
     params: {
       "*": string;
@@ -40,7 +48,7 @@ type Pages = {
 type RouteFiles = {
   "root.tsx": {
     id: "root";
-    page: "/" | "/login" | "/register" | "/resume" | "/resume/generator" | "/resume/:id" | "/*";
+    page: "/" | "/login" | "/register" | "/resume" | "/resume/generator" | "/resume/:id" | "/job-tracker" | "/job-tracker/:id" | "/*";
   };
   "./routes/login.tsx": {
     id: "routes/login";
@@ -52,7 +60,7 @@ type RouteFiles = {
   };
   "./routes/protected-layout.tsx": {
     id: "routes/protected-layout";
-    page: "/" | "/resume" | "/resume/generator" | "/resume/:id";
+    page: "/" | "/resume" | "/resume/generator" | "/resume/:id" | "/job-tracker" | "/job-tracker/:id";
   };
   "./routes/home.tsx": {
     id: "routes/home";
@@ -69,6 +77,14 @@ type RouteFiles = {
   "./routes/resume/detail.tsx": {
     id: "routes/resume/detail";
     page: "/resume/:id";
+  };
+  "./routes/job-tracker/index.tsx": {
+    id: "routes/job-tracker/index";
+    page: "/job-tracker";
+  };
+  "./routes/job-tracker/detail.tsx": {
+    id: "routes/job-tracker/detail";
+    page: "/job-tracker/:id";
   };
   "./routes/not-found.tsx": {
     id: "routes/not-found";
