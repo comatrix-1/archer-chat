@@ -3,9 +3,17 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Link, useNavigate } from "react-router";
 import { z } from "zod";
-import { Alert, AlertDescription } from "@project/remix/app/components/ui/alert";
+import {
+  Alert,
+  AlertDescription,
+} from "@project/remix/app/components/ui/alert";
 import { Button } from "@project/remix/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@project/remix/app/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@project/remix/app/components/ui/card";
 import {
   Form,
   FormControl,
@@ -16,6 +24,7 @@ import {
 } from "@project/remix/app/components/ui/form";
 import { Input } from "@project/remix/app/components/ui/input";
 import { useAuth } from "../contexts/AuthContext";
+import { trpc } from "@project/trpc/client";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address").min(1, "Email is required"),
@@ -30,10 +39,33 @@ export default function Login() {
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: "test@test.com",
+      password: "password",
     },
   });
+
+  // Test tRPC connection on component mount
+  useEffect(() => {
+    async function testConnection() {
+      try {
+        // Test public endpoint
+        const publicHello = await trpc.test.publicHello.query();
+        console.log('Public endpoint response:', publicHello);
+
+        // Test protected endpoint (will fail if not authenticated)
+        try {
+          const protectedHello = await trpc.test.protectedHello.query();
+          console.log('Protected endpoint response:', protectedHello);
+        } catch (error) {
+          console.log('Protected endpoint error (expected if not logged in):', error);
+        }
+      } catch (error) {
+        console.error('Error testing tRPC connection:', error);
+      }
+    }
+
+    testConnection();
+  }, []);
 
   // Display auth errors from the auth context
   useEffect(() => {
@@ -51,6 +83,14 @@ export default function Login() {
       navigate("/");
     }
   };
+
+  useEffect(() => {
+    console.log("Fetching tokens...");
+    (async () => {
+      const tokens = await trpc.apiToken.getTokens.query();
+      console.log("Tokens fetched:", tokens);
+    })();
+  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">

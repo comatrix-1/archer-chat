@@ -3,11 +3,13 @@ import { generateUUID } from "~/utils/security";
 import { authRoute } from "./api/auth";
 import { resumeRoute } from "./api/resume";
 import type { RequestIdVariables } from 'hono/request-id';
+import { reactRouterTrpcServer } from "./trpc/hono-trpc-remix";
+import { appMiddleware } from "./middleware";
 
 export interface HonoEnv {
   Variables: RequestIdVariables & {
     user: { id: string };
-    jwtPayload: { userId: string;[key: string]: any };
+    jwtPayload: { userId: string;[key: string]: unknown };
   };
 }
 
@@ -28,7 +30,9 @@ app.use("*", async (c, next) => {
   c.header("Set-Cookie", `csrfToken=${csrfToken}; Path=/; SameSite=Strict`);
   await next();
 });
+app.use('*', appMiddleware);
 app.route("/api/auth", authRoute);
 app.route("/api/resume", resumeRoute);
+app.use('/api/trpc/*', reactRouterTrpcServer);
 
 export default app;

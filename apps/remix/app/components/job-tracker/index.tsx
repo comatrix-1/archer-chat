@@ -2,13 +2,12 @@ import { useState } from 'react';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs';
-import type { JobApplication } from './job-tracker-table';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { JobTrackerTable } from './job-tracker-table';
 import { JobTrackerDashboard } from './job-tracker-dashboard';
 import { Plus } from 'lucide-react';
-import { faker } from '@faker-js/faker';
 import { useNavigate } from 'react-router';
+import { useJobApplications } from '~/contexts/job-applications-context';
 
 const statuses = [
     { id: 'applied', name: 'Applied', color: 'bg-blue-500' },
@@ -18,36 +17,8 @@ const statuses = [
     { id: 'closed', name: 'Closed', color: 'bg-gray-500' },
 ];
 
-// Generate mock job applications
-const generateMockJobs = (count = 10): JobApplication[] => {
-    return Array.from({ length: count }).map(() => ({
-        id: faker.string.uuid(),
-        companyName: faker.company.name(),
-        jobTitle: faker.person.jobTitle(),
-        status: faker.helpers.arrayElement(statuses),
-        jobLink: faker.internet.url(),
-        resume: faker.helpers.arrayElement([
-            'Resume_Senior_Dev_2023.pdf',
-            'John_Doe_Resume.pdf',
-            'Resume_Updated_2023.pdf',
-            null
-        ]),
-        coverLetter: faker.helpers.arrayElement([
-            'Cover_Letter_Google_2023.pdf',
-            'John_Doe_Cover_Letter.pdf',
-            null
-        ]),
-        salary: `$${faker.number.int({ min: 50000, max: 200000 }).toLocaleString()}`,
-        remarks: faker.lorem.sentence(),
-        createdAt: faker.date.recent({ days: 30 }),
-        updatedAt: faker.date.recent({ days: 7 })
-    }));
-};
-
-const jobs = generateMockJobs(10);
-
-// Mock data - in a real app, this would come from your API or state management
 export function JobTracker() {
+    const { jobs } = useJobApplications();
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all');
     const navigate = useNavigate();
@@ -62,11 +33,17 @@ export function JobTracker() {
 
     return (
         <div className="p-4 max-w-4xl mx-auto space-y-6">
-            <div>
-                <h1 className="text-3xl font-bold tracking-tight">Job Applications</h1>
-                <p className="text-muted-foreground">
-                    Track your job applications and their status
-                </p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Job Applications</h1>
+                    <p className="text-muted-foreground">
+                        Track your job applications and their status
+                    </p>
+                </div>
+                <Button onClick={() => navigate('/job-tracker/add')}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Application
+                </Button>
             </div>
 
             {/* Dashboard */}
@@ -104,11 +81,6 @@ export function JobTracker() {
                                 <TabsTrigger value="closed">Closed</TabsTrigger>
                             </TabsList>
                         </Tabs>
-
-                        <Button
-                            onClick={() => navigate('/job-tracker/add')}>
-                            Add
-                        </Button>
                     </div>
                 </CardHeader>
                 <CardContent>

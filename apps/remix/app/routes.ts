@@ -21,6 +21,7 @@ export default [
 
     ...prefix("job-tracker", [
       index("./routes/job-tracker/index.tsx"),
+      route("add", "./routes/job-tracker/add.tsx"),
       route(":id", "./routes/job-tracker/detail.tsx"),
     ])
   ]),
