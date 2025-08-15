@@ -1,0 +1,4 @@
+{
+	"contextFiles": ["windsurf/context.md", "windsurf/architecture.mmd"],
+	"ignorePaths": ["node_modules", ".next", "dist"]
+}

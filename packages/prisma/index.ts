@@ -41,7 +41,7 @@ export const prismaWithLogging = remember('prismaWithLogging', () => {
     ],
   });
 
-  client.$on('query', (e: { query: string; params: string; duration: any; }) => {
+  client.$on('query', (e: { query: string; params: string; duration: unknown; }) => {
     console.log('query:', e.query);
     console.log('params:', e.params);
     console.log('duration:', e.duration);

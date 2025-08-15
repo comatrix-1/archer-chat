@@ -23,8 +23,5 @@
     "noEmit": true,
     "declaration": false,
     "declarationMap": false
-  },
-  "references": [
-    { "path": "../lib" }
-  ]
+  }
 }
