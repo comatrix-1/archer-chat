@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { compare, hash } from 'bcryptjs';
 import { sign } from 'jsonwebtoken';
-import { TSignInInput, TSignUpInput, TAuthResponse } from './schema';
+import type { TSignInInput, TSignUpInput, TAuthResponse } from './schema';
 
 // Mock user store - replace with your actual database calls
 interface User {
@@ -9,16 +9,14 @@ interface User {
   email: string;
   password: string;
   name: string;
-  is2FAEnabled?: boolean;
-  totpSecret?: string;
 }
 
 // In-memory store for demo purposes
-let users: User[] = [];
+const users: User[] = [];
 
 class AuthService {
   async signIn(input: TSignInInput): Promise<TAuthResponse> {
-    const { email, password, totpCode } = input;
+    const { email, password } = input;
     
     // Find user by email
     const user = users.find(u => u.email === email);
@@ -36,26 +34,6 @@ class AuthService {
         code: 'UNAUTHORIZED',
         message: 'Invalid email or password',
       });
-    }
-
-    // Check if 2FA is required
-    if (user.is2FAEnabled) {
-      if (!totpCode) {
-        return {
-          success: true,
-          requires2FA: true,
-          message: '2FA verification required',
-        };
-      }
-      
-      // Verify TOTP code (implement your TOTP verification logic)
-      const isValidTOTP = await this.verifyTOTP(user.totpSecret!, totpCode);
-      if (!isValidTOTP) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Invalid 2FA code',
-        });
-      }
     }
 
     // Generate JWT token
@@ -93,7 +71,6 @@ class AuthService {
       email,
       password: hashedPassword,
       name,
-      is2FAEnabled: false, // 2FA disabled by default
     };
 
     users.push(newUser);

@@ -25,6 +25,7 @@ import {
 import { Input } from "@project/remix/app/components/ui/input";
 import { useAuth } from "../contexts/AuthContext";
 import { trpc } from "@project/trpc/client";
+import { supabase } from "~/utils/supabaseClient";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address").min(1, "Email is required"),
@@ -34,7 +35,7 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const { login, error: authError } = useAuth();
+  const { signIn } = useAuth();
   const navigate = useNavigate();
   const form = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -50,36 +51,50 @@ export default function Login() {
       try {
         // Test public endpoint
         const publicHello = await trpc.test.publicHello.query();
-        console.log('Public endpoint response:', publicHello);
+        console.log("Public endpoint response:", publicHello);
 
         // Test protected endpoint (will fail if not authenticated)
         try {
           const protectedHello = await trpc.test.protectedHello.query();
-          console.log('Protected endpoint response:', protectedHello);
+          console.log("Protected endpoint response:", protectedHello);
         } catch (error) {
-          console.log('Protected endpoint error (expected if not logged in):', error);
+          console.log(
+            "Protected endpoint error (expected if not logged in):",
+            error
+          );
         }
       } catch (error) {
-        console.error('Error testing tRPC connection:', error);
+        console.error("Error testing tRPC connection:", error);
       }
     }
 
-    testConnection();
+    async function testSupabaseConnection() {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: "test@test.com",
+        password: "password",
+      });
+
+      console.log("data, error: ", data, error);
+    }
+
+    // testConnection();
+    // testSupabaseConnection();
   }, []);
 
-  // Display auth errors from the auth context
-  useEffect(() => {
-    if (authError) {
-      form.setError("root", {
-        type: "manual",
-        message: authError,
-      });
-    }
-  }, [authError, form]);
+  const onSubmit = async (formData: LoginFormData) => {
+    const { data, error } = await signIn({
+      email: formData.email,
+      password: formData.password,
+    });
+    console.log("login result: ", data);
 
-  const onSubmit = async (data: LoginFormData) => {
-    const ok = await login(data.email, data.password);
-    if (ok) {
+    if (error) {
+      console.log("onSubmit error: ", error);
+      return;
+    }
+
+    if (data?.user) {
+      console.log("Logged in successfully!");
       navigate("/");
     }
   };

@@ -1,6 +1,5 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { trpc } from '@project/trpc/client';
-import type { ResumeWithRelations } from '@project/trpc/server/resume-router/schema';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useResumes(userId: string) {
   return useQuery({

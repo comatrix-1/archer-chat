@@ -7,11 +7,10 @@ interface ProtectedRouteProps {
 }
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isLoggedIn, loading, user } = useAuth();
+  const { loading, user } = useAuth();
   const location = useLocation();
 
   console.log("ProtectedRoute - Auth State:", {
-    isLoggedIn,
     loading,
     user,
     currentPath: location.pathname,
@@ -22,8 +21,8 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
     return <LoadingSpinner isLoading={true} />;
   }
 
-  if (!isLoggedIn) {
-    console.log("ProtectedRoute - Not authenticated, redirecting to login");
+  if (!user) {
+    console.log("ProtectedRoute - No user, redirecting to login");
 
     return (
       <Navigate

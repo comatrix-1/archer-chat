@@ -1,5 +1,4 @@
-import { router, protectedProcedure, publicProcedure } from '../trpc';
-import { z } from 'zod';
+import { publicProcedure, router } from '../trpc';
 import { TSignInSchema, TSignUpSchema } from './schema';
 import { authService } from './service';
 

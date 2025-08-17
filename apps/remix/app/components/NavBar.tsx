@@ -1,4 +1,9 @@
-import { FaSignOutAlt, FaSpinner, FaUserCircle, FaChevronDown } from "react-icons/fa";
+import {
+  FaSignOutAlt,
+  FaSpinner,
+  FaUserCircle,
+  FaChevronDown,
+} from "react-icons/fa";
 import { Link } from "react-router";
 import { Button } from "@project/remix/app/components/ui/button";
 import { useAuth } from "../contexts/AuthContext";
@@ -10,10 +15,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@project/remix/app/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@project/remix/app/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@project/remix/app/components/ui/avatar";
 
 export function NavBar() {
-  const { user, logout, loading } = useAuth();
+  const { user, signOut, loading } = useAuth();
   console.log("NavBar auth state:", { user, loading });
 
   return (
@@ -36,7 +45,7 @@ export function NavBar() {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={user.photoURL ?? ''} />
+                    <AvatarImage src={user.photoURL ?? ""} />
                     <AvatarFallback className="bg-primary/10 text-primary">
                       {user.email?.charAt(0).toUpperCase()}
                     </AvatarFallback>
@@ -58,7 +67,7 @@ export function NavBar() {
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={logout}
+                  onClick={signOut}
                   className="text-red-600 focus:bg-red-50 focus:text-red-600"
                 >
                   <FaSignOutAlt className="mr-2 h-4 w-4" />
@@ -78,9 +87,7 @@ export function NavBar() {
                 </Link>
               </Button>
               <Button>
-                <Link
-                  to="/login"
-                >
+                <Link to="/login">
                   <span className="hidden sm:inline">Get Started</span>
                 </Link>
               </Button>

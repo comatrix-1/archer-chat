@@ -9,8 +9,9 @@ apps/
 
 packages/
 - prisma/: Prisma client, schema, utils
+- auth/: Authentication client, server
 - tRPC/: tRPC server, client
-- shared/: Shared utils, constants, types
+- lib/: Shared utils, constants, types
 
 Root files:
 - package.json, tsconfig.json, turbo.json, .env, README.md

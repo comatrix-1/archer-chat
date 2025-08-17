@@ -4,9 +4,17 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router";
 import { Link } from "react-router";
 import { z } from "zod";
-import { Alert, AlertDescription } from "@project/remix/app/components/ui/alert";
+import {
+  Alert,
+  AlertDescription,
+} from "@project/remix/app/components/ui/alert";
 import { Button } from "@project/remix/app/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@project/remix/app/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@project/remix/app/components/ui/card";
 import {
   Form,
   FormControl,
@@ -17,6 +25,7 @@ import {
 } from "@project/remix/app/components/ui/form";
 import { Input } from "@project/remix/app/components/ui/input";
 import { useAuth } from "../contexts/AuthContext";
+import { supabase } from "~/utils/supabaseClient";
 
 const registerSchema = z
   .object({
@@ -57,11 +66,13 @@ export default function Register() {
     }
   }, [authError, form]);
 
-  const onSubmit = async (data: RegisterFormData) => {
-    const ok = await register(data);
-    if (ok) {
-      navigate("/");
-    }
+  const onSubmit = async (formData: RegisterFormData) => {
+    const { data, error } = await supabase.auth.signUp({
+      email: formData.email,
+      password: formData.password,
+    });
+
+    console.log("register successful, data: ", data);
   };
 
   return (
