@@ -1,3 +1,4 @@
+import { trpc } from "@project/trpc/client";
 import { useEffect, useState } from "react";
 import ResumeList from "~/components/resume-list";
 import { useAuth } from "~/contexts/AuthContext";
@@ -7,6 +8,15 @@ export default function ResumeRoute() {
   const [masterResumeId, setMasterResumeId] = useState<string | null>(null);
   const [resumeList, setResumeList] = useState([]);
   const { user } = useAuth();
+
+  useEffect(() => {
+    const testGetMeConnection = async () => {
+      const me = await trpc.test.getMe.query();
+      console.log("Get Me response:", me);
+    }
+
+    testGetMeConnection();
+  }, []);
 
   useEffect(() => {
     if (!user) {

@@ -49,20 +49,11 @@ export default function Login() {
   useEffect(() => {
     async function testConnection() {
       try {
-        // Test public endpoint
         const publicHello = await trpc.test.publicHello.query();
         console.log("Public endpoint response:", publicHello);
 
-        // Test protected endpoint (will fail if not authenticated)
-        try {
-          const protectedHello = await trpc.test.protectedHello.query();
-          console.log("Protected endpoint response:", protectedHello);
-        } catch (error) {
-          console.log(
-            "Protected endpoint error (expected if not logged in):",
-            error
-          );
-        }
+        const protectedHello = await trpc.test.protectedHello.query();
+        console.log("Protected endpoint response:", protectedHello);
       } catch (error) {
         console.error("Error testing tRPC connection:", error);
       }

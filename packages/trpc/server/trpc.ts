@@ -1,22 +1,22 @@
-import { initTRPC, TRPCError } from '@trpc/server';
-import type { BaseContext, ProtectedContext, Context } from './context';
+import { initTRPC, TRPCError } from "@trpc/server";
+import type { BaseContext, ProtectedContext, Context } from "./context";
 
 // Initialize tRPC with base context type
 const t = initTRPC.context<Context>().create();
 
 // Middleware for protected procedures
 const isAuthed = t.middleware(async ({ ctx, next }) => {
-  if (!ctx.user || !ctx.teamId) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  console.log("middleware ctx.user: ", ctx.user);
+  if (!ctx.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  
+
   // Create a new context with the required properties for protected procedures
   const protectedCtx: ProtectedContext = {
     ...ctx,
     user: ctx.user,
-    teamId: ctx.teamId,
   };
-  
+
   return next({
     ctx: protectedCtx,
   });

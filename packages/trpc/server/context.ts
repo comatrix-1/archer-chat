@@ -1,38 +1,65 @@
-import type { HonoEnv } from '@project/remix/server/router';
-import type { Context as HonoContext } from 'hono';
+import type { HonoEnv } from "@project/remix/server/router";
+import type { Context as HonoContext } from "hono";
+import { supabase } from "../supabase-client";
 
 type CreateTrpcContextOptions = {
   c: HonoContext<HonoEnv>;
-  requestSource: 'app' | 'apiV1' | 'apiV2';
+  requestSource: "app" | "apiV1" | "apiV2";
 };
 
 export type BaseContext = {
   user?: {
     id: string;
+    email?: string;
     [key: string]: unknown;
   };
-  teamId?: string;
-  [key: string]: unknown;
+  requestSource: string;
 };
 
 export type ProtectedContext = BaseContext & {
   user: {
     id: string;
+    email?: string;
     [key: string]: unknown;
   };
-  teamId: string;
 };
 
-export type Context = HonoContext<HonoEnv> & BaseContext;
+export type Context = BaseContext & {
+  hono: HonoContext<HonoEnv>;
+};
 
 export const createTrpcContext = async ({
   c,
   requestSource,
 }: CreateTrpcContextOptions): Promise<Context> => {
-  // Here you can extract user info from the request (e.g., from cookies, headers, etc.)
-  // For example:
-  // const user = await getUserFromRequest(_opts.req);
-  // const teamId = getTeamIdFromRequest(_opts.req);
+  const authHeader = c.req.header("authorization");
+  let user: BaseContext["user"] | undefined;
 
-  return c as Context;
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.split(" ")[1];
+    const { data, error } = await supabase.auth.getUser(token);
+
+    if (error) {
+      console.error("Error verifying token:", error);
+      return {
+        hono: c,
+        user,
+        requestSource,
+      };
+    }
+
+    if (data?.user) {
+      user = {
+        id: data.user.id as string,
+        email: data.user.email as string,
+      };
+      console.log("context set user successfully", user);
+    }
+  }
+
+  return {
+    hono: c,
+    user,
+    requestSource,
+  };
 };

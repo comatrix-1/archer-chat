@@ -6,11 +6,6 @@ export const reactRouterTrpcServer = trpcServer({
   router: appRouter,
   endpoint: '/api/trpc',
   createContext: async (_, c) => {
-    await createTrpcContext({ c, requestSource: 'app' });
-    return {
-      req: c.req,
-      resHeaders: c.res.headers,
-      ...c.var.context,
-    };
+    return createTrpcContext({ c, requestSource: 'apiV1' });
   },
   });
