@@ -1,8 +1,17 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import type { BaseContext, ProtectedContext, Context } from "./context";
+import {
+  type BaseContext,
+  type ProtectedContext,
+  type Context,
+  createTrpcContext,
+} from "./context";
+import { appRouter } from "./router";
+import type { HonoEnv } from "@project/remix/server/router";
+import type { Context as HonoContext } from "hono";
 
 // Initialize tRPC with base context type
 const t = initTRPC.context<Context>().create();
+const { createCallerFactory } = t;
 
 // Middleware for protected procedures
 const isAuthed = t.middleware(async ({ ctx, next }) => {

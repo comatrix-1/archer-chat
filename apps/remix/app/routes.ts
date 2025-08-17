@@ -16,7 +16,7 @@ export default [
     ...prefix("resume", [
       index("./routes/resume/index.tsx"),
       route("generator", "./routes/resume/generator.tsx"),
-      route(":id", "./routes/resume/detail.tsx"),
+      route("builder", "./routes/resume/builder.tsx"),
     ]),
 
     ...prefix("job-tracker", [

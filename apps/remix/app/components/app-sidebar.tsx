@@ -20,6 +20,11 @@ const sidebarItems = [
     to: "/",
   },
   {
+    title: "Master Resume",
+    icon: FileText,
+    to: "/master-resume",
+  },
+  {
     title: "ResumAI",
     icon: FileText,
     to: "/resume",

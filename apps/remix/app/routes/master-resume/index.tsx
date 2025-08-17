@@ -27,7 +27,7 @@ import {
 } from "~/components/ui/alert-dialog";
 import { trpc } from "@project/trpc/client";
 
-export default function Resumes() {
+export default function MasterResume() {
   const [resumes, setResumes] = useState<any[]>([]);
   const [filteredResumes, setFilteredResumes] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -87,13 +87,13 @@ export default function Resumes() {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-              My Resumes
+              My Master Resume
             </h1>
             <p className="text-slate-600">
               Manage and create professional resumes for your career
             </p>
           </div>
-          <Link to={createPageUrl("resume/builder")}>
+          <Link to={createPageUrl("ResumeBuilder")}>
             <Button className="gold-accent text-white smooth-hover hover:shadow-lg">
               <Plus className="w-4 h-4 mr-2" />
               New Resume
@@ -127,7 +127,7 @@ export default function Resumes() {
               ? "Try adjusting your search terms or create a new resume."
               : "Get started by creating your first professional resume. Our AI will help you craft the perfect document."}
           </p>
-          <Link to={createPageUrl("resume/builder")}>
+          <Link to={createPageUrl("ResumeBuilder")}>
             <Button className="gold-accent text-white smooth-hover hover:shadow-lg">
               <Plus className="w-4 h-4 mr-2" />
               Create Your First Resume
@@ -150,7 +150,7 @@ export default function Resumes() {
                       <FileText className="w-6 h-6 text-blue-600" />
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 smooth-hover">
-                      <Link to={createPageUrl(`resume/builder?id=${resume.id}`)}>
+                      <Link to={createPageUrl(`ResumeBuilder?id=${resume.id}`)}>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -192,7 +192,7 @@ export default function Resumes() {
                   </div>
 
                   <div className="pt-2">
-                    <Link to={createPageUrl(`resume/builder?id=${resume.id}`)}>
+                    <Link to={createPageUrl(`ResumeBuilder?id=${resume.id}`)}>
                       <Button className="w-full gold-accent text-white smooth-hover hover:shadow-lg">
                         Edit Resume
                       </Button>

@@ -119,41 +119,41 @@ export const resumeService = {
   /**
    * Delete a resume
    */
-  async deleteResume(id: string, userId: string): Promise<{ success: boolean }> {
-    // First verify the resume exists and belongs to the user
-    const existing = await prisma.resume.findUnique({
-      where: { id },
-    });
+  // async deleteResume(id: string, userId: string): Promise<{ success: boolean }> {
+  //   // First verify the resume exists and belongs to the user
+  //   const existing = await prisma.resume.findUnique({
+  //     where: { id },
+  //   });
 
-    if (!existing || existing.userId !== userId) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Resume not found',
-      });
-    }
+  //   if (!existing || existing.userId !== userId) {
+  //     throw new TRPCError({
+  //       code: 'NOT_FOUND',
+  //       message: 'Resume not found',
+  //     });
+  //   }
 
-    try {
-      await prisma.$transaction([
-        // Delete related records first
-        prisma.award.deleteMany({ where: { resumeId: id } }),
-        prisma.certification.deleteMany({ where: { resumeId: id } }),
-        prisma.education.deleteMany({ where: { resumeId: id } }),
-        prisma.experience.deleteMany({ where: { resumeId: id } }),
-        prisma.project.deleteMany({ where: { resumeId: id } }),
-        prisma.skill.deleteMany({ where: { resumeId: id } }),
-        // Delete the resume
-        prisma.resume.delete({ where: { id } }),
-      ]);
+  //   try {
+  //     await prisma.$transaction([
+  //       // Delete related records first
+  //       prisma.award.deleteMany({ where: { resumeId: id } }),
+  //       prisma.certification.deleteMany({ where: { resumeId: id } }),
+  //       prisma.education.deleteMany({ where: { resumeId: id } }),
+  //       prisma.experience.deleteMany({ where: { resumeId: id } }),
+  //       prisma.project.deleteMany({ where: { resumeId: id } }),
+  //       prisma.skill.deleteMany({ where: { resumeId: id } }),
+  //       // Delete the resume
+  //       prisma.resume.delete({ where: { id } }),
+  //     ]);
 
-      return { success: true };
-    } catch (error) {
-      console.error('Error deleting resume:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to delete resume',
-      });
-    }
-  },
+  //     return { success: true };
+  //   } catch (error) {
+  //     console.error('Error deleting resume:', error);
+  //     throw new TRPCError({
+  //       code: 'INTERNAL_SERVER_ERROR',
+  //       message: 'Failed to delete resume',
+  //     });
+  //   }
+  // },
 
   /**
    * List resumes for a user

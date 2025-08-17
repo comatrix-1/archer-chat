@@ -45,33 +45,6 @@ export default function Login() {
     },
   });
 
-  // Test tRPC connection on component mount
-  useEffect(() => {
-    async function testConnection() {
-      try {
-        const publicHello = await trpc.test.publicHello.query();
-        console.log("Public endpoint response:", publicHello);
-
-        const protectedHello = await trpc.test.protectedHello.query();
-        console.log("Protected endpoint response:", protectedHello);
-      } catch (error) {
-        console.error("Error testing tRPC connection:", error);
-      }
-    }
-
-    async function testSupabaseConnection() {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: "test@test.com",
-        password: "password",
-      });
-
-      console.log("data, error: ", data, error);
-    }
-
-    // testConnection();
-    // testSupabaseConnection();
-  }, []);
-
   const onSubmit = async (formData: LoginFormData) => {
     const { data, error } = await signIn({
       email: formData.email,

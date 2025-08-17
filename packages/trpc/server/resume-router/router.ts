@@ -33,11 +33,11 @@ export const resumeRouter = router({
     }),
 
   // Delete a resume
-  delete: protectedProcedure
-    .input(resumeIdSchema)
-    .mutation(async ({ input, ctx }) => {
-      return resumeService.deleteResume(input.id, ctx.user.id);
-    }),
+  // delete: protectedProcedure
+  //   .input(resumeIdSchema)
+  //   .mutation(async ({ input, ctx }) => {
+  //     return resumeService.deleteResume(input.id, ctx.user.id);
+  //   }),
 
   // List all resumes for the current user
   list: protectedProcedure

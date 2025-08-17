@@ -50,7 +50,7 @@ export const resumeWithRelationsSchema = ResumeSchema.extend({
   certifications: z.array(z.any()).optional(),
   contact: z.any().optional(),
   conversation: z.any().nullable().optional(),
-  education: z.array(z.any()).optional(),
+  educations: z.array(z.any()).optional(),
   experiences: z.array(z.any()).optional(),
   projects: z.array(z.any()).optional(),
   skills: z.array(z.any()).optional()
@@ -62,7 +62,7 @@ export const includeAllRelations = {
   certifications: true,
   contact: true,
   conversation: true,
-  education: true,
+  educations: true,
   experiences: true,
   projects: true,
   skills: true,
