@@ -18,7 +18,7 @@ import {
 import { Plus } from "lucide-react";
 import * as React from "react";
 import CertificationSection from "@project/remix/app/components/resume/certification-section";
-import {ContactSection} from "@project/remix/app/components/resume/contact-section";
+import {BasicsSection} from "@project/remix/app/components/resume/contact-section";
 import {EducationSection} from "@project/remix/app/components/resume/education-section";
 import ExperienceSection from "@project/remix/app/components/resume/experience-section";
 import HonorsAwardsSection from "@project/remix/app/components/resume/awards-section";
@@ -151,7 +151,7 @@ export default function ResumeComponent({
                 </div>
               </AccordionTrigger>
               <AccordionContent>
-                <ContactSection form={form} />
+                <BasicsSection form={form} />
               </AccordionContent>
             </AccordionItem>
             <AccordionItem value="summary" className="border rounded-lg px-6">

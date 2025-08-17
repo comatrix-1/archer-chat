@@ -13,6 +13,8 @@ export default [
   layout("./routes/protected-layout.tsx", [
     index("./routes/home.tsx"),
 
+    ...prefix("master-resume", [index("./routes/master-resume/index.tsx")]),
+
     ...prefix("resume", [
       index("./routes/resume/index.tsx"),
       route("generator", "./routes/resume/generator.tsx"),
@@ -23,7 +25,7 @@ export default [
       index("./routes/job-tracker/index.tsx"),
       route("add", "./routes/job-tracker/add.tsx"),
       route(":id", "./routes/job-tracker/detail.tsx"),
-    ])
+    ]),
   ]),
 
   route("*", "./routes/not-found.tsx"),

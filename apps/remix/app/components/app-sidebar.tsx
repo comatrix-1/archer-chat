@@ -1,4 +1,4 @@
-import { Briefcase, FilePlus, FileText, Home } from "lucide-react";
+import { Briefcase, Crown, FilePlus, FileText, Home } from "lucide-react";
 import { Link } from "react-router";
 import {
   Sidebar,
@@ -21,7 +21,7 @@ const sidebarItems = [
   },
   {
     title: "Master Resume",
-    icon: FileText,
+    icon: Crown,
     to: "/master-resume",
   },
   {

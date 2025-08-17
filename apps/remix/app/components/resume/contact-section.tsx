@@ -1,15 +1,44 @@
-import { Input } from '@project/remix/app/components/ui/input';
-import { useFormContext } from 'react-hook-form';
-import type { ResumeFormData } from '@project/remix/app/types/resume';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@project/remix/app/components/ui/form';
-import { SectionCard } from '@project/remix/app/components/resume/section-card';
+import { Input } from "@project/remix/app/components/ui/input";
+import { useFormContext } from "react-hook-form";
+import type { ResumeFormData } from "@project/remix/app/types/resume";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@project/remix/app/components/ui/form";
+import { SectionCard } from "@project/remix/app/components/resume/section-card";
+import { Textarea } from "../ui/textarea";
 
-export const ContactSection = () => {
+export const BasicsSection = () => {
   const form = useFormContext<ResumeFormData>();
 
   return (
-    <SectionCard title="Contact" description="Add your contact information.">
+    <SectionCard
+      title="Basic Information"
+      description="Add your basic information."
+    >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <FormField
+          control={form.control}
+          name="summary"
+          render={({ field: formField }) => (
+            <FormItem className="md:col-span-2">
+              <FormLabel>Summary</FormLabel>
+              <FormControl>
+                <Textarea
+                  id="summary"
+                  className="min-h-[200px]"
+                  {...formField}
+                  placeholder="Write a compelling summary of your professional experience and skills."
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="contact.fullName"
@@ -126,7 +155,7 @@ export const ContactSection = () => {
           control={form.control}
           name="contact.portfolio"
           render={({ field: formField }) => (
-            <FormItem>
+            <FormItem className="md:col-span-2">
               <FormLabel>Portfolio</FormLabel>
               <FormControl>
                 <Input placeholder="Portfolio" {...formField} />
@@ -138,4 +167,4 @@ export const ContactSection = () => {
       </div>
     </SectionCard>
   );
-}
+};

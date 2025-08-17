@@ -1,75 +1,137 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router";
-import { createPageUrl } from "~/utils/create-page-url";
-import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import {
-  FileText,
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Calendar,
-  User as UserIcon,
-} from "lucide-react";
-import { format } from "date-fns";
+import { trpc } from "@project/trpc/client";
 import { motion } from "framer-motion";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "~/components/ui/alert-dialog";
-import { trpc } from "@project/trpc/client";
+  Award,
+  BadgeCheck,
+  Briefcase,
+  Crown,
+  FolderOpen,
+  GraduationCap,
+  Save,
+  Star,
+  User as UserIcon
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router";
+import ResumeSection from "~/components/resume/resume-section";
+import { Button } from "~/components/ui/button";
+import { Card, CardContent } from "~/components/ui/card";
+import { Form } from "~/components/ui/form";
+import type { ResumeFormData } from "~/types/resume";
+import { supabase } from "~/utils/supabaseClient";
+
+type TUser = {
+  id: string;
+  email: string;
+};
 
 export default function MasterResume() {
-  const [resumes, setResumes] = useState<any[]>([]);
-  const [filteredResumes, setFilteredResumes] = useState<any[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [deleteId, setDeleteId] = useState(null);
+  const navigate = useNavigate();
+  const [resume, setResume] = useState<any>();
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [user, setUser] = useState<TUser>();
+  const [activeTab, setActiveTab] = useState("basics");
+
+  const form = useForm<ResumeFormData>({
+    defaultValues: {
+      summary: "",
+      contact: {
+        fullName: "",
+        email: "",
+        phone: "",
+        city: "",
+        country: "",
+        address: "",
+        linkedin: "",
+        github: "",
+        portfolio: "",
+      },
+      experiences: [],
+      educations: [
+        {
+          id: "",
+          school: "",
+          degree: "",
+          fieldOfStudy: "",
+          startDate: new Date(),
+          endDate: new Date(),
+          location: "",
+          gpa: 0,
+          gpaMax: 0,
+          description: "",
+        },
+      ],
+      skills: [],
+      certifications: [],
+      projects: [],
+      awards: [],
+    },
+  });
 
   useEffect(() => {
-    loadResumes();
+    const loadMasterResume = async () => {
+      try {
+        const { data } = await supabase.auth.getSession();
+        console.log("loadResumeData data:", data);
+        if (!data.session?.user.id || !data.session?.user.email)
+          throw new Error("User not authenticated");
+
+        setUser({ id: data.session?.user.id, email: data.session?.user.email });
+
+        const { items: existingResumeList } = await trpc.resume.list.query();
+        const masterResume = existingResumeList.find(
+          (r) => r.userId === data.session?.user.id && r.conversationId === ""
+        );
+
+        if (masterResume) {
+          setResume(masterResume);
+        } else {
+          setResume({
+            title: "Master Resume",
+            summary: "",
+            userId: data.session?.user.id,
+          });
+        }
+      } catch (error) {
+        console.error("Error loading master resume:", error);
+      }
+      setIsLoading(false);
+    };
+    loadMasterResume();
   }, []);
 
-  useEffect(() => {
-    const filtered = resumes.filter(
-      (resume) =>
-        resume.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        resume.summary.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredResumes(filtered);
-  }, [resumes, searchTerm]);
+  const handleSave = async () => {
+    if (!resume || !user) return;
 
-  const loadResumes = async () => {
+    setIsSaving(true);
     try {
-      setIsLoading(true);
-      const resumeList = await trpc.resume.list.query();
-      console.log("resumeList:", resumeList.items);
-      setResumes(resumeList.items);
-      setIsLoading(false);
+      const resumeData = {
+        ...resume,
+        userId: user.id,
+      };
+
+      if (resume.id) {
+        // await trpc.resume.update.mutate(); // TODO: enable update
+      } else {
+        // const newResume  =await trpc.resume.create.mutate(resumeData); // TODO: enable create
+        // setResume({ ...resume, id: newResume.id });
+      }
+
+      // Show success feedback (you can add a toast notification here)
+      console.log("Master resume saved successfully!");
     } catch (error) {
-      console.error("Error in fetchData: ", error);
+      console.error("Error saving master resume:", error);
     }
+    setIsSaving(false);
   };
 
-  const handleDelete = async () => {
-    if (deleteId) {
-      try {
-        // await Resume.delete(deleteId); // TODO: add delete functionality
-        setResumes((prev) => prev.filter((resume) => resume.id !== deleteId));
-        setDeleteId(null);
-      } catch (error) {
-        console.error("Error deleting resume:", error);
-      }
-    }
+  const updateResume = (field: string, value: string) => {
+    setResume((prev: any) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   if (isLoading) {
@@ -80,152 +142,84 @@ export default function MasterResume() {
     );
   }
 
+  const tabs = [
+    { id: "basics", label: "Basics", icon: UserIcon },
+    { id: "experience", label: "Experience", icon: Briefcase },
+    { id: "education", label: "Education", icon: GraduationCap },
+    { id: "skills", label: "Skills", icon: Star },
+    { id: "projects", label: "Projects", icon: FolderOpen },
+    { id: "certifications", label: "Certifications", icon: BadgeCheck },
+    { id: "awards", label: "Awards", icon: Award },
+  ];
+
   return (
-    <div className="p-4 md:p-8 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-              My Master Resume
-            </h1>
-            <p className="text-slate-600">
-              Manage and create professional resumes for your career
-            </p>
+    <Form {...form}>
+      <div className="min-h-screen">
+        {/* Header */}
+        <div className="bg-white border-b border-slate-200 sticky top-0 z-10">
+          <div className="max-w-7xl mx-auto px-4 md:px-8 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center shadow-lg">
+                    <Crown className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <h1 className="text-xl font-semibold text-slate-900">
+                      Master Resume
+                    </h1>
+                    <p className="text-sm text-slate-600">
+                      Your comprehensive professional profile
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  className="gold-accent text-white smooth-hover hover:shadow-lg"
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {isSaving ? "Saving..." : "Save Master Resume"}
+                </Button>
+              </div>
+            </div>
           </div>
-          <Link to={createPageUrl("ResumeBuilder")}>
-            <Button className="gold-accent text-white smooth-hover hover:shadow-lg">
-              <Plus className="w-4 h-4 mr-2" />
-              New Resume
-            </Button>
-          </Link>
+        </div>
+
+        <div className="max-w-7xl mx-auto p-4 md:p-8">
+          {/* Info Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
+          >
+            <Card className="border-0 shadow-lg bg-gradient-to-r from-amber-50 to-amber-100/50">
+              <CardContent className="p-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                    <Crown className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                      Your Master Resume
+                    </h3>
+                    <p className="text-slate-600 leading-relaxed">
+                      This is your comprehensive professional profile containing
+                      all your experiences, skills, and achievements. You can
+                      create tailored versions from this master document for
+                      specific job applications.
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+
+          <ResumeSection />
         </div>
       </div>
-
-      {/* Search */}
-      <div className="mb-6">
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-          <Input
-            placeholder="Search resumes..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 border-slate-200 focus:border-amber-500 focus:ring-amber-500"
-          />
-        </div>
-      </div>
-
-      {/* Resumes Grid */}
-      {filteredResumes.length === 0 ? (
-        <div className="text-center py-16">
-          <FileText className="w-20 h-20 text-slate-300 mx-auto mb-6" />
-          <h3 className="text-2xl font-semibold text-slate-900 mb-4">
-            {searchTerm ? "No resumes found" : "No resumes yet"}
-          </h3>
-          <p className="text-slate-600 mb-8 max-w-md mx-auto">
-            {searchTerm
-              ? "Try adjusting your search terms or create a new resume."
-              : "Get started by creating your first professional resume. Our AI will help you craft the perfect document."}
-          </p>
-          <Link to={createPageUrl("ResumeBuilder")}>
-            <Button className="gold-accent text-white smooth-hover hover:shadow-lg">
-              <Plus className="w-4 h-4 mr-2" />
-              Create Your First Resume
-            </Button>
-          </Link>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredResumes.map((resume, index) => (
-            <motion.div
-              key={resume.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm smooth-hover hover:shadow-xl group">
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mb-4">
-                      <FileText className="w-6 h-6 text-blue-600" />
-                    </div>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 smooth-hover">
-                      <Link to={createPageUrl(`ResumeBuilder?id=${resume.id}`)}>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-slate-400 hover:text-slate-600"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </Link>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-slate-400 hover:text-red-500"
-                        onClick={() => setDeleteId(resume.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                  <CardTitle className="text-xl font-semibold text-slate-900 mb-2">
-                    {resume.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-slate-600 text-sm line-clamp-3">
-                    {resume.summary || "No summary added yet"}
-                  </p>
-
-                  <div className="flex items-center justify-between text-sm text-slate-500">
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" />
-                      <span>
-                        {format(new Date(resume.updated_date), "MMM d, yyyy")}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <UserIcon className="w-4 h-4" />
-                      <span>You</span>
-                    </div>
-                  </div>
-
-                  <div className="pt-2">
-                    <Link to={createPageUrl(`ResumeBuilder?id=${resume.id}`)}>
-                      <Button className="w-full gold-accent text-white smooth-hover hover:shadow-lg">
-                        Edit Resume
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-      )}
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Resume</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this resume? This action cannot be
-              undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </div>
+    </Form>
   );
 }
