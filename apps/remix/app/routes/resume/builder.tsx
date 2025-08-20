@@ -201,9 +201,8 @@ export default function ResumeGeneratorDetail() {
                     <FileText className="w-5 h-5 text-blue-600" />
                   </div>
                   <h1 className="text-xl font-semibold text-slate-900">
-                    Resume
+                    {resume.title ?? "Resume"}
                   </h1>
-                  {/* TODO: add resume title to resume type */}
                 </div>
               </div>
               <Button

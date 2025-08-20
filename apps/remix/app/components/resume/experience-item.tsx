@@ -1,49 +1,11 @@
-import { Checkbox } from "@project/remix/app/components/ui/checkbox";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@project/remix/app/components/ui/form";
 import { Input } from "@project/remix/app/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@project/remix/app/components/ui/select";
+import { EEmploymentType, ELocationType, type ResumeFormData } from "@project/remix/app/types/resume";
 import { memo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { z } from "zod";
-import type { ResumeFormData } from "@project/remix/app/types/resume";
 import { RichTextEditor } from "../rich-text-editor";
 import { DatePicker } from "../ui/date-picker";
-import { Label } from "../ui/label";
-
-export enum EEmploymentType {
-    FULL_TIME = 'FULL_TIME',
-    PART_TIME = 'PART_TIME',
-    SELF_EMPLOYED = 'SELF_EMPLOYED',
-    FREELANCE = 'FREELANCE',
-    CONTRACT = 'CONTRACT',
-    INTERNSHIP = 'INTERNSHIP',
-    APPRENTICESHIP = 'APPRENTICESHIP',
-    SEASONAL = 'SEASONAL',
-}
-
-export enum ELocationType {
-    ON_SITE = 'ON_SITE',
-    HYBRID = 'HYBRID',
-    REMOTE = 'REMOTE',
-}
-
-const experienceItemSchema = z.object({
-    id: z.string(),
-    title: z.string().min(1, 'Job title is required'),
-    employmentType: z.nativeEnum(EEmploymentType),
-    locationType: z.nativeEnum(ELocationType),
-    company: z.string().min(1, 'Company is required'),
-    location: z.string(),
-    startDate: z.date(),
-    endDate: z.date().nullable().optional(),
-    description: z.string(),
-});
-
-const experienceSchema = z.object({
-    experiences: z.array(experienceItemSchema),
-});
-
-type TExperienceItem = z.infer<typeof experienceSchema>;
 
 interface ExperienceItemProps {
     index: number;

@@ -8,9 +8,12 @@ import {
 import { appRouter } from "./router";
 import type { HonoEnv } from "@project/remix/server/router";
 import type { Context as HonoContext } from "hono";
+import superjson from 'superjson'; // Import superjson
 
 // Initialize tRPC with base context type
-const t = initTRPC.context<Context>().create();
+const t = initTRPC.context<Context>().create({
+  transformer: superjson, // Add superjson transformer
+});
 const { createCallerFactory } = t;
 
 // Middleware for protected procedures

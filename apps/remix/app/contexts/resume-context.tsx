@@ -1,14 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, type ReactNode, useCallback, useMemo } from 'react';
-
-type Resume = {
-  id: string;
-  name: string;
-  filePath: string;
-  createdAt: string;
-  updatedAt: string;
-};
+import type { Resume } from '~/types/resume';
 
 type ResumeContextType = {
   resumes: Resume[];

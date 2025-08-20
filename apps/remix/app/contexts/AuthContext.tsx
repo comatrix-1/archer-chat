@@ -12,13 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { supabase } from "~/utils/supabaseClient";
-
-type TUser = {
-  id: string;
-  email?: string;
-  name?: string;
-  photoURL?: string;
-};
+import type { TUser } from "~/types";
 
 type TAuthContext = {
   user: TUser | null;

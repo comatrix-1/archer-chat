@@ -1,4 +1,7 @@
 import { trpc } from "@project/trpc/client";
+import type {
+  ZResumeWithRelations
+} from "@project/trpc/server/resume-router/schema";
 import { motion } from "framer-motion";
 import {
   Award,
@@ -9,7 +12,7 @@ import {
   GraduationCap,
   Save,
   Star,
-  User as UserIcon
+  User as UserIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -18,56 +21,40 @@ import ResumeSection from "~/components/resume/resume-section";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Form } from "~/components/ui/form";
-import type { ResumeFormData } from "~/types/resume";
+import type { TUser } from "~/types";
 import { supabase } from "~/utils/supabaseClient";
-
-type TUser = {
-  id: string;
-  email: string;
-};
 
 export default function MasterResume() {
   const navigate = useNavigate();
-  const [resume, setResume] = useState<any>();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [user, setUser] = useState<TUser>();
   const [activeTab, setActiveTab] = useState("basics");
 
-  const form = useForm<ResumeFormData>({
-    defaultValues: {
-      summary: "",
-      contact: {
-        fullName: "",
-        email: "",
-        phone: "",
-        city: "",
-        country: "",
-        address: "",
-        linkedin: "",
-        github: "",
-        portfolio: "",
-      },
-      experiences: [],
-      educations: [
-        {
-          id: "",
-          school: "",
-          degree: "",
-          fieldOfStudy: "",
-          startDate: new Date(),
-          endDate: new Date(),
-          location: "",
-          gpa: 0,
-          gpaMax: 0,
-          description: "",
-        },
-      ],
-      skills: [],
-      certifications: [],
-      projects: [],
-      awards: [],
+  const defaultValues = {
+    title: "Master Resume",
+    summary: "",
+    contact: {
+      fullName: "",
+      email: "",
+      phone: "",
+      city: "",
+      country: "",
+      address: "",
+      linkedin: "",
+      github: "",
+      portfolio: "",
     },
+    experiences: [],
+    educations: [],
+    skills: [],
+    certifications: [],
+    projects: [],
+    awards: [],
+  };
+
+  const form = useForm<ZResumeWithRelations>({
+    defaultValues,
   });
 
   useEffect(() => {
@@ -82,17 +69,11 @@ export default function MasterResume() {
 
         const { items: existingResumeList } = await trpc.resume.list.query();
         const masterResume = existingResumeList.find(
-          (r) => r.userId === data.session?.user.id && r.conversationId === ""
+          (r) => r.userId === data.session?.user.id && r.isMaster
         );
 
         if (masterResume) {
-          setResume(masterResume);
-        } else {
-          setResume({
-            title: "Master Resume",
-            summary: "",
-            userId: data.session?.user.id,
-          });
+          form.reset({ ...defaultValues, ...masterResume });
         }
       } catch (error) {
         console.error("Error loading master resume:", error);
@@ -100,38 +81,31 @@ export default function MasterResume() {
       setIsLoading(false);
     };
     loadMasterResume();
-  }, []);
+  }, [form.reset]);
 
-  const handleSave = async () => {
-    if (!resume || !user) return;
+  const handleSave = async (formData: ZResumeWithRelations) => {
+    console.log("formData to be sent to server", formData);
+    if (!formData || !user) return;
 
     setIsSaving(true);
     try {
       const resumeData = {
-        ...resume,
+        ...formData,
         userId: user.id,
       };
 
-      if (resume.id) {
-        // await trpc.resume.update.mutate(); // TODO: enable update
+      if (formData.id) {
+        await trpc.resume.update.mutate(resumeData);
       } else {
-        // const newResume  =await trpc.resume.create.mutate(resumeData); // TODO: enable create
-        // setResume({ ...resume, id: newResume.id });
+        const newResume = await trpc.resume.create.mutate(resumeData);
+        console.log("New resume created:", newResume);
       }
 
-      // Show success feedback (you can add a toast notification here)
       console.log("Master resume saved successfully!");
     } catch (error) {
       console.error("Error saving master resume:", error);
     }
     setIsSaving(false);
-  };
-
-  const updateResume = (field: string, value: string) => {
-    setResume((prev: any) => ({
-      ...prev,
-      [field]: value,
-    }));
   };
 
   if (isLoading) {
@@ -176,7 +150,7 @@ export default function MasterResume() {
               </div>
               <div className="flex gap-3">
                 <Button
-                  onClick={handleSave}
+                  onClick={form.handleSubmit(handleSave)}
                   disabled={isSaving}
                   className="gold-accent text-white smooth-hover hover:shadow-lg"
                 >

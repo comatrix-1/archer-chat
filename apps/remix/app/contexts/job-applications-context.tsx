@@ -2,35 +2,7 @@
 
 import { createContext, useContext, useState, type ReactNode, useCallback, useMemo } from 'react';
 import { v4 as uuidv4 } from 'uuid';
-
-type Status = {
-  id: string;
-  name: string;
-  color: string;
-};
-
-export type JobApplication = {
-  id: string;
-  companyName: string;
-  jobTitle: string;
-  status: Status;
-  jobLink: string;
-  resume: string | null;
-  resumeId?: string | null; // Added to store the resume ID
-  coverLetter: string | null;
-  salary: string;
-  remarks: string;
-  createdAt: Date;
-  updatedAt: Date;
-};
-
-type JobApplicationsContextType = {
-  jobs: JobApplication[];
-  addJob: (job: Omit<JobApplication, 'id' | 'createdAt' | 'updatedAt'>) => void;
-  updateJob: (id: string, updates: Partial<JobApplication>) => void;
-  deleteJob: (id: string) => void;
-  getJobById: (id: string) => JobApplication | undefined;
-};
+import type { Status, JobApplicationsContextType, JobApplication } from '~/types';
 
 const defaultStatuses: Status[] = [
   { id: 'applied', name: 'Applied', color: 'bg-blue-500' },

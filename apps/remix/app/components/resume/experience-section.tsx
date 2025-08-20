@@ -8,10 +8,10 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Button } from "@project/remix/app/components/ui/button";
 import { Form } from "@project/remix/app/components/ui/form";
 import { cn } from "@project/remix/app/lib/utils";
-import type { ResumeFormData } from "@project/remix/app/types/resume";
+import { EEmploymentType, ELocationType, type ResumeFormData } from "@project/remix/app/types/resume";
 import { generateUUID } from "@project/remix/app/utils/security";
 import { SortableItem } from "../ui/sortable-item";
-import ExperienceItem, { EEmploymentType, ELocationType } from "./experience-item";
+import ExperienceItem from "./experience-item";
 import { SectionCard } from "./section-card";
 
 const ExperienceSection = () => {

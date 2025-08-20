@@ -1,39 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Progress } from '~/components/ui/progress';
 import { Badge } from '~/components/ui/badge';
+import type { DashboardStats, Job, StatusCounts } from '~/types';
 
 // Define the job type for better type safety
-type Job = {
-    id: string;
-    companyName: string;
-    jobTitle: string;
-    status: {
-        id: string;
-        name: string;
-        color: string;
-    };
-    jobLink: string;
-    resume: string | null;
-    coverLetter: string | null;
-    salary: string;
-    remarks: string;
-};
-
-type StatusCounts = {
-    applied: number;
-    screening: number;
-    interview: number;
-    offer: number;
-    closed: number;
-};
-
-type DashboardStats = {
-    total: number;
-    active: number;
-    statusCounts: StatusCounts;
-    interviewRate: number;
-    offerRate: number;
-};
 
 export function JobTrackerDashboard({ jobs }: Readonly<{ jobs: Job[] }>) {
     console.log('JobTrackerDashboard()')
@@ -42,7 +12,7 @@ export function JobTrackerDashboard({ jobs }: Readonly<{ jobs: Job[] }>) {
         (acc, job) => {
             const status = job.status?.id || 'applied';
             const isActive = status !== 'closed' && status !== 'rejected';
-            
+
             return {
                 total: acc.total + 1,
                 active: isActive ? acc.active + 1 : acc.active,
@@ -130,7 +100,7 @@ export function JobTrackerDashboard({ jobs }: Readonly<{ jobs: Job[] }>) {
                         <div className="flex flex-wrap gap-2">
                             {Object.entries(stats.statusCounts).map(([status, count]) => (
                                 count > 0 && (
-                                    <Badge 
+                                    <Badge
                                         key={status}
                                         className={`${statusColors[status as keyof typeof statusColors]} text-white`}
                                     >

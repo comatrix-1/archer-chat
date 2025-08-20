@@ -13,7 +13,6 @@ import "./app.css";
 import LoadingSpinner from "./components/LoadingSpinner";
 import { NavBar } from "./components/NavBar";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { ChatProvider } from "./contexts/ChatContext";
 import { AppSidebar } from "./components/app-sidebar";
 import { SidebarProvider } from "./components/ui/sidebar";
 import { JobApplicationsProvider } from "./contexts/job-applications-context";
@@ -64,20 +63,18 @@ function AppContent() {
   const isLoading = authLoading || navigation.state === "loading";
   return (
     <JobApplicationsProvider>
-      <ChatProvider>
-        <SidebarProvider>
-          <div className="flex flex-col min-h-screen bg-background text-foreground w-full">
-            <NavBar />
-            <div className="flex flex-1 overflow-hidden">
-              <AppSidebar />
-              <main className="flex-1 overflow-auto">
-                <Outlet />
-              </main>
-            </div>
-            <LoadingSpinner isLoading={isLoading} />
+      <SidebarProvider>
+        <div className="flex flex-col min-h-screen bg-background text-foreground w-full">
+          <NavBar />
+          <div className="flex flex-1 overflow-hidden">
+            <AppSidebar />
+            <main className="flex-1 overflow-auto">
+              <Outlet />
+            </main>
           </div>
-        </SidebarProvider>
-      </ChatProvider>
+          <LoadingSpinner isLoading={isLoading} />
+        </div>
+      </SidebarProvider>
     </JobApplicationsProvider>
   );
 }

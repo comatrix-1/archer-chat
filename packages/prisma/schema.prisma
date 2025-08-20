@@ -25,17 +25,17 @@ model User {
   sessions            Session[]
 
   resumes        Resume[]
-  conversations  Conversation[]
   CoverLetter    CoverLetter[]
   JobApplication JobApplication[]
 }
 
 model Resume {
   id             String  @id @default(cuid())
+  title          String  @default("Resume")
   userId         String
   summary        String  @default("")
   contactId      String  @unique
-  conversationId String?
+  isMaster       Boolean @default(false)
 
   experiences    Experience[]
   educations     Education[]
@@ -46,9 +46,6 @@ model Resume {
 
   contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  conversation Conversation?
-
-  @@unique([userId, conversationId])
 }
 
 model Contact {
@@ -148,14 +145,9 @@ model Conversation {
   title       String
   description String?
   status      JobApplicationStatus @default(OPEN)
-  userId      String
   createdAt   DateTime             @default(now())
   updatedAt   DateTime             @updatedAt
   messages    Message[]
-  user        User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  resume      Resume?              @relation(fields: [resumeId], references: [id], onDelete: Cascade)
-
-  resumeId String? @unique
 }
 
 enum MessagePartContentType {

@@ -21,22 +21,7 @@ import {
     TableRow,
 } from '~/components/ui/table';
 import { useState, useMemo } from 'react';
-
-export type JobApplication = {
-    id: string;
-    companyName: string;
-    jobTitle: string;
-    status: {
-        id: string;
-        name: string;
-        color: string;
-    };
-    jobLink: string;
-    resume: string | null;
-    coverLetter: string | null;
-    salary: string;
-    remarks: string;
-};
+import type { JobApplication } from '~/types';
 
 type SortConfig = {
     key: keyof JobApplication | null;
@@ -58,7 +43,7 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                 if (sortConfig.key === 'status') {
                     const statusA = a.status.name.toLowerCase();
                     const statusB = b.status.name.toLowerCase();
-                    
+
                     if (statusA < statusB) {
                         return sortConfig.direction === 'asc' ? -1 : 1;
                     }
@@ -67,23 +52,23 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                     }
                     return 0;
                 }
-                
+
                 // Handle other fields
                 const aValue = a[sortConfig.key as keyof JobApplication];
                 const bValue = b[sortConfig.key as keyof JobApplication];
-                
+
                 if (aValue === bValue) return 0;
-                
+
                 if (aValue === null || aValue === undefined) return 1;
                 if (bValue === null || bValue === undefined) return -1;
-                
+
                 if (aValue < bValue) {
                     return sortConfig.direction === 'asc' ? -1 : 1;
                 }
                 if (aValue > bValue) {
                     return sortConfig.direction === 'asc' ? 1 : -1;
                 }
-                
+
                 return 0;
             });
         }
@@ -111,7 +96,7 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead 
+                        <TableHead
                             className="cursor-pointer hover:bg-muted/50"
                             onClick={() => requestSort('companyName')}
                         >
@@ -120,7 +105,7 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                                 {getSortIcon('companyName')}
                             </div>
                         </TableHead>
-                        <TableHead 
+                        <TableHead
                             className="cursor-pointer hover:bg-muted/50"
                             onClick={() => requestSort('jobTitle')}
                         >
@@ -137,8 +122,8 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                 </TableHeader>
                 <TableBody>
                     {sortedJobs.map((job) => (
-                        <TableRow 
-                            key={job.id} 
+                        <TableRow
+                            key={job.id}
                             className="hover:bg-muted/50 cursor-pointer"
                             onClick={() => {
                                 window.location.href = `/job-tracker/detail?id=${job.id}`;
@@ -147,8 +132,8 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                             <TableCell>
                                 <div className="flex items-center space-x-2">
                                     <Avatar className="h-8 w-8">
-                                        <AvatarImage 
-                                            src={`https://logo.clearbit.com/${job.companyName.toLowerCase().replace(/\s+/g, '')}.com`} 
+                                        <AvatarImage
+                                            src={`https://logo.clearbit.com/${job.companyName.toLowerCase().replace(/\s+/g, '')}.com`}
                                             alt={job.companyName}
                                         />
                                         <AvatarFallback>{job.companyName.charAt(0)}</AvatarFallback>
@@ -214,7 +199,7 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                                                     <span>Edit Details</span>
                                                 </Link>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem 
+                                            <DropdownMenuItem
                                                 className="cursor-pointer text-destructive focus:text-destructive"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
@@ -227,7 +212,7 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                                                 <Trash2 className="mr-2 h-4 w-4" />
                                                 <span>Delete</span>
                                             </DropdownMenuItem>
-                                            <DropdownMenuItem 
+                                            <DropdownMenuItem
                                                 className="cursor-pointer"
                                                 onClick={(e) => {
                                                     e.stopPropagation();

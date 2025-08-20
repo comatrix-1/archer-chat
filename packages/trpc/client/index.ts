@@ -1,6 +1,7 @@
 import { createTRPCClient, httpBatchLink } from "@trpc/client";
 import type { AppRouter } from "../server/router";
 import { supabase } from "@project/remix/app/utils/supabaseClient";
+import superjson from 'superjson';
 
 // Use the same origin as the current page
 const getBaseUrl = () => {
@@ -12,6 +13,7 @@ const getBaseUrl = () => {
 export const trpc = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
+      transformer: superjson, // Add superjson transformer here
       url: `${getBaseUrl()}/api/trpc`,
       async headers() {
         const { data } = await supabase.auth.getSession();

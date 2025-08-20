@@ -1,5 +1,16 @@
+import type {
+  EmploymentType,
+  LocationType,
+  Education,
+  Experience,
+  Skill,
+  SkillCategory,
+  SkillProficiency,
+  Certification,
+  Award,
+  Project,
+} from "@prisma/client";
 import { z } from "zod";
-
 export enum EEmploymentType {
   FULL_TIME = "FULL_TIME",
   PART_TIME = "PART_TIME",
@@ -20,13 +31,22 @@ export enum ELocationType {
 export const experienceItemSchema = z.object({
   id: z.string(),
   title: z.string().min(1, "Job title is required"),
-  employmentType: z.nativeEnum(EEmploymentType),
-  locationType: z.nativeEnum(ELocationType),
+  employmentType: z.enum([
+    "FULL_TIME",
+    "PART_TIME",
+    "SELF_EMPLOYED",
+    "FREELANCE",
+    "CONTRACT",
+    "INTERNSHIP",
+    "APPRENTICESHIP",
+    "SEASONAL",
+  ]),
+  locationType: z.enum(["ON_SITE", "HYBRID", "REMOTE"]),
   company: z.string().min(1, "Company is required"),
   location: z.string(),
   startDate: z.date(),
   endDate: z.date().nullable().optional(),
-  description: z.string(),
+  description: z.string().nullable(),
 });
 
 export const experienceSchema = z.object({
@@ -40,12 +60,12 @@ const educationItemSchema = z.object({
   id: z.string(),
   degree: z.string().min(1, "Degree is required"),
   school: z.string().min(1, "School is required"),
-  location: z.string().optional(),
+  location: z.string().nullable().optional(),
   startDate: z.date().optional(),
   endDate: z.date().nullable().optional(),
   gpa: z.number().optional(),
   gpaMax: z.number().optional(),
-  description: z.string().optional(),
+  description: z.string().nullable().optional(),
   fieldOfStudy: z.string().optional(),
 });
 
@@ -60,12 +80,12 @@ export const contactInfoSchema = z.object({
   fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(1, "Phone number is required"),
-  country: z.string().optional(),
-  city: z.string().optional(),
-  address: z.string().optional(),
-  linkedin: z.string().url().optional(),
-  github: z.string().url().optional(),
-  portfolio: z.string().url().optional(),
+  country: z.string().nullish(),
+  city: z.string().nullish(),
+  address: z.string().nullish(),
+  linkedin: z.string().url().nullish(),
+  github: z.string().url().nullish(),
+  portfolio: z.string().url().nullish(), // Changed from .optional()
 });
 
 export type TContact = z.infer<typeof contactInfoSchema>;
@@ -164,3 +184,34 @@ export const steps: Step[] = [
   { id: EResumeSteps.CERTIFICATIONS, title: EResumeSteps.CERTIFICATIONS },
   { id: EResumeSteps.AWARDS, title: EResumeSteps.AWARDS },
 ];
+
+export type Resume = {
+  id: string;
+  name: string;
+  filePath: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ResumeFormDataPlain = {
+  objective: string;
+  contact: TContact;
+  experiences: (Omit<
+    Experience,
+    "resumeId" | "createdAt" | "updatedAt" | "employmentType" | "locationType"
+  > & {
+    employmentType: EmploymentType | string;
+    locationType: LocationType | string;
+  })[];
+  educations: Omit<Education, "resumeId" | "createdAt" | "updatedAt">[];
+  skills: (Omit<
+    Skill,
+    "resumeId" | "createdAt" | "updatedAt" | "category" | "proficiency"
+  > & {
+    category: SkillCategory | string;
+    proficiency: SkillProficiency | string;
+  })[];
+  certifications: Omit<Certification, "resumeId" | "createdAt" | "updatedAt">[];
+  awards: Omit<Award, "resumeId" | "createdAt" | "updatedAt">[];
+  projects: Omit<Project, "resumeId" | "createdAt" | "updatedAt">[];
+};
