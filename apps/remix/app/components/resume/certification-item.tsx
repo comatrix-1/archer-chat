@@ -3,15 +3,16 @@ import type { ResumeFormData } from "@project/remix/app/types/resume";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
 import { Input } from "../ui/input";
 import { DatePicker } from "../ui/date-picker";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 
 interface CertificationItemProps {
     index: number;
 }
 
 export const CertificationItem = ({ index }: CertificationItemProps) => {
-    const form = useFormContext<ResumeFormData>();
+    const form = useFormContext<ZResumeWithRelations>();
 
-    const handleDateSelect = (date: Date | undefined, fieldName: 'issueDate' | 'expirationDate', index: number) => {
+    const handleDateSelect = (date: Date | undefined, fieldName: 'issueDate' | 'expiryDate', index: number) => {
         if (date) {
             date.setHours(0, 0, 0, 0);
         }
@@ -64,12 +65,12 @@ export const CertificationItem = ({ index }: CertificationItemProps) => {
             />
             <FormField
                 control={form.control}
-                name={`certifications.${index}.expirationDate`}
+                name={`certifications.${index}.expiryDate`}
                 render={({ field }) => (
                     <FormItem>
                         <FormLabel>Expiration Date (if applicable)</FormLabel>
                         <FormControl>
-                            <DatePicker selectedDate={field.value ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'expirationDate', index)} isClearable={true} />
+                            <DatePicker selectedDate={field.value ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'expiryDate', index)} isClearable={true} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -82,7 +83,11 @@ export const CertificationItem = ({ index }: CertificationItemProps) => {
                     <FormItem>
                         <FormLabel>Credential ID (if applicable)</FormLabel>
                         <FormControl>
-                            <Input placeholder="e.g., ABC123" {...field} />
+                            <Input
+                                placeholder="e.g., ABC123"
+                                {...field}
+                                value={field.value ?? ''}
+                            />
                         </FormControl>
                         <FormMessage />
                     </FormItem>

@@ -23,24 +23,24 @@ export type ZLocationType = z.infer<typeof ZLocationType>;
 
 // Define the base resume schema
 const ResumeSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid(),
   userId: z.string().uuid(),
   title: z.string(),
   summary: z.string().nullable().optional(),
-  contactId: z.string().uuid(),
+  contactId: z.string().cuid(),
   createdAt: z.date().optional(),
   updatedAt: z.date().optional(),
 });
 
 // Input schemas
 export const resumeIdSchema = z.object({
-  id: z.string().uuid('Invalid UUID format')
+  id: z.string().cuid('Invalid CUID format')
 });
 
 export const resumeListSchema = z.object({
   userId: z.string().uuid('Invalid user ID format'),
   limit: z.number().int().positive().max(100).default(20).optional(),
-  cursor: z.string().uuid().optional(),
+  cursor: z.string().cuid().optional(),
 });
 
 // Export types
@@ -50,26 +50,27 @@ export type ResumeListInput = z.infer<typeof resumeListSchema>;
 
 // Base schemas for related models
 const ZAwardSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().cuid().optional(),
   title: z.string(),
   issuer: z.string(),
   date: z.date().nullable().optional(),
   description: z.string().optional(),
-  resumeId: z.string().uuid().optional(),
+  resumeId: z.string().cuid().optional(),
 });
 
 export const ZCertificationSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().cuid().optional(),
   name: z.string(),
   issuer: z.string(),
   issueDate: z.date(),
   expiryDate: z.date().nullable().optional(),
-  credentialId: z.string().nullable().optional(),
-  resumeId: z.string().uuid().optional(),
+  credentialId: z.string().nullable().optional(), // nullable due to Prisma
+  credentialUrl: z.string().optional(),
+  resumeId: z.string().cuid().optional(),
 });
 
 export const ZEducationSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().cuid().optional(),
   school: z.string(),
   degree: z.string(),
   fieldOfStudy: z.string(),
@@ -78,11 +79,11 @@ export const ZEducationSchema = z.object({
   gpa: z.number().nullable().optional(),
   location: z.string().nullable().optional(),
   description: z.string().nullable().optional(),
-  resumeId: z.string().uuid().optional(),
+  resumeId: z.string().cuid().optional(),
 });
 
 const ZExperienceSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().cuid().optional(),
   title: z.string(),
   employmentType: ZEmploymentType,
   company: z.string(),
@@ -91,24 +92,22 @@ const ZExperienceSchema = z.object({
   startDate: z.date(),
   endDate: z.date().nullable().optional(),
   description: z.string().nullable().optional(),
-  resumeId: z.string().uuid().optional(),
+  resumeId: z.string().cuid().optional(),
 });
 
 const ZProjectSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().cuid().optional(),
   title: z.string(),
   startDate: z.date(),
   endDate: z.date().nullable().optional(),
   description: z.string().nullable().optional(),
-  resumeId: z.string().uuid().optional(),
+  resumeId: z.string().cuid().optional(),
 });
 
 const ZSkillSchema = z.object({
-  id: z.string().uuid().optional(),
+  id: z.string().cuid().optional(),
   name: z.string(),
-  proficiency: z.string(),
-  category: z.string().optional(),
-  resumeId: z.string().uuid().optional(),
+  resumeId: z.string().cuid().optional(),
 });
 
 export const createResumeSchema = ResumeSchema.pick({

@@ -2,14 +2,13 @@ import { SectionCard } from "@project/remix/app/components/resume/section-card";
 import { Badge } from "@project/remix/app/components/ui/badge";
 import { Button } from "@project/remix/app/components/ui/button";
 import { Input } from "@project/remix/app/components/ui/input";
-import type { ResumeFormData } from "@project/remix/app/types/resume";
-import { generateUUID } from "@project/remix/app/utils/security";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 
 export function SkillsSection() {
-  const form = useFormContext<ResumeFormData>();
+  const form = useFormContext<ZResumeWithRelations>();
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'skills',
@@ -22,7 +21,6 @@ export function SkillsSection() {
     e.preventDefault();
     if (currentSkill.trim()) {
       append({
-        id: generateUUID(),
         name: currentSkill.trim(),
       });
       setCurrentSkill("");
@@ -49,7 +47,7 @@ export function SkillsSection() {
           {fields && fields.length > 0 ? (
             fields.map((field, index) => (
               <Badge
-                key={field.id}
+                key={field.formId}
                 variant="secondary"
                 className="text-sm px-2 pl-5"
               >

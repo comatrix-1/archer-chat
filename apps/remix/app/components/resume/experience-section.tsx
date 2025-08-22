@@ -8,14 +8,14 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Button } from "@project/remix/app/components/ui/button";
 import { Form } from "@project/remix/app/components/ui/form";
 import { cn } from "@project/remix/app/lib/utils";
-import { EEmploymentType, ELocationType, type ResumeFormData } from "@project/remix/app/types/resume";
-import { generateUUID } from "@project/remix/app/utils/security";
+import { EEmploymentType, ELocationType } from "@project/remix/app/types/resume";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { SortableItem } from "../ui/sortable-item";
 import ExperienceItem from "./experience-item";
 import { SectionCard } from "./section-card";
 
 const ExperienceSection = () => {
-  const form = useFormContext<ResumeFormData>();
+  const form = useFormContext<ZResumeWithRelations>();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -45,9 +45,9 @@ const ExperienceSection = () => {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     console.log('handleDragEnd() active: ', active, ' over: ', over)
-    if (over && active.id !== over.id) {
-      const oldIndex = fields.findIndex((field) => field.id === active.id);
-      const newIndex = fields.findIndex((field) => field.id === over.id);
+    if (over && active.data.current && over.data.current) {
+      const oldIndex = active.data.current.sortable.index;
+      const newIndex = over.data.current.sortable.index;
       if (oldIndex !== -1 && newIndex !== -1) {
         console.log('handleDragEnd() moving')
         move(oldIndex, newIndex);
@@ -57,7 +57,6 @@ const ExperienceSection = () => {
 
   const addExperience = () => {
     append({
-      id: generateUUID(),
       title: "",
       employmentType: EEmploymentType.FULL_TIME,
       locationType: ELocationType.ON_SITE,
@@ -80,15 +79,15 @@ const ExperienceSection = () => {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={fields.map(field => field.id)}
+              items={fields.map(field => field.formId)}
               strategy={verticalListSortingStrategy}
             >
 
               {fields.map((field, index) => {
                 return (
                   <SortableItem
-                    key={field.id}
-                    id={field.id}
+                    key={field.formId}
+                    id={field.formId}
                     onRemove={() => remove(index)}
                     className="mb-4"
                     dragHandleAriaLabel="Drag to reorder experience"

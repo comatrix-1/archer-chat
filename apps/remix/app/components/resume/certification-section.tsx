@@ -11,9 +11,10 @@ import { generateUUID } from "@project/remix/app/utils/security";
 import { SortableItem } from "../ui/sortable-item";
 import { CertificationItem } from "./certification-item";
 import { SectionCard } from "./section-card";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 
 export function CertificationSection() {
-  const form = useFormContext<ResumeFormData>();
+  const form = useFormContext<ZResumeWithRelations>();
   const { fields, move, append, remove } = useFieldArray({
     control: form.control,
     name: 'certifications',
@@ -41,11 +42,10 @@ export function CertificationSection() {
 
   const addCertification = () => {
     append({
-      id: generateUUID(),
       name: '',
       issuer: '',
       issueDate: new Date(),
-      expirationDate: null,
+      expiryDate: null,
       credentialId: '',
       credentialUrl: '',
     });
@@ -54,9 +54,9 @@ export function CertificationSection() {
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     console.log('handleDragEnd() active: ', active, ' over: ', over)
-    if (over && active.id !== over.id) {
-      const oldIndex = fields.findIndex((field) => field.id === active.id);
-      const newIndex = fields.findIndex((field) => field.id === over.id);
+    if (over && active.data.current && over.data.current) {
+      const oldIndex = active.data.current.sortable.index;
+      const newIndex = over.data.current.sortable.index;
       if (oldIndex !== -1 && newIndex !== -1) {
         console.log('handleDragEnd() moving')
         move(oldIndex, newIndex);
@@ -74,15 +74,15 @@ export function CertificationSection() {
             onDragEnd={handleDragEnd}
           >
             <SortableContext
-              items={fields.map(field => field.id)}
+              items={fields.map(field => field.formId)}
               strategy={verticalListSortingStrategy}
             >
 
               {fields.map((field, index) => {
                 return (
                   <SortableItem
-                    key={field.id}
-                    id={field.id}
+                    key={field.formId}
+                    id={field.formId}
                     onRemove={() => remove(index)}
                     className="mb-4"
                     dragHandleAriaLabel="Drag to reorder experience"

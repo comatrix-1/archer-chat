@@ -92,6 +92,7 @@ export default function MasterResume() {
       const resumeData = {
         ...formData,
         userId: user.id,
+        isMaster: true
       };
 
       if (formData.id) {

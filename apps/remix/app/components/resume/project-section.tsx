@@ -12,9 +12,10 @@ import { generateUUID } from "@project/remix/app/utils/security";
 import { SortableItem } from "../ui/sortable-item";
 import { ProjectItem } from "./project-item";
 import { SectionCard } from "./section-card";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 
 export function ProjectSection() {
-  const form = useFormContext<ResumeFormData>();
+  const form = useFormContext<ZResumeWithRelations>();
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -43,10 +44,12 @@ export function ProjectSection() {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && active.id !== over.id) {
-      const oldIndex = fields.findIndex((field) => field.formId === active.id);
-      const newIndex = fields.findIndex((field) => field.formId === over.id);
+    console.log('handleDragEnd() active: ', active, ' over: ', over)
+    if (over && active.data.current && over.data.current) {
+      const oldIndex = active.data.current.sortable.index;
+      const newIndex = over.data.current.sortable.index;
       if (oldIndex !== -1 && newIndex !== -1) {
+        console.log('handleDragEnd() moving')
         move(oldIndex, newIndex);
       }
     }
@@ -54,11 +57,10 @@ export function ProjectSection() {
 
   const addProject = () => {
     append({
-      id: generateUUID(),
       title: "",
       description: "",
-      startDate: null,
-      endDate: null,
+      startDate: new Date(),
+      endDate: new Date(),
     });
   };
 

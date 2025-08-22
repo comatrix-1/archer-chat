@@ -26,34 +26,33 @@ import {
   AlertDialogTitle,
 } from "~/components/ui/alert-dialog";
 import { trpc } from "@project/trpc/client";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 
 export default function Resumes() {
-  const [resumes, setResumes] = useState<any[]>([]);
-  const [filteredResumes, setFilteredResumes] = useState<any[]>([]);
+  const [resumeList, setResumeList] = useState<ZResumeWithRelations[]>([]);
+  const [filteredResumes, setFilteredResumes] = useState<ZResumeWithRelations[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [deleteId, setDeleteId] = useState(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
 
   useEffect(() => {
     loadResumes();
   }, []);
 
   useEffect(() => {
-    const filtered = resumes.filter(
+    const filtered = resumeList.filter(
       (resume) =>
-        resume.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        resume.summary.toLowerCase().includes(searchTerm.toLowerCase())
+        resume.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredResumes(filtered);
-  }, [resumes, searchTerm]);
+  }, [resumeList, searchTerm]);
 
   const loadResumes = async () => {
     try {
       setIsLoading(true);
       const resumeList = await trpc.resume.list.query();
       console.log("resumeList:", resumeList.items);
-      setResumes(resumeList.items);
+      setResumeList(resumeList.items);
       setIsLoading(false);
     } catch (error) {
       console.error("Error in fetchData: ", error);
@@ -64,7 +63,7 @@ export default function Resumes() {
     if (deleteId) {
       try {
         // await Resume.delete(deleteId); // TODO: add delete functionality
-        setResumes((prev) => prev.filter((resume) => resume.id !== deleteId));
+        setResumeList((prev) => prev.filter((resume) => resume.id !== deleteId));
         setDeleteId(null);
       } catch (error) {
         console.error("Error deleting resume:", error);
@@ -181,9 +180,7 @@ export default function Resumes() {
                   <div className="flex items-center justify-between text-sm text-slate-500">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4" />
-                      <span>
-                        {format(new Date(resume.updated_date), "MMM d, yyyy")}
-                      </span>
+                      <span>{resume.updatedAt && format(new Date(resume.updatedAt), "MMM d, yyyy")}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <UserIcon className="w-4 h-4" />

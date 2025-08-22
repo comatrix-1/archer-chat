@@ -16,7 +16,7 @@ generator zod {
 }
 
 model User {
-  id       String @id @default(cuid())
+  id       String @id @default(uuid())
   email    String @unique
   password String
   name     String
@@ -99,8 +99,6 @@ model Education {
 model Skill {
   id          String           @id @default(cuid())
   name        String
-  proficiency SkillProficiency
-  category    SkillCategory    @default(TECHNICAL)
 
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
@@ -124,6 +122,7 @@ model Certification {
   issueDate    DateTime
   expiryDate   DateTime?
   credentialId String?
+  credentialUrl String?
 
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
