@@ -214,16 +214,14 @@ model JobApplication {
   jobTitle        String
   status          JobApplicationStatus @default(APPLIED)
   jobLink         String?
-  resumePath      String?              @map("resume_path")
-  coverLetterPath String?              @map("cover_letter_path")
+  resumePath      String?
+  coverLetterPath String?
   salary          String?
   remarks         String?
   userId          String
   user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt       DateTime             @default(now()) @map("created_at")
-  updatedAt       DateTime             @updatedAt @map("updated_at")
-
-  @@map("job_applications")
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
 }
 
 model Message {
