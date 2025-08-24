@@ -46,6 +46,8 @@ model Resume {
 
   contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  jobApplications JobApplication[]
 }
 
 model Contact {
@@ -169,6 +171,7 @@ enum JobApplicationStatus {
   OFFER
   CLOSED
   ACCEPTED
+  REJECTED
 }
 
 enum EmploymentType {
@@ -209,19 +212,25 @@ model MessagePart {
 }
 
 model JobApplication {
-  id              String               @id @default(cuid())
-  companyName     String
-  jobTitle        String
-  status          JobApplicationStatus @default(APPLIED)
-  jobLink         String?
-  resumePath      String?
-  coverLetterPath String?
-  salary          String?
-  remarks         String?
-  userId          String
-  user            User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
+  id            String               @id @default(cuid())
+  companyName   String
+  jobTitle      String
+  status        JobApplicationStatus @default(APPLIED)
+  jobLink       String?
+  salary        String?
+  remarks       String?
+
+  resumeId      String?
+  coverLetterId String?
+
+  resume        Resume?              @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  coverLetter   CoverLetter?         @relation(fields: [coverLetterId], references: [id], onDelete: SetNull)
+
+  userId        String
+  user          User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
 }
 
 model Message {
@@ -246,6 +255,7 @@ model CoverLetter {
   contact   Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobApplications JobApplication[]
 }
 
 enum SkillCategory {

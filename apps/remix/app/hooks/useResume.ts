@@ -17,6 +17,14 @@ export function useResume(id: string, userId: string) {
   });
 }
 
+export function useMasterResume() {
+  return useQuery({
+    queryKey: ['master-resume'],
+    queryFn: () => trpc.resume.getMasterResume.query(),
+    enabled: true,
+  });
+}
+
 export function useCreateResume() {
   const queryClient = useQueryClient();
   

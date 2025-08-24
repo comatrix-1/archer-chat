@@ -39,6 +39,12 @@ export const resumeRouter = router({
       return resumeService.deleteResume(input.id, ctx.user.id);
     }),
 
+  // Get the master resume for the current user
+  getMasterResume: protectedProcedure
+    .query(async ({ ctx }) => {
+      return resumeService.getMasterResume(ctx.user.id);
+    }),
+
   // List all resumes for the current user
   list: protectedProcedure
     .input(resumeListSchema.optional())

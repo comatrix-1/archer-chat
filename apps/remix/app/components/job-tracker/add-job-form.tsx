@@ -2,6 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
+import { useCreateJobApplication } from '~/hooks/useJobApplications';
+import type { JobApplicationStatus } from '@project/trpc/server/job-application-router/schema';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -16,15 +18,16 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { Combobox } from '~/components/ui/combobox';
 import { FileUp, Plus, Wand, WandSparkles } from 'lucide-react';
-import { useJobApplications } from '~/contexts/job-applications-context';
-import { useResumes } from '~/contexts/resume-context';
 
 const statuses = [
-  { id: 'applied', name: 'Applied', color: 'bg-blue-500' },
-  { id: 'screening', name: 'Screening', color: 'bg-yellow-500' },
-  { id: 'interview', name: 'Interview', color: 'bg-purple-500' },
-  { id: 'offer', name: 'Offer', color: 'bg-green-500' },
-  { id: 'closed', name: 'Closed', color: 'bg-gray-500' },
+  { id: 'APPLIED', name: 'Applied', color: 'bg-blue-500' },
+  { id: 'SCREENING', name: 'Screening', color: 'bg-yellow-500' },
+  { id: 'INTERVIEW', name: 'Interview', color: 'bg-purple-500' },
+  { id: 'OFFER', name: 'Offer', color: 'bg-green-500' },
+  { id: 'CLOSED', name: 'Closed', color: 'bg-gray-500' },
+  { id: 'ACCEPTED', name: 'Accepted', color: 'bg-green-700' },
+  { id: 'REJECTED', name: 'Rejected', color: 'bg-red-500' },
+  { id: 'OPEN', name: 'Open', color: 'bg-gray-300' },
 ];
 
 type JobFormData = {
@@ -42,11 +45,10 @@ type JobFormData = {
 
 export function AddJobForm() {
   const navigate = useNavigate();
-  const { addJob } = useJobApplications();
   const [formData, setFormData] = useState<JobFormData>({
     companyName: '',
     jobTitle: '',
-    status: 'applied',
+    status: 'APPLIED',
     jobLink: '',
     resume: '',
     resumeId: '',
@@ -58,10 +60,11 @@ export function AddJobForm() {
 
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [coverLetterFile, setCoverLetterFile] = useState<File | null>(null);
-  
-  // Get resumes from the ResumeContext
-  const { resumes, isLoading: isLoadingResumes } = useResumes();
-  
+
+  const resumes = [
+    { id: '1', name: 'Resume 1' },
+  ]
+
   // Format resumes for the combobox
   const resumeOptions = useMemo(() => {
     return [
@@ -71,7 +74,7 @@ export function AddJobForm() {
         label: resume.name,
       })),
     ];
-  }, [resumes]);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -81,7 +84,7 @@ export function AddJobForm() {
     }));
   };
 
-  const handleStatusChange = (value: string) => {
+  const handleStatusChange = (value: JobApplicationStatus) => {
     setFormData(prev => ({
       ...prev,
       status: value,
@@ -135,27 +138,29 @@ export function AddJobForm() {
     // TODO: write function
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const createJobApplication = useCreateJobApplication();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    // Get the selected status object
-    const selectedStatus = statuses.find(s => s.id === formData.status) || statuses[0];
-    
-    // Add the new job application
-    addJob({
-      companyName: formData.companyName,
-      jobTitle: formData.jobTitle,
-      status: selectedStatus,
-      jobLink: formData.jobLink,
-      resume: formData.resume || null,
-      resumeId: formData.resumeId || null, // Include the resume ID
-      coverLetter: formData.coverLetter || null,
-      salary: formData.salary,
-      remarks: formData.remarks,
-    });
-    
-    // Navigate back to the job tracker
-    navigate('/job-tracker');
+
+    try {
+      await createJobApplication.mutateAsync({
+        companyName: formData.companyName,
+        jobTitle: formData.jobTitle,
+        status: formData.status as JobApplicationStatus,
+        jobLink: formData.jobLink || null,
+        resumeId: formData.resumeId || null,
+        coverLetterId: null, // TODO: Add cover letter ID if needed
+        salary: formData.salary || null,
+        remarks: formData.remarks || null,
+      });
+
+      // Navigate back to the job tracker on success
+      navigate('/job-tracker');
+    } catch (error) {
+      console.error('Failed to create job application:', error);
+      // TODO: Show error toast/notification to the user
+    }
   };
 
   return (
@@ -197,7 +202,7 @@ export function AddJobForm() {
                 <Label htmlFor="status">Status</Label>
                 <Select value={formData.status} onValueChange={handleStatusChange}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select status" className="w-full"/>
+                    <SelectValue placeholder="Select status" className="w-full" />
                   </SelectTrigger>
                   <SelectContent>
                     {statuses.map((status) => (
@@ -222,7 +227,7 @@ export function AddJobForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="jobLink">Job Posting URL *</Label>
+              <Label htmlFor="jobLink">Job Posting URL</Label>
               <Input
                 id="jobLink"
                 name="jobLink"
@@ -230,11 +235,11 @@ export function AddJobForm() {
                 value={formData.jobLink}
                 onChange={handleChange}
                 placeholder="https://example.com/job/123"
-                required
               />
             </div>
 
-            <div className="space-y-4">
+            {/* TODO: enable resume, cover letter form inputs */}
+            {/* <div className="space-y-4">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label>Resume</Label>
@@ -287,7 +292,7 @@ export function AddJobForm() {
                     onSelect={handleCoverLetterSelect}
                   />
                   <div className="relative">
-                  <Button
+                    <Button
                       type="button"
                       onClick={generateCoverLetter}
                     >
@@ -297,10 +302,10 @@ export function AddJobForm() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div> */}
 
             <div className="space-y-2">
-              <Label htmlFor="jobDescription">Job description (optional)</Label>
+              <Label htmlFor="jobDescription">Job description</Label>
               <Textarea
                 id="jobDescription"
                 name="jobDescription"
@@ -312,7 +317,7 @@ export function AddJobForm() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="remarks">Notes (optional)</Label>
+              <Label htmlFor="remarks">Notes</Label>
               <Textarea
                 id="remarks"
                 name="remarks"

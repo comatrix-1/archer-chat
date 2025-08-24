@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { createPageUrl } from "~/utils/create-page-url";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
@@ -12,6 +12,7 @@ import {
   Trash2,
   Calendar,
   User as UserIcon,
+  BrainCircuit,
 } from "lucide-react";
 import { format } from "date-fns";
 import { motion } from "framer-motion";
@@ -27,6 +28,8 @@ import {
 } from "~/components/ui/alert-dialog";
 import { trpc } from "@project/trpc/client";
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
+import { supabase } from "~/utils/supabaseClient";
+import JobApplicationSelectorDialog from "~/components/applications/JobApplicationSelectorDialog";
 
 export default function Resumes() {
   const [resumeList, setResumeList] = useState<ZResumeWithRelations[]>([]);
@@ -34,6 +37,8 @@ export default function Resumes() {
   const [searchTerm, setSearchTerm] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     loadResumes();
@@ -47,16 +52,27 @@ export default function Resumes() {
     setFilteredResumes(filtered);
   }, [resumeList, searchTerm]);
 
+
   const loadResumes = async () => {
     try {
+      const { data } = await supabase.auth.getSession();
       setIsLoading(true);
-      const resumeList = await trpc.resume.list.query();
-      console.log("resumeList:", resumeList.items);
-      setResumeList(resumeList.items);
+      const { items: resumeList } = await trpc.resume.list.query();
+      console.log("resumeList:", resumeList);
+
+      const nonMasterResumeList = resumeList.filter(
+        (r) => r.userId === data.session?.user.id && !r.isMaster
+      );
+      setResumeList(nonMasterResumeList);
       setIsLoading(false);
     } catch (error) {
       console.error("Error in fetchData: ", error);
     }
+  };
+
+  const handleSelectJobApplication = (jobApplicationId: string) => {
+    setIsSelectorOpen(false);
+    navigate(createPageUrl('resume/custom', { jobApplicationId }));
   };
 
   const handleDelete = async () => {
@@ -85,19 +101,23 @@ export default function Resumes() {
       <div className="mb-8">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
-              My Resumes
-            </h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">My Resumes</h1>
             <p className="text-slate-600">
               Manage and create professional resumes for your career
             </p>
           </div>
-          <Link to={createPageUrl("resume/builder")}>
-            <Button className="gold-accent text-white smooth-hover hover:shadow-lg">
-              <Plus className="w-4 h-4 mr-2" />
-              New Resume
+          <div className="flex gap-2">
+            <Button onClick={() => setIsSelectorOpen(true)} variant="outline" className="smooth-hover">
+              <BrainCircuit className="w-4 h-4 mr-2" />
+              Create with AI
             </Button>
-          </Link>
+            <Link to={createPageUrl("ResumeBuilder")}>
+              <Button className="gold-accent text-white smooth-hover hover:shadow-lg">
+                <Plus className="w-4 h-4 mr-2" />
+                New Resume
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -201,6 +221,12 @@ export default function Resumes() {
           ))}
         </div>
       )}
+
+      <JobApplicationSelectorDialog
+        isOpen={isSelectorOpen}
+        onClose={() => setIsSelectorOpen(false)}
+        onSelect={handleSelectJobApplication}
+      />
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>

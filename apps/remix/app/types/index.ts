@@ -22,19 +22,22 @@ export type Job = {
 };
 
 export type StatusCounts = {
-    applied: number;
-    screening: number;
-    interview: number;
-    offer: number;
-    closed: number;
+  open?: number;
+  applied?: number;
+  screening?: number;
+  interview?: number;
+  offer?: number;
+  closed?: number;
+  accepted?: number;
+  [key: string]: number | undefined;
 };
 
 export type DashboardStats = {
-    total: number;
-    active: number;
-    statusCounts: StatusCounts;
-    interviewRate: number;
-    offerRate: number;
+  total: number;
+  active: number;
+  statusCounts: StatusCounts;
+  interviewRate: number;
+  offerRate: number;
 };
 
 export type JobApplication = {

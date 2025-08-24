@@ -11,10 +11,10 @@ export const jobApplicationRouter = router({
 	create: protectedProcedure
 		.input(createJobApplicationSchema)
 		.mutation(async ({ input, ctx }) => {
-			if (input.userId !== ctx.user.id) {
-				throw new Error("Unauthorized");
-			}
-			return jobApplicationService.createJobApplication(input);
+			return jobApplicationService.createJobApplication({
+        ...input,
+        userId: ctx.user.id
+      });
 		}),
 
 	getById: protectedProcedure
@@ -38,14 +38,8 @@ export const jobApplicationRouter = router({
 	list: protectedProcedure
 		.input(jobApplicationListSchema.optional())
 		.query(async ({ input, ctx }) => {
-			const userId = input?.userId || ctx.user.id;
-
-			if (userId !== ctx.user.id) {
-				throw new Error("Unauthorized");
-			}
-
 			return jobApplicationService.listJobApplications(
-				userId,
+				ctx.user.id,
 				input?.status,
 				input?.limit,
 				input?.cursor,

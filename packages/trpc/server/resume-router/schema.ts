@@ -65,7 +65,7 @@ export const ZCertificationSchema = z.object({
   issueDate: z.date(),
   expiryDate: z.date().nullable().optional(),
   credentialId: z.string().nullable().optional(), // nullable due to Prisma
-  credentialUrl: z.string().optional(),
+  credentialUrl: z.string().nullable().optional(),
   resumeId: z.string().cuid().optional(),
 });
 

@@ -8,6 +8,7 @@ export const JobApplicationStatus = {
 	OFFER: "OFFER",
 	CLOSED: "CLOSED",
 	ACCEPTED: "ACCEPTED",
+	REJECTED: "REJECTED",
 } as const;
 
 export type JobApplicationStatus =
@@ -19,11 +20,10 @@ const JobApplicationSchema = z.object({
 	jobTitle: z.string().min(1, "Job title is required"),
 	status: z.nativeEnum(JobApplicationStatus),
 	jobLink: z.string().nullable().optional(),
-	resumePath: z.string().nullable().optional(),
-	coverLetterPath: z.string().nullable().optional(),
+	resumeId: z.string().cuid().nullable().optional(),
+	coverLetterId: z.string().cuid().nullable().optional(),
 	salary: z.string().nullable().optional(),
 	remarks: z.string().nullable().optional(),
-	userId: z.string().uuid(),
 	createdAt: z.date().optional(),
 	updatedAt: z.date().optional(),
 });
@@ -33,10 +33,22 @@ export const jobApplicationIdSchema = z.object({
 });
 
 export const jobApplicationListSchema = z.object({
-	userId: z.string().uuid("Invalid user ID format"),
 	status: z.nativeEnum(JobApplicationStatus).optional(),
 	limit: z.number().int().positive().max(100).default(20).optional(),
 	cursor: z.string().cuid().optional(),
+});
+
+export const jobApplicationWithIdSchema = JobApplicationSchema.pick({
+	companyName: true,
+	jobTitle: true,
+	status: true,
+	jobLink: true,
+	resumeId: true,
+	coverLetterId: true,
+	salary: true,
+	remarks: true,
+}).extend({
+	id: z.string().cuid("Invalid CUID format"),
 });
 
 export const createJobApplicationSchema = JobApplicationSchema.pick({
@@ -44,11 +56,10 @@ export const createJobApplicationSchema = JobApplicationSchema.pick({
 	jobTitle: true,
 	status: true,
 	jobLink: true,
-	resumePath: true,
-	coverLetterPath: true,
+	resumeId: true,
+	coverLetterId: true,
 	salary: true,
 	remarks: true,
-	userId: true,
 });
 
 export const updateJobApplicationSchema = JobApplicationSchema.pick({
@@ -57,20 +68,35 @@ export const updateJobApplicationSchema = JobApplicationSchema.pick({
 	jobTitle: true,
 	status: true,
 	jobLink: true,
-	resumePath: true,
-	coverLetterPath: true,
+	resumeId: true,
+	coverLetterId: true,
 	salary: true,
 	remarks: true,
+});
+
+export const jobApplicationListResponseSchema = z.object({
+	items: z.array(jobApplicationWithIdSchema),
+	nextCursor: z.string().optional(),
 });
 
 export const jobApplicationWithRelationsSchema = JobApplicationSchema;
 
 export type ZJobApplicationInput = z.infer<typeof JobApplicationSchema>;
+// Input type for the API (without userId)
 export type ZCreateJobApplicationInput = z.infer<
 	typeof createJobApplicationSchema
 >;
+export type ZJobApplicationWithId = z.infer<typeof jobApplicationWithIdSchema>;
+
+// Internal type for the service (includes userId)
+export type ZCreateJobApplicationServiceInput = ZCreateJobApplicationInput & {
+	userId: string;
+};
 export type ZUpdateJobApplicationInput = z.infer<
 	typeof updateJobApplicationSchema
 >;
 export type ZJobApplicationListInput = z.infer<typeof jobApplicationListSchema>;
 export type ZJobApplicationWithRelations = z.infer<typeof JobApplicationSchema>;
+export type ZJobApplicationListResponse = z.infer<
+	typeof jobApplicationListResponseSchema
+>;

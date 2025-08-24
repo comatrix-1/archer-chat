@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { prisma } from "@project/prisma";
 import type {
-	ZCreateJobApplicationInput,
+	ZCreateJobApplicationServiceInput,
 	ZUpdateJobApplicationInput,
 	ZJobApplicationWithRelations,
 	JobApplicationStatus,
@@ -19,7 +19,7 @@ export const jobApplicationService = {
 	 * Create a new job application
 	 */
 	async createJobApplication(
-		input: ZCreateJobApplicationInput,
+		input: ZCreateJobApplicationServiceInput,
 	): Promise<ZJobApplicationWithRelations> {
 		try {
 			return await prisma.jobApplication.create({
@@ -83,18 +83,10 @@ export const jobApplicationService = {
 
 		// Remove undefined values for Prisma
 		const { id, ...updateData } = input;
-		const data: PrismaInput<typeof updateData> = {
-			...updateData,
-			jobLink: updateData.jobLink || null,
-			resumePath: updateData.resumePath || null,
-			coverLetterPath: updateData.coverLetterPath || null,
-			salary: updateData.salary || null,
-			remarks: updateData.remarks || null,
-		};
 
 		return prisma.jobApplication.update({
 			where: { id },
-			data: data as any, // Type assertion needed due to Prisma's complex types
+			data: updateData
 		});
 	},
 
@@ -153,18 +145,19 @@ export const jobApplicationService = {
 		const items = dbItems.map((item) => ({
 			...item,
 			jobLink: item.jobLink || undefined,
-			resumePath: item.resumePath || undefined,
-			coverLetterPath: item.coverLetterPath || undefined,
 			salary: item.salary || undefined,
 			remarks: item.remarks || undefined,
 		}));
 
 		let nextCursor: string | undefined;
 		if (dbItems.length > limit) {
-			const nextItem = dbItems[dbItems.length - 1];
-			nextCursor = nextItem?.id || undefined;
+			const nextItem = dbItems[limit - 1];
+			nextCursor = nextItem?.id;
 		}
 
-		return { items, nextCursor };
+		return { 
+			items: items.slice(0, limit), // Return only the requested number of items
+			nextCursor,
+		};
 	},
 };

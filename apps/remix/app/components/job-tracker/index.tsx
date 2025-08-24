@@ -7,7 +7,8 @@ import { JobTrackerTable } from './job-tracker-table';
 import { JobTrackerDashboard } from './job-tracker-dashboard';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router';
-import { useJobApplications } from '~/contexts/job-applications-context';
+import { useJobApplications } from '~/hooks/useJobApplications';
+import type { ZJobApplicationWithRelations } from '@project/trpc/server/job-application-router/schema';
 
 const statuses = [
     { id: 'applied', name: 'Applied', color: 'bg-blue-500' },
@@ -18,17 +19,32 @@ const statuses = [
 ];
 
 export function JobTracker() {
-    const { jobs } = useJobApplications();
+    // Use the hook to fetch job applications
+    const { data: jobData = { items: [] }, isLoading, error } = useJobApplications({
+        // Optional: Add any filters here
+        // status: 'APPLIED',
+        // limit: 10,
+    });
+
     const [searchTerm, setSearchTerm] = useState('');
     const [activeTab, setActiveTab] = useState('all');
     const navigate = useNavigate();
 
-    const filteredJobs = jobs.filter(job => {
+    if (isLoading) {
+        return <div>Loading job applications...</div>;
+    }
+
+    if (error) {
+        return <div>Error loading job applications: {error.message}</div>;
+    }
+
+    const jobs = jobData.items;
+    const filteredJobs = jobs.filter((job: ZJobApplicationWithRelations) => {
         const matchesSearch = job.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
             job.jobTitle.toLowerCase().includes(searchTerm.toLowerCase());
 
         if (activeTab === 'all') return matchesSearch;
-        return matchesSearch && job.status.id === activeTab;
+        return matchesSearch && job.status === activeTab.toUpperCase();
     });
 
     return (

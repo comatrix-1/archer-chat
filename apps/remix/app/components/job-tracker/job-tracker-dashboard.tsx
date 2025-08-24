@@ -1,42 +1,31 @@
 import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card';
 import { Progress } from '~/components/ui/progress';
 import { Badge } from '~/components/ui/badge';
-import type { DashboardStats, Job, StatusCounts } from '~/types';
+import type { DashboardStats, StatusCounts } from '~/types';
+import type { ZJobApplicationWithRelations } from '@project/trpc/server/job-application-router/schema';
 
 // Define the job type for better type safety
 
-export function JobTrackerDashboard({ jobs }: Readonly<{ jobs: Job[] }>) {
+export function JobTrackerDashboard({ jobs }: Readonly<{ jobs: ZJobApplicationWithRelations[] }>) {
     console.log('JobTrackerDashboard()')
-    // Calculate stats from jobs data
     const stats: DashboardStats = jobs.reduce(
         (acc, job) => {
-            const status = job.status?.id || 'applied';
-            const isActive = status !== 'closed' && status !== 'rejected';
+            // Access status directly as a string
+            const status = job.status || 'APPLIED';
+            const isActive = status !== 'CLOSED' && status !== 'REJECTED';
 
             return {
                 total: acc.total + 1,
                 active: isActive ? acc.active + 1 : acc.active,
+                interviewRate: 0,
+                offerRate: 0,
                 statusCounts: {
                     ...acc.statusCounts,
-                    [status]: (acc.statusCounts[status as keyof StatusCounts] || 0) + 1,
+                    [status.toLowerCase()]: (acc.statusCounts[status.toLowerCase() as keyof StatusCounts] || 0) + 1,
                 },
-                interviewRate: status === 'interview' ? acc.interviewRate + 1 : acc.interviewRate,
-                offerRate: status === 'offer' ? acc.offerRate + 1 : acc.offerRate,
             };
         },
-        {
-            total: 0,
-            active: 0,
-            statusCounts: {
-                applied: 0,
-                screening: 0,
-                interview: 0,
-                offer: 0,
-                closed: 0,
-            },
-            interviewRate: 0,
-            offerRate: 0,
-        }
+        { total: 0, active: 0, interviewRate: 0, offerRate: 0, statusCounts: {} } as DashboardStats
     );
 
     // Calculate percentages
@@ -99,7 +88,7 @@ export function JobTrackerDashboard({ jobs }: Readonly<{ jobs: Job[] }>) {
                     <CardContent>
                         <div className="flex flex-wrap gap-2">
                             {Object.entries(stats.statusCounts).map(([status, count]) => (
-                                count > 0 && (
+                                count && count > 0 && (
                                     <Badge
                                         key={status}
                                         className={`${statusColors[status as keyof typeof statusColors]} text-white`}

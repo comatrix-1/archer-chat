@@ -300,21 +300,21 @@ export const resumeService = {
    * Delete a resume
    */
   async deleteResume(id: string, userId: string): Promise<{ success: boolean }> {
-    // First verify the resume exists and belongs to the user
-    const existing = await prisma.resume.findUnique({
-      where: { id },
-    });
-
-    if (!existing || existing.userId !== userId) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Resume not found',
-      });
-    }
-
     try {
+      // First, verify the resume exists and belongs to the user
+      const resume = await prisma.resume.findUnique({
+        where: { id },
+      });
+
+      if (!resume || resume.userId !== userId) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Resume not found',
+        });
+      }
+
+      // Delete all related records and the resume in a transaction
       await prisma.$transaction([
-        // Delete related records first
         prisma.award.deleteMany({ where: { resumeId: id } }),
         prisma.certification.deleteMany({ where: { resumeId: id } }),
         prisma.education.deleteMany({ where: { resumeId: id } }),
@@ -333,6 +333,28 @@ export const resumeService = {
         message: 'Failed to delete resume',
       });
     }
+  },
+
+  /**
+   * Get the master resume for a user
+   */
+  async getMasterResume(userId: string): Promise<ResumeWithRelations> {
+    const resume = await prisma.resume.findFirst({
+      where: { 
+        userId,
+        isMaster: true 
+      },
+      include: includeAllRelations,
+    }) as Prisma.ResumeGetPayload<{ include: typeof includeAllRelations }> | null;
+
+    if (!resume) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Master resume not found',
+      });
+    }
+
+    return resume as unknown as ResumeWithRelations;
   },
 
   /**

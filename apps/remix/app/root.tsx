@@ -15,7 +15,11 @@ import { NavBar } from "./components/NavBar";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { AppSidebar } from "./components/app-sidebar";
 import { SidebarProvider } from "./components/ui/sidebar";
-import { JobApplicationsProvider } from "./contexts/job-applications-context";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useQuery,
+} from '@tanstack/react-query'
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -59,11 +63,12 @@ export default function App() {
 function AppContent() {
   const { loading: authLoading } = useAuth();
   const navigation = useNavigation();
+  const queryClient = new QueryClient()
 
   const isLoading = authLoading || navigation.state === "loading";
   return (
-    <JobApplicationsProvider>
-      <SidebarProvider>
+    <SidebarProvider>
+      <QueryClientProvider client={queryClient}>
         <div className="flex flex-col min-h-screen bg-background text-foreground w-full">
           <NavBar />
           <div className="flex flex-1 overflow-hidden">
@@ -74,8 +79,8 @@ function AppContent() {
           </div>
           <LoadingSpinner isLoading={isLoading} />
         </div>
-      </SidebarProvider>
-    </JobApplicationsProvider>
+      </QueryClientProvider>
+    </SidebarProvider>
   );
 }
 

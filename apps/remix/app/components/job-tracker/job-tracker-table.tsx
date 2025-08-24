@@ -21,28 +21,39 @@ import {
     TableRow,
 } from '~/components/ui/table';
 import { useState, useMemo } from 'react';
-import type { JobApplication } from '~/types';
+import type { ZJobApplicationWithRelations } from '@project/trpc/server/job-application-router/schema';
 
 type SortConfig = {
-    key: keyof JobApplication | null;
+    key: keyof ZJobApplicationWithRelations | null;
     direction: 'asc' | 'desc' | null;
 };
 
+const statusColors = {
+    OPEN: "bg-blue-500",
+    APPLIED: "bg-purple-500",
+    SCREENING: "bg-yellow-500",
+    INTERVIEW: "bg-orange-500",
+    OFFER: "bg-green-500",
+    CLOSED: "bg-gray-500",
+    ACCEPTED: "bg-green-700",
+    REJECTED: "bg-red-700"
+} as const;
+
 export interface JobTrackerTableProps {
-    jobs: JobApplication[];
+    jobs: ZJobApplicationWithRelations[];
 }
 
-export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
+export function JobTrackerTable({ jobs }: Readonly<JobTrackerTableProps>) {
     const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: null });
 
     const sortedJobs = useMemo(() => {
         const sortableItems = [...jobs];
         if (sortConfig.key) {
             sortableItems.sort((a, b) => {
-                // Handle status sorting separately
+                // Handle status sorting
                 if (sortConfig.key === 'status') {
-                    const statusA = a.status.name.toLowerCase();
-                    const statusB = b.status.name.toLowerCase();
+                    const statusA = a.status.toLowerCase();
+                    const statusB = b.status.toLowerCase();
 
                     if (statusA < statusB) {
                         return sortConfig.direction === 'asc' ? -1 : 1;
@@ -54,8 +65,8 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                 }
 
                 // Handle other fields
-                const aValue = a[sortConfig.key as keyof JobApplication];
-                const bValue = b[sortConfig.key as keyof JobApplication];
+                const aValue = a[sortConfig.key as keyof ZJobApplicationWithRelations];
+                const bValue = b[sortConfig.key as keyof ZJobApplicationWithRelations];
 
                 if (aValue === bValue) return 0;
 
@@ -75,7 +86,7 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
         return sortableItems;
     }, [jobs, sortConfig]);
 
-    const requestSort = (key: keyof JobApplication) => {
+    const requestSort = (key: keyof ZJobApplicationWithRelations) => {
         let direction: 'asc' | 'desc' = 'asc';
         if (sortConfig.key === key && sortConfig.direction === 'asc') {
             direction = 'desc';
@@ -85,7 +96,7 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
         setSortConfig({ key, direction });
     };
 
-    const getSortIcon = (key: keyof JobApplication) => {
+    const getSortIcon = (key: keyof ZJobApplicationWithRelations) => {
         if (sortConfig.key !== key) return <ArrowUpDown className="ml-2 h-4 w-4 opacity-0 group-hover:opacity-100" />;
         if (sortConfig.direction === 'asc') return <ArrowUpDown className="ml-2 h-4 w-4" />;
         return <ArrowUpDown className="ml-2 h-4 w-4 rotate-180" />;
@@ -143,18 +154,18 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                             </TableCell>
                             <TableCell>{job.jobTitle}</TableCell>
                             <TableCell>
-                                <Badge className={`${job.status.color} text-white`}>
-                                    {job.status.name}
+                                <Badge className={`${statusColors[job.status]} text-white`}>
+                                    {job.status}
                                 </Badge>
                             </TableCell>
                             <TableCell>
-                                {job.resume ? (
+                                {job.resumeId ? (
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            window.open(`/documents/${job.resume}`, '_blank');
+                                            window.open(`/documents/${job.resumeId}`, '_blank');
                                         }}
                                     >
                                         View
@@ -164,13 +175,13 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                                 )}
                             </TableCell>
                             <TableCell>
-                                {job.coverLetter ? (
+                                {job.coverLetterId ? (
                                     <Button
                                         variant="ghost"
                                         size="sm"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            window.open(`/documents/${job.coverLetter}`, '_blank');
+                                            window.open(`/documents/${job.coverLetterId}`, '_blank');
                                         }}
                                     >
                                         View
@@ -216,7 +227,7 @@ export function JobTrackerTable({ jobs }: JobTrackerTableProps) {
                                                 className="cursor-pointer"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    window.open(job.jobLink, '_blank');
+                                                    window.open(job.jobLink ?? '', '_blank');
                                                 }}
                                             >
                                                 <ExternalLink className="mr-2 h-4 w-4" />
