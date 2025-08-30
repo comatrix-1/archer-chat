@@ -17,9 +17,11 @@ import type { TUser } from "~/types";
 type TAuthContext = {
   user: TUser | null;
   signUp: ({
+    name,
     email,
     password,
   }: {
+    name: string;
     email: string;
     password: string;
   }) => Promise<AuthResponse>;
@@ -77,15 +79,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signUp = useCallback(
-    async ({ email, password }: { email: string; password: string }) => {
-      return supabase.auth.signUp({ email, password });
+    async ({ name, email, password }: { name: string; email: string; password: string }) => {
+      const authResponse = await supabase.auth.signUp({ email, password });
+      console.log('authResponse: ', authResponse);
+  
+      if (authResponse.error) throw authResponse.error;
+  
+      const user = authResponse.data.user;
+      if (user) {
+        const { error: dbError } = await supabase
+          .from('User')
+          .insert({
+            id: user.id,
+            email: user.email,
+            name,
+          });
+  
+        if (dbError) {
+          console.error('Error creating user profile in DB:', dbError);
+        }
+      }
+  
+      return authResponse;
     },
     []
   );
+  
+  
 
   const signIn = useCallback(
     async ({ email, password }: { email: string; password: string }) => {
-      return supabase.auth.signInWithPassword({ email, password });
+      const authResponse: AuthTokenResponsePassword = await supabase.auth.signInWithPassword({ email, password });
+      if (authResponse.error) throw authResponse.error;
+
+      return authResponse;
     },
     []
   );

@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { compare, hash } from 'bcryptjs';
-import { sign } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import type { TSignInInput, TSignUpInput, TAuthResponse } from './schema';
 
 // Mock user store - replace with your actual database calls
@@ -91,12 +91,11 @@ class AuthService {
 
   private generateToken(user: User): string {
     // In a real app, use environment variables for the secret
+    const payload = { userId: user.id, email: user.email };
     const secret = process.env.JWT_SECRET || 'your-secret-key';
-    return sign(
-      { userId: user.id, email: user.email },
-      secret,
-      { expiresIn: '1d' }
-    );
+    const options: jwt.SignOptions = { expiresIn: '1h' };
+    
+    return jwt.sign(payload, secret, options);
   }
 
   private async verifyTOTP(secret: string, code: string): Promise<boolean> {

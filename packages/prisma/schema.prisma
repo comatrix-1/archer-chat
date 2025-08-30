@@ -18,9 +18,7 @@ generator zod {
 model User {
   id       String @id @default(uuid())
   email    String @unique
-  password String
   name     String
-  role     Role
 
   sessions            Session[]
 

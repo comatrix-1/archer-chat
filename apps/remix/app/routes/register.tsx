@@ -45,7 +45,7 @@ const registerSchema = z
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const { register, error: authError } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
   const form = useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema),
@@ -57,20 +57,10 @@ export default function Register() {
     },
   });
 
-  useEffect(() => {
-    if (authError) {
-      form.setError("root", {
-        type: "manual",
-        message: authError,
-      });
-    }
-  }, [authError, form]);
-
   const onSubmit = async (formData: RegisterFormData) => {
-    const { data, error } = await supabase.auth.signUp({
-      email: formData.email,
-      password: formData.password,
-    });
+    const { data, error } = await signUp({ name: formData.name, email: formData.email, password: formData.password });
+
+    if (error) throw error;
 
     console.log("register successful, data: ", data);
   };
