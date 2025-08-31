@@ -51,9 +51,9 @@ export function EducationItem({ index }: Readonly<EducationItemProps>) {
                 name={`educations.${index}.degree`}
                 render={({ field: formField }) => (
                     <FormItem className="col-span-2">
-                        <FormLabel>Degree</FormLabel>
+                        <FormLabel>Qualification Name</FormLabel>
                         <FormControl>
-                            <Input placeholder="Degree" {...formField} />
+                            <Input placeholder="Qualification name" {...formField} />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -110,7 +110,12 @@ export function EducationItem({ index }: Readonly<EducationItemProps>) {
                     <FormItem className="col-span-2">
                         <FormLabel>Location</FormLabel>
                         <FormControl>
-                            <Input placeholder="Location" {...formField} />
+                            <Input 
+                                placeholder="Location" 
+                                {...formField} 
+                                value={formField.value ?? ''} 
+                                onChange={(e) => formField.onChange(e.target.value || null)}
+                            />
                         </FormControl>
                         <FormMessage />
                     </FormItem>

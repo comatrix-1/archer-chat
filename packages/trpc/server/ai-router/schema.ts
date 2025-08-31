@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 export const generateResumeInputSchema = z.object({
-  jobDescription: z.string().min(1, 'Job description is required'),
+  jobApplicationId: z.string().min(1, 'Job application ID is required'),
   customInstructions: z.string().optional(),
 });
 
@@ -14,10 +14,9 @@ export const generateCoverLetterInputSchema = z.object({
 });
 
 export const aiGeneratedContentSchema = z.object({
-  content: z.string(),
-  metadata: z.record(z.unknown()).optional(),
+  status: z.string(),
 });
 
-export type GenerateResumeInput = z.infer<typeof generateResumeInputSchema>;
+export type ZGenerateResumeInput = z.infer<typeof generateResumeInputSchema>;
 export type GenerateCoverLetterInput = z.infer<typeof generateCoverLetterInputSchema>;
 export type AIGeneratedContent = z.infer<typeof aiGeneratedContentSchema>;

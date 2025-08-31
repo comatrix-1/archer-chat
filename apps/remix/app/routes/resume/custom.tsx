@@ -9,6 +9,7 @@ import { useJobApplication } from '~/hooks/useJobApplications';
 import { useAuth } from '~/contexts/AuthContext';
 import type { ZJobApplicationWithRelations } from '@project/trpc/server/job-application-router/schema';
 import { useMasterResume } from '~/hooks/useResume';
+import { useGenerateResume } from '~/hooks/useAI';
 
 type Status = 'idle' | 'fetching_job_app' | 'fetching_master_resume' | 'invoking_ai' | 'creating_resume' | 'done' | 'error';
 
@@ -81,14 +82,15 @@ export default function AICustomizeResume() {
             return;
         }
 
-        if (jobApp && user) {
-            startProcess(jobApp);
+        if (jobApplicationId && user) {
+            startProcess(jobApplicationId);
         }
-    }, [jobApp, user, jobApplicationId]);
+    }, [jobApplicationId, user]);
 
     const { data: masterResume } = useMasterResume();
+    const { mutateAsync } = useGenerateResume();
 
-    const startProcess = async (jobApplication: ZJobApplicationWithRelations) => {
+    const startProcess = async (jobApplicationId: string) => {
         if (!user) {
             setError('User not found');
             setStatus('error');
@@ -99,14 +101,11 @@ export default function AICustomizeResume() {
             // 1. Fetch Master Resume
             setStatus('fetching_master_resume');
 
-            if (!masterResume) {
-                throw new Error("Master Resume not found. Please create one first.");
-            }
+            setTimeout(() => {
+                setStatus('invoking_ai');
+            }, 1000);
 
-            // 2. Invoke LLM
-            setStatus('invoking_ai');
-            const prompt = createPrompt(masterResume, jobApplication);
-            const schema = createResponseSchema();
+            const aiResult = await mutateAsync({ jobApplicationId });
 
             // TODO: Implement your InvokeLLM function or use your preferred LLM service
             //   const aiResult = await InvokeLLM<AIPromptResponse>({
@@ -120,14 +119,17 @@ export default function AICustomizeResume() {
 
             // 3. Create new resume
             setStatus('creating_resume');
+            console.log('aiResult', aiResult);
             // TODO: Implement saveCustomizedResume using your API/trpc
             // const newResume = await saveCustomizedResume(user.id, masterResume.id, jobApplication.id, aiResult);
 
             // 4. Done - Navigate
-            setStatus('done');
-            // setTimeout(() => {
-            //   navigate(createPageUrl('resume/builder', { id: newResume.id }));
-            // }, 1000);
+            if (aiResult.status === 'success') {
+                setStatus('done');
+            }
+            setTimeout(() => {
+                navigate(createPageUrl('resume'));
+            }, 1000);
         } catch (e) {
             console.error(e);
             setError(e instanceof Error ? e.message : 'An unknown error occurred');

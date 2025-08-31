@@ -1,6 +1,6 @@
-import { readFileSync } from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { GoogleGenAI } from "@google/genai";
 
 interface GenerateResumeParams {
@@ -82,15 +82,15 @@ model Resume {
       return null;
     }
 
-    dependentModelNames.forEach((name) => {
+    for (const name of dependentModelNames) {
       const definition = extractDefinition(name, "model", fullPrismaSchemaText);
       if (definition) schemaParts.push(definition);
-    });
+    }
 
-    relevantEnumNames.forEach((name) => {
+    for (const name of relevantEnumNames) {
       const definition = extractDefinition(name, "enum", fullPrismaSchemaText);
       if (definition) schemaParts.push(definition);
-    });
+    };
 
     const filteredPrismaSchema = schemaParts.join("\n\n");
 

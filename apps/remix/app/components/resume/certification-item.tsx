@@ -70,7 +70,12 @@ export const CertificationItem = ({ index }: CertificationItemProps) => {
                     <FormItem>
                         <FormLabel>Expiration Date (if applicable)</FormLabel>
                         <FormControl>
-                            <DatePicker selectedDate={field.value ?? undefined} onSelect={(date: Date | undefined) => handleDateSelect(date, 'expiryDate', index)} isClearable={true} />
+                            <DatePicker 
+                              selectedDate={field.value ?? undefined} 
+                              onSelect={(date: Date | undefined) => handleDateSelect(date, 'expiryDate', index)} 
+                              isClearable={true} 
+                              endMonth={new Date(new Date().setFullYear(new Date().getFullYear() + 10))} 
+                            />
                         </FormControl>
                         <FormMessage />
                     </FormItem>
@@ -104,6 +109,7 @@ export const CertificationItem = ({ index }: CertificationItemProps) => {
                                 placeholder="https://example.com/credential/123"
                                 type="url"
                                 {...field}
+                                value={field.value ?? ''}
                             />
                         </FormControl>
                         <FormMessage />

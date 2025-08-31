@@ -4,6 +4,7 @@ import {
 	generateResumeInputSchema,
 	aiGeneratedContentSchema,
 } from "./schema";
+import { resumeService } from "server/resume-router/service";
 
 const aiService = new AIService(process.env.GOOGLE_API_KEY || "");
 
@@ -12,13 +13,14 @@ export const aiRouter = router({
 		.input(generateResumeInputSchema)
 		.output(aiGeneratedContentSchema)
 		.mutation(async ({ input, ctx }) => {
-			if (input.jobDescription.length === 0) {
-				throw new Error("Job description is required");
+			if (input.jobApplicationId.length === 0) {
+				throw new Error("Job application ID is required");
 			}
 			const resume = await aiService.generateResume(ctx.user.id, input);
+
+			await resumeService.createResume({ ...resume, userId: ctx.user.id });
 			return {
-				content: JSON.stringify(resume, null, 2),
-				metadata: { type: "resume" },
+				status: "success",
 			};
 		}),
 

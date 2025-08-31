@@ -1,24 +1,25 @@
-import type { GenerateResumeInput, GenerateCoverLetterInput } from "./schema";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import type { ZGenerateResumeInput, GenerateCoverLetterInput } from "./schema";
+import { GoogleGenAI } from "@google/genai";
 import { PrismaClient, type Prisma } from "@prisma/client";
+import { jobApplicationService } from "server/job-application-router/service";
 import type { ZResumeWithRelations } from "server/resume-router/schema";
 
 const prisma = new PrismaClient();
 
 export class AIService {
-	private genAI: GoogleGenerativeAI;
+	private readonly genAI: GoogleGenAI;
 
 	constructor(apiKey: string) {
-		this.genAI = new GoogleGenerativeAI(apiKey);
+		this.genAI = new GoogleGenAI({ apiKey });
 	}
 
 	async generateResume(
 		userId: string,
-		input: GenerateResumeInput
+		input: ZGenerateResumeInput,
 	): Promise<ZResumeWithRelations> {
 		try {
 			const baseResume = await this.getBaseResume(userId);
-			return await this.generateResumeContent(baseResume, input);
+			return await this.generateResumeContent(userId, baseResume, input);
 		} catch (error) {
 			console.error("Error generating resume:", error);
 			throw error;
@@ -71,22 +72,76 @@ export class AIService {
 	}
 
 	private async generateResumeContent(
+		userId: string,
 		baseResume: Awaited<ReturnType<AIService["getBaseResume"]>>,
-		input: GenerateResumeInput,
+		input: ZGenerateResumeInput,
 	): Promise<ZResumeWithRelations> {
-		const prompt = this.createResumePrompt({
-			jobDescription: input.jobDescription,
-			resume: baseResume,
-			customInstructions: input.customInstructions,
-		});
+		const MAX_RETRIES = 2;
+		let attempt = 0;
+		let lastError: Error | null = null;
 
-		const model = this.genAI.getGenerativeModel({ model: "gemini-2.5-flash-lite" });
-		const result = await model.generateContent(prompt);
-		const response = await result.response;
+		const jobDescription = await jobApplicationService.getJobApplication(
+			input.jobApplicationId,
+			userId,
+		);
 
-		console.log('generateResumeContenxt() response: ', response);
+		while (attempt < MAX_RETRIES) {
+			try {
+				console.log(
+					`Calling Gemini API (Attempt ${attempt + 1}/${MAX_RETRIES})`,
+				);
+				const ai = this.genAI;
 
-		return JSON.parse(response.text());
+				const prompt = this.createResumePrompt({
+					jobDescription: JSON.stringify(jobDescription),
+					resume: baseResume,
+					customInstructions: input.customInstructions,
+				});
+
+				console.log(
+					"generateResumeContent() - Input prompt to generative AI:",
+					prompt,
+				);
+
+				const response = await ai.models.generateContent({
+					model: "gemini-2.5-flash",
+					contents: prompt,
+				});
+				console.log(
+					"generateResumeContent() - Received response:",
+					response.text,
+				);
+				const text = response.text || "";
+
+				let jsonString = text.trim();
+				const codeBlockMatch = jsonString.match(
+					/^```(?:json)?\s*([\s\S]*?)\s*```$/i,
+				);
+				if (codeBlockMatch) {
+					jsonString = codeBlockMatch[1].trim();
+				}
+
+				const result = JSON.parse(jsonString) as ZResumeWithRelations;
+
+				console.log("generateResumeContent() - Successfully parsed response");
+				return result;
+			} catch (e: unknown) {
+				console.error(`Attempt ${attempt + 1} failed:`, (e as Error).message);
+				lastError = new Error(
+					`Failed to parse AI response as JSON: ${(e as Error).message}`,
+				);
+				attempt++;
+				if (attempt < MAX_RETRIES) {
+					console.log(`Retrying... (${attempt}/${MAX_RETRIES})`);
+				}
+			}
+		}
+
+		console.error(`All ${MAX_RETRIES} attempts failed.`);
+		throw (
+			lastError ||
+			new Error("Failed to generate resume after multiple attempts.")
+		);
 	}
 
 	private createResumePrompt(input: {
@@ -94,25 +149,97 @@ export class AIService {
 		resume: unknown;
 		customInstructions?: string;
 	}): string {
+		const schemaStructure = `
+      RESUME SCHEMA STRUCTURE (Prisma format):
+      model Resume {
+        id             String         @id @default(cuid())
+        title          String         @default("Resume")
+        summary        String         @default("")
+        isMaster       Boolean        @default(false)
+        
+        experiences    Experience[]
+        educations     Education[]
+        skills         Skill[]
+        awards         Award[]
+        certifications Certification[]
+        projects       Project[]
+        contact        Contact
+      }
+
+      model Experience {
+        id          String   @id @default(cuid())
+        title       String
+        company     String
+        startDate   DateTime
+        endDate     DateTime?
+        description String
+      }
+
+      model Education {
+        id          String   @id @default(cuid())
+        institution String
+        degree      String
+        fieldOfStudy String
+        startDate   DateTime
+        endDate     DateTime?
+      }
+
+      model Skill {
+        id         String   @id @default(cuid())
+        name       String
+        category   String   // TECHNICAL, SOFT, or LANGUAGE
+        proficiency String?  // BEGINNER, INTERMEDIATE, ADVANCED, EXPERT
+      }
+
+      model Award {
+        id      String   @id @default(cuid())
+        title   String
+        date    DateTime
+        awarder String
+        summary String
+      }
+
+      model Certification {
+        id         String   @id @default(cuid())
+        name       String
+        issuer     String
+        issueDate  DateTime
+        expiryDate DateTime?
+      }
+
+      model Project {
+        id          String   @id @default(cuid())
+        name        String
+        description String
+        technologies String[]
+        startDate   DateTime
+        endDate     DateTime?
+      }
+
+      model Contact {
+        id        String   @id @default(cuid())
+        email     String
+        phone     String?
+        location  String?
+        website   String?
+        linkedIn  String?
+        github    String?
+      }
+      `;
+
 		return `You are an expert resume writer. Customize this resume for the given job description.
       
       JOB DESCRIPTION:
       ${input.jobDescription}
       
       ${input.customInstructions ? `CUSTOM INSTRUCTIONS:\n${input.customInstructions}\n\n` : ""}
+      
+      ${schemaStructure}
+      
       RESUME DATA (in JSON format):
       ${JSON.stringify(input.resume, null, 2)}
       
-      Return a well-formatted resume in JSON format with this structure:
-      {
-        "summary": "string",
-        "experiences": [{"title": "string", "company": "string", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD", "description": "string"}],
-        "educations": [{"institution": "string", "degree": "string", "fieldOfStudy": "string", "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD"}],
-        "skills": [{"name": "string", "category": "TECHNICAL|SOFT|LANGUAGE", "proficiency": "BEGINNER|INTERMEDIATE|ADVANCED|EXPERT"}],
-        "awards": [{"title": "string", "date": "YYYY-MM-DD", "awarder": "string", "summary": "string"}],
-        "certifications": [{"name": "string", "issuer": "string", "issueDate": "YYYY-MM-DD", "expiryDate": "YYYY-MM-DD"}],
-        "projects": [{"name": "string", "description": "string", "technologies": ["string"], "startDate": "YYYY-MM-DD", "endDate": "YYYY-MM-DD"}]
-      }`;
+      Return a well-formatted resume in JSON format that matches the schema structure above.`;
 	}
 
 	// TODO: implement
@@ -129,16 +256,16 @@ export class AIService {
 
 	// private createCoverLetterPrompt(input: GenerateCoverLetterInput): string {
 	// 	return `Write a professional cover letter for the following position:
-      
-    //   POSITION: ${input.jobTitle} at ${input.companyName}
-      
-    //   JOB DESCRIPTION:
-    //   ${input.jobDescription}
-      
-    //   ${input.customInstructions ? `CUSTOM INSTRUCTIONS:\n${input.customInstructions}\n\n` : ""}
-    //   CANDIDATE'S RESUME (in JSON format):
-    //   ${JSON.stringify(input.resume, null, 2)}
-      
-    //   Write a compelling cover letter that highlights the candidate's most relevant experiences and skills.`;
+
+	//   POSITION: ${input.jobTitle} at ${input.companyName}
+
+	//   JOB DESCRIPTION:
+	//   ${input.jobDescription}
+
+	//   ${input.customInstructions ? `CUSTOM INSTRUCTIONS:\n${input.customInstructions}\n\n` : ""}
+	//   CANDIDATE'S RESUME (in JSON format):
+	//   ${JSON.stringify(input.resume, null, 2)}
+
+	//   Write a compelling cover letter that highlights the candidate's most relevant experiences and skills.`;
 	// }
 }

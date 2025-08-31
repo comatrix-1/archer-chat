@@ -21,7 +21,9 @@ import ResumeSection from "~/components/resume/resume-section";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Form } from "~/components/ui/form";
+import { useMasterResume, useResume } from "~/hooks/useResume";
 import type { TUser } from "~/types";
+import { createPageUrl } from "~/utils/create-page-url";
 import { supabase } from "~/utils/supabaseClient";
 
 export default function MasterResume() {
@@ -57,31 +59,26 @@ export default function MasterResume() {
     defaultValues,
   });
 
+  const { data: masterResume } = useMasterResume();
+
   useEffect(() => {
+    const validateAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      console.log("loadMasterResume session data:", data);
+      if (!data.session?.user.id || !data.session?.user.email)
+        return navigate(createPageUrl("login"));
+
+      setUser({ id: data.session?.user.id, email: data.session?.user.email });
+    }
     const loadMasterResume = async () => {
-      try {
-        const { data } = await supabase.auth.getSession();
-        console.log("loadResumeData data:", data);
-        if (!data.session?.user.id || !data.session?.user.email)
-          throw new Error("User not authenticated");
-
-        setUser({ id: data.session?.user.id, email: data.session?.user.email });
-
-        const { items: existingResumeList } = await trpc.resume.list.query();
-        const masterResume = existingResumeList.find(
-          (r) => r.userId === data.session?.user.id && r.isMaster
-        );
-
-        if (masterResume) {
-          form.reset({ ...defaultValues, ...masterResume });
-        }
-      } catch (error) {
-        console.error("Error loading master resume:", error);
+      if (masterResume) {
+        form.reset({ ...defaultValues, ...masterResume });
       }
       setIsLoading(false);
     };
+    validateAuth();
     loadMasterResume();
-  }, [form.reset]);
+  }, [form.reset, masterResume, navigate]);
 
   const handleSave = async (formData: ZResumeWithRelations) => {
     console.log("formData to be sent to server", formData);
@@ -116,16 +113,6 @@ export default function MasterResume() {
       </div>
     );
   }
-
-  const tabs = [
-    { id: "basics", label: "Basics", icon: UserIcon },
-    { id: "experience", label: "Experience", icon: Briefcase },
-    { id: "education", label: "Education", icon: GraduationCap },
-    { id: "skills", label: "Skills", icon: Star },
-    { id: "projects", label: "Projects", icon: FolderOpen },
-    { id: "certifications", label: "Certifications", icon: BadgeCheck },
-    { id: "awards", label: "Awards", icon: Award },
-  ];
 
   return (
     <Form {...form}>

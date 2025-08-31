@@ -1,8 +1,7 @@
 "use client"
 
-import * as React from "react"
 import { ChevronDownIcon } from "lucide-react"
-
+import { useEffect, useState } from "react"
 import { Button } from "~/components/ui/button"
 import { Calendar } from "~/components/ui/calendar"
 import {
@@ -16,10 +15,32 @@ interface DatePickerProps {
   onSelect: (date: Date | undefined) => void;
   disabled?: boolean;
   isClearable: boolean;
+  startMonth?: Date;
+  endMonth?: Date;
 }
 
-export function DatePicker({ selectedDate, onSelect, disabled, isClearable }: Readonly<DatePickerProps>) {
-  const [open, setOpen] = React.useState(false)
+export function DatePicker({ selectedDate, onSelect, disabled, isClearable, startMonth = new Date(new Date().setFullYear(new Date().getFullYear() - 50)), endMonth }: Readonly<DatePickerProps>) {
+  const [open, setOpen] = useState(false)
+  const [month, setMonth] = useState<Date>(selectedDate || new Date())
+
+  const formatDate = (date: Date | undefined) => {
+    if (!date) {
+      return ""
+    }
+  
+    return date.toLocaleDateString("en-US", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    })
+  }
+  
+
+  useEffect(() => {
+    if (selectedDate) {
+      setMonth(selectedDate)
+    }
+  }, [selectedDate])
 
   return (
     <div className="flex flex-col gap-3">
@@ -30,7 +51,7 @@ export function DatePicker({ selectedDate, onSelect, disabled, isClearable }: Re
             id="date"
             className="justify-between font-normal"
           >
-            {selectedDate ? selectedDate.toLocaleDateString() : "Select date"}
+            {selectedDate ? formatDate(selectedDate) : "Select date"}
             <ChevronDownIcon />
           </Button>
         </PopoverTrigger>
@@ -38,12 +59,16 @@ export function DatePicker({ selectedDate, onSelect, disabled, isClearable }: Re
           <Calendar
             mode="single"
             selected={selectedDate}
+            month={month}
+            onMonthChange={setMonth}
             captionLayout="dropdown"
             onSelect={(date) => {
               onSelect(date)
               setOpen(false)
             }}
             disabled={disabled}
+            startMonth={startMonth}
+            endMonth={endMonth}
           />
 
           {isClearable ? <div className="w-full flex">

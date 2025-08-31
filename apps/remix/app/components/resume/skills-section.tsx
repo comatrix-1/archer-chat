@@ -19,10 +19,19 @@ export function SkillsSection() {
 
   const handleAddSkill = (e: React.FormEvent) => {
     e.preventDefault();
-    if (currentSkill.trim()) {
-      append({
-        name: currentSkill.trim(),
-      });
+    if (!currentSkill.trim()) return;
+
+    const skillsToAdd = currentSkill
+      .split(',')
+      .map(skill => skill.trim())
+      .filter(skill => skill.length > 0);
+
+    if (skillsToAdd.length > 0) {
+      for (const skill of skillsToAdd) {
+        append({
+          name: skill,
+        });
+      }
       setCurrentSkill("");
     }
   };
