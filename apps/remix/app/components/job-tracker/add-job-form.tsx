@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { useCreateJobApplication } from '~/hooks/useJobApplications';
-import type { JobApplicationStatus } from '@project/trpc/server/job-application-router/schema';
+import type { JobApplicationStatus, ZJobApplicationWithRelations } from '@project/trpc/server/job-application-router/schema';
 import { Button } from '~/components/ui/button';
 import { Input } from '~/components/ui/input';
 import { Label } from '~/components/ui/label';
@@ -30,29 +30,15 @@ const statuses = [
   { id: 'OPEN', name: 'Open', color: 'bg-gray-300' },
 ];
 
-type JobFormData = {
-  companyName: string;
-  jobTitle: string;
-  status: string;
-  jobLink: string;
-  resume: string;
-  resumeId?: string; // Added to store the resume ID
-  coverLetter: string;
-  salary: string;
-  jobDescription: string;
-  remarks: string;
-};
-
 export function AddJobForm() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState<JobFormData>({
+  const [formData, setFormData] = useState<ZJobApplicationWithRelations>({
     companyName: '',
     jobTitle: '',
     status: 'APPLIED',
     jobLink: '',
-    resume: '',
     resumeId: '',
-    coverLetter: '',
+    coverLetterId: '',
     salary: '',
     jobDescription: '',
     remarks: '',
@@ -219,7 +205,7 @@ export function AddJobForm() {
                   id="salary"
                   name="salary"
                   type="text"
-                  value={formData.salary}
+                  value={formData.salary || undefined}
                   onChange={handleChange}
                   placeholder="e.g. $100,000"
                 />
@@ -232,7 +218,7 @@ export function AddJobForm() {
                 id="jobLink"
                 name="jobLink"
                 type="url"
-                value={formData.jobLink}
+                value={formData.jobLink || undefined}
                 onChange={handleChange}
                 placeholder="https://example.com/job/123"
               />
@@ -309,7 +295,7 @@ export function AddJobForm() {
               <Textarea
                 id="jobDescription"
                 name="jobDescription"
-                value={formData.jobDescription}
+                value={formData.jobDescription || undefined}
                 onChange={handleChange}
                 rows={3}
                 placeholder="Any additional notes about this application..."
@@ -321,7 +307,7 @@ export function AddJobForm() {
               <Textarea
                 id="remarks"
                 name="remarks"
-                value={formData.remarks}
+                value={formData.remarks || undefined}
                 onChange={handleChange}
                 rows={3}
                 placeholder="Any additional notes about this application..."

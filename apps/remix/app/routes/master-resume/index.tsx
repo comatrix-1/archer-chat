@@ -1,3 +1,4 @@
+import { EmploymentType, LocationType } from "@prisma/client";
 import { trpc } from "@project/trpc/client";
 import type {
   ZResumeWithRelations
@@ -89,15 +90,17 @@ export default function MasterResume() {
       const resumeData = {
         ...formData,
         userId: user.id,
-        isMaster: true
+        title: 'Master Resume',
+        awards: formData.awards || [],
+        certifications: formData.certifications || [],
+        educations: formData.educations || [],
+        experiences: formData.experiences || [],
+        projects: formData.projects || [],
+        skills: formData.skills || [],
+        contact: formData.contact || {},
       };
-
-      if (formData.id) {
-        await trpc.resume.update.mutate(resumeData);
-      } else {
-        const newResume = await trpc.resume.create.mutate(resumeData);
-        console.log("New resume created:", newResume);
-      }
+      
+      await trpc.resume.updateMaster.mutate(resumeData);
 
       console.log("Master resume saved successfully!");
     } catch (error) {
@@ -185,3 +188,4 @@ export default function MasterResume() {
     </Form>
   );
 }
+

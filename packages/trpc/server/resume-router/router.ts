@@ -4,7 +4,8 @@ import {
   resumeIdSchema, 
   resumeListSchema, 
   createResumeSchema, 
-  updateResumeSchema
+  updateResumeSchema,
+  updateMasterResumeSchema
 } from './schema';
 
 export const resumeRouter = router({
@@ -16,6 +17,16 @@ export const resumeRouter = router({
         throw new Error('Unauthorized');
       }
       return resumeService.createResume(input);
+    }),
+
+  // Update master resume
+  updateMaster: protectedProcedure
+    .input(updateMasterResumeSchema)
+    .mutation(async ({ input, ctx }) => {
+      if (input.userId !== ctx.user.id) {
+        throw new Error('Unauthorized');
+      }
+      return resumeService.updateMasterResume(input);
     }),
 
   // Get a single resume by ID

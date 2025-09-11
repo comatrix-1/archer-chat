@@ -1,384 +1,547 @@
-import type { Prisma } from '@prisma/client';
-import { TRPCError } from '@trpc/server';
-import { prisma } from '@project/prisma';
-import type { 
-  ZCreateResumeInput,
-  ZUpdateResumeInput,
-  ResumeWithRelations
-} from './schema';
-import { includeAllRelations } from './schema';
+import type { Prisma } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { prisma } from "@project/prisma";
+import type {
+	ZCreateResumeInput,
+	ZUpdateResumeInput,
+	ResumeWithRelations,
+	ZSafeResumeWithRelations,
+} from "./schema";
+import { includeAllRelations, ZSafeResumeWithRelationsSchema } from "./schema";
+import { logToFile } from "server/ai-router/router";
+
+// Helper function to handle creation of related entities
+const createRelatedEntities = async <T>(
+	tx: Prisma.TransactionClient,
+	resumeId: string,
+	entities: T[] | undefined,
+	entityName: keyof Prisma.ResumeUpdateInput,
+	transformFn: (item: T, resumeId: string) => any,
+) => {
+	if (!entities?.length) return;
+
+	const modelMap: Record<string, string> = {
+		awards: "award",
+		certifications: "certification",
+		educations: "education",
+		experiences: "experience",
+		projects: "project",
+		skills: "skill",
+	};
+
+	const prismaModelName = modelMap[entityName as string] || entityName;
+	const model = tx[prismaModelName as keyof typeof tx] as any;
+
+	if (!model || typeof model.create !== "function") {
+		console.error(
+			`Invalid model or create method not found for: ${entityName} (mapped to: ${prismaModelName})`,
+		);
+		return;
+	}
+
+	await Promise.all(
+		entities.map((item) => {
+			const data = {
+				...transformFn(item, resumeId),
+				id: crypto.randomUUID(),
+				resumeId,
+			};
+			return model.create({ data });
+		}),
+	);
+};
+
+// Map entity names to their corresponding Prisma model names
+const getPrismaModelName = (entityName: string): string => {
+	const modelMap: Record<string, string> = {
+		awards: "award",
+		certifications: "certification",
+		educations: "education",
+		experiences: "experience",
+		projects: "project",
+		skills: "skill",
+	};
+	return modelMap[entityName] || entityName;
+};
+
+// Helper function to handle updating of related entities
+const updateRelatedEntities = async <T extends { id?: string }>(
+	tx: Prisma.TransactionClient,
+	resumeId: string,
+	inputEntities: T[] | undefined,
+	existingEntities: any[],
+	entityName: keyof Prisma.ResumeUpdateInput,
+	transformFn: (item: T, resumeId: string) => any,
+) => {
+	if (!inputEntities && !existingEntities?.length) return;
+
+	const prismaModelName = getPrismaModelName(entityName as string);
+	const model = tx[prismaModelName as keyof typeof tx] as any;
+
+	if (!model) {
+		console.error(
+			`Model not found for: ${entityName} (mapped to: ${prismaModelName})`,
+		);
+		return;
+	}
+
+	const inputItems = inputEntities || [];
+
+	// Identify items to delete (exist in DB but not in input)
+	const inputIds = new Set(
+		inputItems.filter((item) => item.id).map((item) => item.id),
+	);
+	const itemsToDelete = existingEntities.filter(
+		(item) => !inputItems.some((i) => i.id === item.id),
+	);
+
+	if (itemsToDelete.length > 0) {
+		if (typeof model.delete === "function") {
+			await Promise.all(
+				itemsToDelete.map((item) => model.delete({ where: { id: item.id } })),
+			);
+		} else {
+			console.error(
+				`Delete method not available for model: ${prismaModelName}`,
+			);
+		}
+	}
+
+	// Create or update items
+	await Promise.all(
+		inputItems.map((item) => {
+			const data = transformFn(item, resumeId);
+			if (item.id) {
+				return model.update({ where: { id: item.id }, data });
+			}
+			// Create new item if it doesn't have an ID
+			return model.create({
+				data: {
+					...data,
+					id: crypto.randomUUID(),
+					resumeId,
+				},
+			});
+		}),
+	);
+};
+
+// Transform functions for each entity type
+const transformAward = (item: any, resumeId: string) => ({ ...item });
+const transformCertification = (item: any, resumeId: string) => ({ ...item });
+const transformEducation = (item: any, resumeId: string) => ({ ...item });
+const transformExperience = (item: any, resumeId: string) => ({ ...item });
+const transformProject = (item: any, resumeId: string) => ({ ...item });
+const transformSkill = (item: any, resumeId: string) => ({ ...item });
 
 export const resumeService = {
-  /**
-   * Create a new resume
-   */
-  async createResume(input: ZCreateResumeInput): Promise<ResumeWithRelations> {
-    try {
-      return await prisma.$transaction(async (tx) => {
-        // Create contact if provided, otherwise create an empty one
-        const contact = await tx.contact.create({
-          data: input.contact || {
-            fullName: '',
-            email: '',
-            phone: '',
-            address: '',
-            city: '',
-            country: '',
-            linkedin: '',
-            github: '',
-            portfolio: '',
-          },
-        });
+	/**
+	 * Create a new resume
+	 */
+	async createResume(input: ZCreateResumeInput): Promise<ResumeWithRelations> {
+		try {
+			logToFile({ type: "create", resume: input });
+			return await prisma.$transaction(async (tx) => {
+				const resume = await tx.resume.create({
+					data: {
+						title: input.title || "Untitled Resume",
+						summary: input.summary || "",
+						userId: input.userId,
+						isMaster: input.isMaster || false,
+					},
+				});
 
-        // Create the resume
-        const resume = await tx.resume.create({
-          data: {
-            title: input.title,
-            summary: input.summary ?? undefined,
-            userId: input.userId,
-            contactId: contact.id,
-          },
-          include: includeAllRelations,
-        });
+				if (input.contact) {
+					await tx.contact.create({
+						data: { ...input.contact, resumeId: resume.id },
+					});
+				}
 
-        // Helper function to create related items
-        const createRelatedItems = async <T extends { id?: string; resumeId?: string }>(
-          items: T[] | undefined,
-          createFn: (data: any) => Promise<any>,
-          transformFn: (item: T, resumeId: string) => any
-        ) => {
-          if (!items?.length) return [];
-          return Promise.all(
-            items.map(item => 
-              createFn(transformFn(item, resume.id))
-            )
-          );
-        };
+				await Promise.all([
+					createRelatedEntities(
+						tx,
+						resume.id,
+						input.awards,
+						"awards",
+						transformAward,
+					),
+					createRelatedEntities(
+						tx,
+						resume.id,
+						input.certifications,
+						"certifications",
+						transformCertification,
+					),
+					createRelatedEntities(
+						tx,
+						resume.id,
+						input.educations,
+						"educations",
+						transformEducation,
+					),
+					createRelatedEntities(
+						tx,
+						resume.id,
+						input.experiences,
+						"experiences",
+						transformExperience,
+					),
+					createRelatedEntities(
+						tx,
+						resume.id,
+						input.projects,
+						"projects",
+						transformProject,
+					),
+					createRelatedEntities(
+						tx,
+						resume.id,
+						input.skills,
+						"skills",
+						transformSkill,
+					),
+				]);
 
-        // Create all related items
-        await Promise.all([
-          createRelatedItems(
-            input.awards,
-            (data) => tx.award.create({ data }),
-            (item) => ({ ...item, resumeId: resume.id })
-          ),
-          createRelatedItems(
-            input.certifications,
-            (data) => tx.certification.create({ data }),
-            (item) => ({ ...item, resumeId: resume.id })
-          ),
-          createRelatedItems(
-            input.educations,
-            (data) => tx.education.create({ data }),
-            (item) => ({ ...item, resumeId: resume.id })
-          ),
-          createRelatedItems(
-            input.experiences,
-            (data) => tx.experience.create({ data }),
-            (item) => ({ ...item, resumeId: resume.id })
-          ),
-          createRelatedItems(
-            input.projects,
-            (data) => tx.project.create({ data }),
-            (item) => ({
-              ...item,
-              resumeId: resume.id,
-            })
-          ),
-          createRelatedItems(
-            input.skills,
-            (data) => tx.skill.create({ data }),
-            (item) => ({
-              ...item,
-              resumeId: resume.id,
-            })
-          ),
-        ]);
+				// Fetch the complete resume with all relations
+				const completeResume = await tx.resume.findUnique({
+					where: { id: resume.id },
+					include: includeAllRelations,
+				});
 
-        // Return the full resume with all relations
-        return tx.resume.findUniqueOrThrow({
-          where: { id: resume.id },
-          include: includeAllRelations,
-        }) as unknown as ResumeWithRelations;
-      });
-    } catch (error) {
-      console.error('Error creating resume:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to create resume',
-      });
-    }
-  },
+				if (!completeResume) {
+					throw new Error("Failed to fetch created resume");
+				}
 
-  /**
-   * Get a resume by ID with all relations
-   */
-  async getResume(id: string, userId: string): Promise<ResumeWithRelations> {
-    const resume = await prisma.resume.findFirst({
-      where: { id, userId },
-      include: includeAllRelations,
-    }) as Prisma.ResumeGetPayload<{ include: typeof includeAllRelations }> | null;
+				return completeResume as unknown as ResumeWithRelations;
+			});
+		} catch (error) {
+			console.error("Error creating resume:", error);
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message: "Failed to create resume",
+			});
+		}
+	},
 
-    if (!resume) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Resume not found',
-      });
-    }
+	/**
+	 * Get a resume by ID with all relations
+	 */
+	async getResume(
+		id: string,
+		userId: string,
+	): Promise<ZSafeResumeWithRelations> {
+		const resume = await prisma.resume.findUnique({
+			where: { id, userId },
+			include: includeAllRelations,
+		});
 
-    return resume as unknown as ResumeWithRelations;
-  },
+		if (!resume) {
+			throw new TRPCError({ code: "NOT_FOUND", message: "Resume not found" });
+		}
 
-  /**
-   * Update a resume
-   */
-  async updateResume(input: ZUpdateResumeInput, userId: string): Promise<ResumeWithRelations> {
-    return await prisma.$transaction(async (tx) => {
-      // First, verify the resume exists and belongs to the user
-      const existingResume = await tx.resume.findUnique({
-        where: { id: input.id },
-      });
+		return ZSafeResumeWithRelationsSchema.parse(resume);
+	},
 
-      if (!existingResume || existingResume.userId !== userId) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Resume not found',
-        });
-      }
+	/**
+	 * Update a resume
+	 */
+	async updateResume(
+		input: ZUpdateResumeInput,
+		userId: string,
+	): Promise<ResumeWithRelations> {
+		return await prisma.$transaction(async (tx) => {
+			// Verify the resume exists and belongs to the user
+			const existingResume = await tx.resume.findUnique({
+				where: { id: input.id },
+				include: { contact: true },
+			});
 
-      // Update the resume
-      const updateData: Prisma.ResumeUpdateInput = {
-        title: input.title,
-        summary: input.summary ?? undefined,
-      };
+			if (!existingResume || existingResume.userId !== userId) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Resume not found",
+				});
+			}
 
-      // Update contact if provided
-      if (input.contact) {
-        await tx.contact.update({
-          where: { id: existingResume.contactId },
-          data: input.contact,
-        });
-      }
+			// Update contact if provided
+			if (input.contact) {
+				// Update existing contact
+				await tx.contact.update({
+					where: { id: input.contact.id },
+					data: input.contact,
+				});
+			}
 
-      // Update the resume
-      await tx.resume.update({
-        where: { id: input.id },
-        data: updateData,
-      });
+			// Update the resume
+			const updatedResume = await tx.resume.update({
+				where: { id: input.id },
+				data: {
+					title: input.title,
+					summary: input.summary ?? undefined,
+				},
+				include: includeAllRelations,
+			});
 
-      // Helper function to update related items
-      const updateRelatedItems = async <T extends { id?: string; resumeId?: string }>(
-        items: T[] | undefined,
-        existingItems: any[],
-        createFn: (data: any) => Promise<any>,
-        updateFn: (id: string, data: any) => Promise<any>,
-        deleteFn: (id: string) => Promise<any>,
-        transformFn: (item: T, resumeId: string) => any
-      ) => {
-        if (!items && !existingItems?.length) return [];
-        
-        const inputItems = items || [];
-        const existingIds = new Set(existingItems.map(i => i.id));
-        const inputIds = new Set(inputItems.filter(i => i.id).map(i => i.id));
-        
-        // Delete removed items
-        const itemsToDelete = existingItems.filter(i => !inputIds.has(i.id));
-        await Promise.all(itemsToDelete.map(item => deleteFn(item.id)));
-        
-        // Update or create items
-        return Promise.all(
-          inputItems.map(item => {
-            const data = transformFn(item, existingResume.id);
-            return item.id && existingIds.has(item.id)
-              ? updateFn(item.id, data)
-              : createFn(data);
-          })
-        );
-      };
+			// Get existing related entities
+			const existing = await tx.resume.findUnique({
+				where: { id: input.id },
+				include: includeAllRelations,
+			});
 
-      // Get existing related items
-      const existing = await tx.resume.findUnique({
-        where: { id: input.id },
-        include: {
-          awards: true,
-          certifications: true,
-          educations: true,
-          experiences: true,
-          projects: true,
-          skills: true,
-        },
-      });
+			if (!existing) {
+				throw new TRPCError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: "Failed to fetch existing resume data",
+				});
+			}
 
-      if (!existing) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to fetch existing resume data',
-        });
-      }
+			// Update all related entities
+			await Promise.all([
+				updateRelatedEntities(
+					tx,
+					existingResume.id,
+					input.awards,
+					existing.awards,
+					"awards",
+					transformAward,
+				),
+				updateRelatedEntities(
+					tx,
+					existingResume.id,
+					input.certifications,
+					existing.certifications,
+					"certifications",
+					transformCertification,
+				),
+				updateRelatedEntities(
+					tx,
+					existingResume.id,
+					input.educations,
+					existing.educations,
+					"educations",
+					transformEducation,
+				),
+				updateRelatedEntities(
+					tx,
+					existingResume.id,
+					input.experiences,
+					existing.experiences,
+					"experiences",
+					transformExperience,
+				),
+				updateRelatedEntities(
+					tx,
+					existingResume.id,
+					input.projects,
+					existing.projects,
+					"projects",
+					transformProject,
+				),
+				updateRelatedEntities(
+					tx,
+					existingResume.id,
+					input.skills,
+					existing.skills,
+					"skills",
+					transformSkill,
+				),
+			]);
 
-      // Update all related items
-      await Promise.all([
-        updateRelatedItems(
-          input.awards,
-          existing.awards,
-          (data) => tx.award.create({ data }),
-          (id, data) => tx.award.update({ where: { id }, data }),
-          (id) => tx.award.delete({ where: { id } }),
-          (item) => ({
-            ...item,
-            resumeId: existingResume.id,
-          })
-        ),
-        updateRelatedItems(
-          input.certifications,
-          existing.certifications,
-          (data) => tx.certification.create({ data }),
-          (id, data) => tx.certification.update({ where: { id }, data }),
-          (id) => tx.certification.delete({ where: { id } }),
-          (item) => ({
-            ...item,
-            resumeId: existingResume.id,
-          })
-        ),
-        updateRelatedItems(
-          input.educations,
-          existing.educations,
-          (data) => tx.education.create({ data }),
-          (id, data) => tx.education.update({ where: { id }, data }),
-          (id) => tx.education.delete({ where: { id } }),
-          (item) => ({
-            ...item,
-            resumeId: existingResume.id,
-          })
-        ),
-        updateRelatedItems(
-          input.experiences,
-          existing.experiences,
-          (data) => tx.experience.create({ data }),
-          (id, data) => tx.experience.update({ where: { id }, data }),
-          (id) => tx.experience.delete({ where: { id } }),
-          (item) => ({
-            ...item,
-            resumeId: existingResume.id,
-          })
-        ),
-        updateRelatedItems(
-          input.projects,
-          existing.projects,
-          (data) => tx.project.create({ data }),
-          (id, data) => tx.project.update({ where: { id }, data }),
-          (id) => tx.project.delete({ where: { id } }),
-          (item) => ({
-            ...item,
-            resumeId: existingResume.id,
-          })
-        ),
-        updateRelatedItems(
-          input.skills,
-          existing.skills,
-          (data) => tx.skill.create({ data }),
-          (id, data) => tx.skill.update({ where: { id }, data }),
-          (id) => tx.skill.delete({ where: { id } }),
-          (item) => ({
-            ...item,
-            resumeId: existingResume.id,
-          })
-        ),
-      ]);
+			// Return the updated resume with all relations
+			return updatedResume as unknown as ResumeWithRelations;
+		});
+	},
 
-      // Return the full updated resume with all relations
-      const updatedResume = await tx.resume.findUniqueOrThrow({
-        where: { id: input.id },
-        include: includeAllRelations,
-      });
+	/**
+	 * Delete a resume
+	 */
+	async deleteResume(
+		id: string,
+		userId: string,
+	): Promise<{ success: boolean }> {
+		try {
+			return await prisma.$transaction(async (tx) => {
+				// First verify the resume exists and belongs to the user
+				const resume = await tx.resume.findUnique({
+					where: { id, userId },
+					include: { contact: true },
+				});
 
-      return updatedResume as unknown as ResumeWithRelations;
-    });
-  },
+				if (!resume) {
+					throw new TRPCError({
+						code: "NOT_FOUND",
+						message: "Resume not found or access denied",
+					});
+				}
 
-  /**
-   * Delete a resume
-   */
-  async deleteResume(id: string, userId: string): Promise<{ success: boolean }> {
-    try {
-      // First, verify the resume exists and belongs to the user
-      const resume = await prisma.resume.findUnique({
-        where: { id },
-      });
+				// Then delete the resume (cascading will handle other related records)
+				await tx.resume.delete({
+					where: { id },
+				});
 
-      if (!resume || resume.userId !== userId) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Resume not found',
-        });
-      }
+				return { success: true };
+			});
+		} catch (error) {
+			console.error("Error deleting resume:", error);
+			throw new TRPCError({
+				code: "INTERNAL_SERVER_ERROR",
+				message: "Failed to delete resume",
+			});
+		}
+	},
 
-      // Delete all related records and the resume in a transaction
-      await prisma.$transaction([
-        prisma.award.deleteMany({ where: { resumeId: id } }),
-        prisma.certification.deleteMany({ where: { resumeId: id } }),
-        prisma.education.deleteMany({ where: { resumeId: id } }),
-        prisma.experience.deleteMany({ where: { resumeId: id } }),
-        prisma.project.deleteMany({ where: { resumeId: id } }),
-        prisma.skill.deleteMany({ where: { resumeId: id } }),
-        // Delete the resume
-        prisma.resume.delete({ where: { id } }),
-      ]);
+	async getMasterResume(userId: string): Promise<ZSafeResumeWithRelations> {
+		const resume = await prisma.resume.findFirst({
+			where: {
+				userId,
+				isMaster: true,
+			},
+			include: includeAllRelations,
+		});
 
-      return { success: true };
-    } catch (error) {
-      console.error('Error deleting resume:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Failed to delete resume',
-      });
-    }
-  },
+		if (!resume) {
+			throw new TRPCError({
+				code: "NOT_FOUND",
+				message: "Master resume not found",
+			});
+		}
 
-  /**
-   * Get the master resume for a user
-   */
-  async getMasterResume(userId: string): Promise<ResumeWithRelations> {
-    const resume = await prisma.resume.findFirst({
-      where: { 
-        userId,
-        isMaster: true 
-      },
-      include: includeAllRelations,
-    }) as Prisma.ResumeGetPayload<{ include: typeof includeAllRelations }> | null;
+		return ZSafeResumeWithRelationsSchema.parse(resume);
+	},
 
-    if (!resume) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Master resume not found',
-      });
-    }
+	/**
+	 * Update the master resume for a user
+	 */
+	async updateMasterResume(
+		input: Omit<ZUpdateResumeInput, "id" | "isMaster"> & { userId: string },
+	): Promise<ResumeWithRelations> {
+		return prisma.$transaction(async (tx) => {
+			// Find the master resume
+			const existing = await tx.resume.findFirst({
+				where: {
+					userId: input.userId,
+					isMaster: true,
+				},
+				include: includeAllRelations,
+			});
 
-    return resume as unknown as ResumeWithRelations;
-  },
+			if (!existing) {
+				throw new TRPCError({
+					code: "NOT_FOUND",
+					message: "Master resume not found",
+				});
+			}
 
-  /**
-   * List resumes for a user
-   */
-  async listResumes(
-    userId: string,
-    limit = 20,
-    cursor?: string
-  ): Promise<{ items: ResumeWithRelations[]; nextCursor?: string }> {
-    const items = (await prisma.resume.findMany({
-      where: { userId },
-      take: limit + 1, // Get one extra to determine next cursor
-      cursor: cursor ? { id: cursor } : undefined,
-      orderBy: { id: 'desc' }, // Using id for consistent ordering
-      include: includeAllRelations,
-    })) as unknown as ResumeWithRelations[];
+			// Update contact if provided
+			if (input.contact) {
+				// Update existing contact
+				await tx.contact.update({
+					where: { id: input.contact.id },
+					data: {
+						fullName: input.contact.fullName,
+						email: input.contact.email,
+						phone: input.contact.phone,
+						address: input.contact.address,
+						city: input.contact.city,
+						country: input.contact.country,
+						linkedin: input.contact.linkedin,
+						github: input.contact.github,
+						portfolio: input.contact.portfolio,
+					},
+				});
+			}
 
-    let nextCursor: string | undefined;
-    if (items.length > limit) {
-      const nextItem = items.pop();
-      nextCursor = nextItem?.id;
-    }
+			// Update the resume
+			await tx.resume.update({
+				where: { id: existing.id },
+				data: {
+					title: input.title,
+					summary: input.summary ?? undefined,
+				},
+			});
 
-    return { items, nextCursor };
-  },
+			// Update related entities
+			await Promise.all([
+				updateRelatedEntities(
+					tx,
+					existing.id,
+					input.awards,
+					existing.awards,
+					"awards",
+					transformAward,
+				),
+				updateRelatedEntities(
+					tx,
+					existing.id,
+					input.certifications,
+					existing.certifications,
+					"certifications",
+					transformCertification,
+				),
+				updateRelatedEntities(
+					tx,
+					existing.id,
+					input.educations,
+					existing.educations,
+					"educations",
+					transformEducation,
+				),
+				updateRelatedEntities(
+					tx,
+					existing.id,
+					input.experiences,
+					existing.experiences,
+					"experiences",
+					transformExperience,
+				),
+				updateRelatedEntities(
+					tx,
+					existing.id,
+					input.projects,
+					existing.projects,
+					"projects",
+					transformProject,
+				),
+				updateRelatedEntities(
+					tx,
+					existing.id,
+					input.skills,
+					existing.skills,
+					"skills",
+					transformSkill,
+				),
+			]);
+
+			// Return the updated resume with all relations
+			return tx.resume.findUniqueOrThrow({
+				where: { id: existing.id },
+				include: includeAllRelations,
+			}) as unknown as ResumeWithRelations;
+		});
+	},
+
+	/**
+	 * List resumes for a user
+	 */
+	async listResumes(
+		userId: string,
+		limit = 20,
+		cursor?: string,
+	): Promise<{ items: ResumeWithRelations[]; nextCursor?: string }> {
+		const items = (await prisma.resume.findMany({
+			where: { userId },
+			take: limit + 1, // Get one extra to determine next cursor
+			cursor: cursor ? { id: cursor } : undefined,
+			orderBy: { id: "desc" }, // Using id for consistent ordering
+			include: includeAllRelations,
+		})) as ResumeWithRelations[];
+
+		let nextCursor: string | undefined;
+		if (items.length > limit) {
+			const nextItem = items.pop();
+			nextCursor = nextItem?.id;
+		}
+
+		return { items, nextCursor };
+	},
 };

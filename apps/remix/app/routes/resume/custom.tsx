@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import { createPageUrl } from '~/utils/create-page-url';
 import { BrainCircuit, CheckCircle, AlertTriangle } from 'lucide-react';
@@ -7,36 +7,9 @@ import { Card, CardContent } from '~/components/ui/card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useJobApplication } from '~/hooks/useJobApplications';
 import { useAuth } from '~/contexts/AuthContext';
-import type { ZJobApplicationWithRelations } from '@project/trpc/server/job-application-router/schema';
-import { useMasterResume } from '~/hooks/useResume';
 import { useGenerateResume } from '~/hooks/useAI';
 
-type Status = 'idle' | 'fetching_job_app' | 'fetching_master_resume' | 'invoking_ai' | 'creating_resume' | 'done' | 'error';
-
-type AIPromptResponse = {
-    summary: string;
-    experiences: Array<{
-        title: string;
-        employmentType: string;
-        company: string;
-        location: string;
-        locationType: string;
-        startDate: string;
-        endDate: string;
-        description: string;
-    }>;
-    skills: Array<{
-        name: string;
-        proficiency: string;
-        category: string;
-    }>;
-    projects: Array<{
-        name: string;
-        description: string;
-        technologies: string[];
-    }>;
-};
-
+type Status = 'idle' | 'fetching_master_resume' | 'invoking_ai' | 'creating_resume' | 'done' | 'error';
 interface StatusItemProps {
     icon: React.ComponentType<{ className?: string }>;
     text: string;
@@ -65,17 +38,16 @@ const StatusItem = ({ icon: Icon, text, isDone, isActive }: StatusItemProps) => 
 );
 
 export default function AICustomizeResume() {
-    console.log('AICustomizeResume()')
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
-    const [status, setStatus] = useState<string>('idle');
+    const [status, setStatus] = useState<Status>('idle');
     const [error, setError] = useState<string | null>(null);
-
-    const jobApplicationId = searchParams.get('jobApplicationId') || '';
+    const jobApplicationId = useMemo(() => searchParams.get('jobApplicationId') || '', [searchParams]);
     const { user } = useAuth();
     const { data: jobApp, isLoading } = useJobApplication(jobApplicationId, user?.id || '');
+    const { mutateAsync } = useGenerateResume();
 
-    useEffect(() => {
+    const handleStartGeneration = async () => {
         if (!jobApplicationId) {
             setError('No job application was selected.');
             setStatus('error');
@@ -83,12 +55,10 @@ export default function AICustomizeResume() {
         }
 
         if (jobApplicationId && user) {
-            startProcess(jobApplicationId);
+            setStatus('fetching_master_resume');
+            await startProcess(jobApplicationId);
         }
-    }, [jobApplicationId, user]);
-
-    const { data: masterResume } = useMasterResume();
-    const { mutateAsync } = useGenerateResume();
+    };
 
     const startProcess = async (jobApplicationId: string) => {
         if (!user) {
@@ -98,38 +68,25 @@ export default function AICustomizeResume() {
         }
 
         try {
-            // 1. Fetch Master Resume
             setStatus('fetching_master_resume');
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-            setTimeout(() => {
-                setStatus('invoking_ai');
-            }, 1000);
-
+            setStatus('invoking_ai');
             const aiResult = await mutateAsync({ jobApplicationId });
-
-            // TODO: Implement your InvokeLLM function or use your preferred LLM service
-            //   const aiResult = await InvokeLLM<AIPromptResponse>({
-            //     prompt,
-            //     response_json_schema: schema,
-            //   });
-
-            //   if (!aiResult?.summary) {
-            //     throw new Error("The AI failed to generate a valid resume. Please try again.");
-            //   }
-
-            // 3. Create new resume
-            setStatus('creating_resume');
             console.log('aiResult', aiResult);
-            // TODO: Implement saveCustomizedResume using your API/trpc
-            // const newResume = await saveCustomizedResume(user.id, masterResume.id, jobApplication.id, aiResult);
+            await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // 4. Done - Navigate
+            setStatus('creating_resume');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
             if (aiResult.status === 'success') {
                 setStatus('done');
+                setTimeout(() => {
+                    navigate(createPageUrl('resume'));
+                }, 3000);
+            } else {
+                throw new Error('Failed to generate resume');
             }
-            setTimeout(() => {
-                navigate(createPageUrl('resume'));
-            }, 1000);
         } catch (e) {
             console.error(e);
             setError(e instanceof Error ? e.message : 'An unknown error occurred');
@@ -137,76 +94,7 @@ export default function AICustomizeResume() {
         }
     };
 
-    const createPrompt = (resume: any, jobApp: ZJobApplicationWithRelations) => {
-        const jobDescription = `Job Title: ${jobApp.jobTitle} at ${jobApp.companyName}. Job Description: ${jobApp.remarks || 'No description provided'}`;
-
-        // Create a clean copy without unnecessary fields
-        const { id, userId, isMaster, contactId, ...cleanResume } = resume;
-
-        return `You are an expert resume writer. Your task is to customize a master resume for a specific job description.
-    Analyze the master resume content and the job description provided.
-    Rewrite the resume's summary and the descriptions of experiences and projects to highlight the most relevant qualifications and achievements for this specific job.
-    Ensure keywords from the job description are naturally integrated.
-    The output must be a JSON object matching the provided schema. Do not include any other text.
-
-    MASTER RESUME CONTENT:
-    ${JSON.stringify(cleanResume, null, 2)}
-
-    JOB DESCRIPTION:
-    ${jobDescription}`;
-    };
-
-    const createResponseSchema = () => ({
-        type: "object",
-        properties: {
-            summary: { type: "string", description: "A professional summary customized for the job." },
-            experiences: {
-                type: "array",
-                items: {
-                    type: "object",
-                    properties: {
-                        title: { type: "string" },
-                        employmentType: { type: "string" },
-                        company: { type: "string" },
-                        location: { type: "string" },
-                        locationType: { type: "string" },
-                        startDate: { type: "string", format: "date-time" },
-                        endDate: { type: "string", format: "date-time" },
-                        description: { type: "string", description: "Customized bullet points for this experience." }
-                    },
-                    required: ["title", "company", "startDate", "description"]
-                }
-            },
-            skills: {
-                type: "array",
-                items: {
-                    type: "object",
-                    properties: {
-                        name: { type: "string" },
-                        proficiency: { type: "string" },
-                        category: { type: "string" }
-                    },
-                    required: ["name", "proficiency", "category"]
-                }
-            },
-            projects: {
-                type: "array",
-                items: {
-                    type: "object",
-                    properties: {
-                        name: { type: "string" },
-                        description: { type: "string", description: "Customized description for this project." },
-                        technologies: { type: "array", items: { type: "string" } }
-                    },
-                    required: ["name", "description"]
-                }
-            }
-        },
-        required: ["summary", "experiences", "skills", "projects"]
-    });
-
     const steps = [
-        { id: 'fetching_job_app', text: 'Analyzing Job Application...', icon: AlertTriangle },
         { id: 'fetching_master_resume', text: 'Loading Your Master Resume...', icon: AlertTriangle },
         { id: 'invoking_ai', text: 'AI is crafting your new resume...', icon: BrainCircuit },
         { id: 'creating_resume', text: 'Saving your customized resume...', icon: CheckCircle },
@@ -222,25 +110,6 @@ export default function AICustomizeResume() {
         );
     }
 
-    if (status === 'error' || error) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-                <Card className="w-full max-w-md">
-                    <CardContent className="p-6">
-                        <div className="text-center space-y-4">
-                            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto" />
-                            <h2 className="text-2xl font-bold text-slate-800">Error</h2>
-                            <p className="text-slate-600">{error || 'An unknown error occurred'}</p>
-                            <Button onClick={() => window.history.back()} className="mt-4">
-                                Go Back
-                            </Button>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-        );
-    }
-
     return (
         <div className="p-4 md:p-8 max-w-2xl mx-auto flex flex-col items-center justify-center min-h-screen">
             <motion.div
@@ -252,14 +121,23 @@ export default function AICustomizeResume() {
                     <CardContent className="p-8">
                         <div className="text-center mb-8">
                             <h1 className="text-3xl font-bold text-slate-900 mb-2">Resume Customization</h1>
-                            <p className="text-slate-600 text-lg">
-                                Please wait while we tailor your resume for{' '}
+                            <p className="text-slate-600 text-lg mb-6">
+                                We'll tailor your resume for{' '}
                                 <span className="font-semibold text-amber-600">{jobApp?.jobTitle || 'the position'}</span>.
                             </p>
+                            {status === 'idle' && (
+                                <Button
+                                    onClick={handleStartGeneration}
+                                    className="bg-amber-600 hover:bg-amber-700 px-8 py-6 text-lg"
+                                    size="lg"
+                                >
+                                    Start Customization
+                                </Button>
+                            )}
                         </div>
 
                         <AnimatePresence>
-                            {status !== 'error' && status !== 'done' && (
+                            {status !== 'idle' && status !== 'error' && status !== 'done' && (
                                 <motion.div
                                     key="status-list"
                                     className="space-y-4"
@@ -310,7 +188,6 @@ export default function AICustomizeResume() {
                                 </motion.div>
                             )}
                         </AnimatePresence>
-
                     </CardContent>
                 </Card>
             </motion.div>

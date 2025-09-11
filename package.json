@@ -14,6 +14,7 @@
     "prisma:migrate-dev": "npm run with:env -- npm run prisma:migrate-dev -w @project/prisma",
     "prisma:migrate-deploy": "npm run with:env -- npm run prisma:migrate-deploy -w @project/prisma",
     "prisma:migrate-reset": "npm run with:env -- npm run prisma:migrate-reset -w @project/prisma",
+    "prisma:migrate-resolve": "npm run with:env -- npm run prisma:migrate-resolve -w @project/prisma",
     "prisma:seed": "npm run with:env -- npm run prisma:seed -w @project/prisma",
     "prisma:studio": "npm run with:env -- npm run prisma:studio -w @project/prisma",
     "test": "echo \"Error: no test specified\" && exit 1",

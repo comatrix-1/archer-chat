@@ -62,6 +62,11 @@ export const jobApplicationService = {
 		return jobApplication;
 	},
 
+	async getJobDescription(id: string, userId: string) {
+		const jobApplication = await this.getJobApplication(id, userId);
+		return jobApplication.jobDescription;
+	},
+
 	/**
 	 * Update a job application
 	 */

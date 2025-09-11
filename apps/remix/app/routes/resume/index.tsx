@@ -30,6 +30,7 @@ import { trpc } from "@project/trpc/client";
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { supabase } from "~/utils/supabaseClient";
 import JobApplicationSelectorDialog from "~/components/applications/JobApplicationSelectorDialog";
+import { useDeleteResume } from "~/hooks/useResume";
 
 export default function Resumes() {
   const [resumeList, setResumeList] = useState<ZResumeWithRelations[]>([]);
@@ -39,6 +40,7 @@ export default function Resumes() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const navigate = useNavigate();
+  const { mutateAsync: deleteResume } = useDeleteResume();
 
   useEffect(() => {
     loadResumes();
@@ -78,7 +80,7 @@ export default function Resumes() {
   const handleDelete = async () => {
     if (deleteId) {
       try {
-        // await Resume.delete(deleteId); // TODO: add delete functionality
+        await deleteResume({ id: deleteId });
         setResumeList((prev) => prev.filter((resume) => resume.id !== deleteId));
         setDeleteId(null);
       } catch (error) {

@@ -1,0 +1,180 @@
+{
+  "type": "create",
+  "timestamp": "2025-09-10T14:09:24.639Z",
+  "resume": {
+    "summary": "",
+    "experiences": [
+      {
+        "title": "Apps Software Engineer",
+        "employmentType": "FULL_TIME",
+        "company": "NCS",
+        "location": "Singapore",
+        "locationType": "ON_SITE",
+        "startDate": "2022-09-06T00:00:00.000Z",
+        "endDate": null
+      }
+    ],
+    "educations": [
+      {
+        "school": "Bachelor of Business Management",
+        "degree": "Singapore Management University",
+        "fieldOfStudy": "Businses Management",
+        "startDate": "2018-08-01T00:00:00.000Z",
+        "endDate": "2022-05-01T00:00:00.000Z",
+        "gpa": 3.72,
+        "location": "Singapore",
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Placed on Dean's List for AY 2018/2019 &amp; 2019/2020</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Major in operations management</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Relevant coursework: Spreadsheet Modelling &amp; Analysis, Project Management</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Relevant coursework: Spreadsheet Modelling &amp; Analysis, Supply Chain Management, Global Supply Chains</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Member of Beta Gamma Sigma international business honour society</p>"
+      },
+      {
+        "school": "Singapore Polytechnic",
+        "degree": "Diploma in Business Innovation & Design",
+        "fieldOfStudy": "Business Administration",
+        "startDate": "2013-04-01T00:00:00.000Z",
+        "endDate": "2016-03-01T00:00:00.000Z",
+        "gpa": 0,
+        "location": null,
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Projects involving design thinking, from conducting user interviews to developing prototypes</p>"
+      }
+    ],
+    "skills": [
+      {
+        "name": "HTML"
+      },
+      {
+        "name": "CSS"
+      },
+      {
+        "name": "Javascript"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "Express"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "SQL"
+      },
+      {
+        "name": "Java"
+      },
+      {
+        "name": "Spring Boot"
+      },
+      {
+        "name": "Angular"
+      },
+      {
+        "name": "Jenkins"
+      },
+      {
+        "name": "Docker"
+      },
+      {
+        "name": "Azure DevOps"
+      },
+      {
+        "name": "Figma"
+      }
+    ],
+    "projects": [
+      {
+        "title": "Inventory Management Project – Cloud Native Solution on AWS",
+        "startDate": "2023-08-01T00:00:00.000Z",
+        "endDate": "2023-11-01T00:00:00.000Z"
+      },
+      {
+        "title": "Side Project – Hyqueue on Github, fork of QueueSG",
+        "startDate": "2025-08-31T12:44:05.198Z",
+        "endDate": null
+      },
+      {
+        "title": "Portfolio Project - Weather App",
+        "startDate": "2025-01-01T00:00:00.000Z",
+        "endDate": "2025-01-01T00:00:00.000Z"
+      }
+    ],
+    "awards": [
+      {
+        "title": "Country Champion (Singapore)",
+        "issuer": "The 3M Inspire Challenge 2021",
+        "date": "2021-08-01T00:00:00.000Z",
+        "description": "<ul><li><p>Participants could choose to propose solutions for one of the three themes: (1) Sustainable Materials, (2) The New Paradigm (a pandemic aware world), and (3) Equity (through science and technology).</p></li><li><p>The 3M Inspire Challenge took place across two stages. The first stage, known as the Country-Level Semi-Finals, saw students face-off against their local peers in a live judging panel on October 21, 26 &amp; 27, 2022. The winners of this stage were crowned the title of “Country Champion”, awarded a cash prize of USD$2,000, and internships at local 3M offices.</p></li></ul>"
+      }
+    ],
+    "certifications": [
+      {
+        "name": "Microsoft Certified Azure Developer Associate – Microsoft",
+        "issuer": "Microsoft",
+        "issueDate": "2025-06-21T00:00:00.000Z",
+        "expiryDate": "2026-06-21T00:00:00.000Z",
+        "credentialId": null,
+        "credentialUrl": null
+      },
+      {
+        "name": "ICT Assessment Certification for Software Developer (GovTech)",
+        "issuer": "NUS-ISS",
+        "issueDate": "2024-11-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": null,
+        "credentialUrl": null
+      },
+      {
+        "name": "Career Essentials in Generative AI by Microsoft and LinkedIn",
+        "issuer": "LinkedIn",
+        "issueDate": "2024-10-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": null,
+        "credentialUrl": null
+      },
+      {
+        "name": "Managing Digital Products",
+        "issuer": "NUS-ISS",
+        "issueDate": "2024-10-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": null,
+        "credentialUrl": null
+      },
+      {
+        "name": "Architecting Scalable Systems (Graduate Certificate)",
+        "issuer": "NUS-ISS",
+        "issueDate": "2024-02-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": null,
+        "credentialUrl": null
+      },
+      {
+        "name": "Microsoft Azure Fundamentals (AZ-900)",
+        "issuer": "Microsoft",
+        "issueDate": "2023-12-02T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": null,
+        "credentialUrl": null
+      },
+      {
+        "name": "Professional Scrum Master™ I (PSM I)",
+        "issuer": "scrum.org",
+        "issueDate": "2022-09-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": null,
+        "credentialUrl": null
+      }
+    ],
+    "contact": {
+      "fullName": "",
+      "email": "",
+      "phone": "",
+      "address": "",
+      "city": "",
+      "country": "",
+      "linkedin": "",
+      "github": "",
+      "portfolio": ""
+    },
+    "isMaster": false,
+    "userId": "ee434a62-6aab-4303-82cd-9e2b8365573f"
+  }
+}

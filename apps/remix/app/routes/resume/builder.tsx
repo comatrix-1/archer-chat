@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { Button } from "~/components/ui/button";
 import { Form } from "~/components/ui/form";
 import { trpc } from "@project/trpc/client";
@@ -13,7 +13,8 @@ import { ArrowLeft, FileText, Save } from "lucide-react";
 
 export default function ResumeBuilder() {
   const navigate = useNavigate();
-  const { id } = useParams<{ id?: string }>();
+  const [searchParams] = useSearchParams();
+  const id = searchParams.get('id') || undefined;
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [user, setUser] = useState<{ id: string; email: string }>();
@@ -45,8 +46,7 @@ export default function ResumeBuilder() {
   });
 
   const { data: resume, isLoading: isResumeLoading } = useResume(
-    id || '',
-    user?.id || ''
+    id ?? '',
   );
 
   useEffect(() => {
@@ -79,11 +79,10 @@ export default function ResumeBuilder() {
           return;
         }
 
-        // If we have an ID, load the existing resume
         if (resume) {
+          console.log('resume exists, setting resume in form: ', resume)
           form.reset({ ...defaultValues, ...resume });
         } else if (!isResumeLoading) {
-          // If resume not found and loading is complete, redirect to resume list
           navigate(createPageUrl("resume"));
         }
       } catch (error) {
@@ -104,7 +103,14 @@ export default function ResumeBuilder() {
       const resumeData = {
         ...formData,
         userId: user.id,
-        isMaster: false
+        isMaster: false,
+        awards: formData.awards || [],
+        certifications: formData.certifications || [],
+        educations: formData.educations || [],
+        experiences: formData.experiences || [],
+        projects: formData.projects || [],
+        skills: formData.skills || [],
+        contact: formData.contact || {},
       };
 
       if (formData.id) {

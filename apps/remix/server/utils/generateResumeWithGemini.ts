@@ -1,7 +1,5 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
-import { GoogleGenAI } from "@google/genai";
+import type { Schema } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 
 interface GenerateResumeParams {
   title: string;
@@ -25,88 +23,188 @@ export async function generateResumeWithGemini({
   let lastError: Error | null = null;
 
   while (attempt < MAX_RETRIES) {
-    const ai = new GoogleGenAI({ apiKey: apiKey });
+    const genAI = new GoogleGenAI({ apiKey });
 
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = path.dirname(__filename);
-    const fullPrismaSchemaText = readFileSync(
-      path.resolve(__dirname, "../../prisma/schema.prisma"),
-      "utf-8",
-    );
-
-    const dependentModelNames = [
-      "Experience",
-      "Education",
-      "Skill",
-      "Awards",
-      "LicenseCertification",
-      "Project",
-    ];
-    const relevantEnumNames = [
-      "EmploymentType",
-      "LocationType",
-      "SkillCategory",
-      "SkillProficiency",
-    ];
-
-    const schemaParts: string[] = [];
-
-    const minimalResumeModelString = `
-model Resume {
-  objective             String?
-  experiences           Experience[]
-  educations            Education[]
-  skills                Skill[]
-  awards                Awards[]
-  licenseCertifications LicenseCertification[]
-  projects              Project[]
-}`;
-    schemaParts.push(minimalResumeModelString.trim());
-
-    function extractDefinition(
-      name: string,
-      type: "model" | "enum",
-      sourceText: string,
-    ): string | null {
-      const regex = new RegExp(
-        `(^|\\n)${type} ${name}\\s*\\{[\\s\\S]*?\\n\\}`,
-        "gm",
-      );
-      const matches = sourceText.match(regex);
-      if (matches && matches.length > 0) {
-        return matches[0].trim();
-      }
-      console.warn(
-        `Schema definition for ${type} ${name} not found in prisma.schema.`,
-      );
-      return null;
-    }
-
-    for (const name of dependentModelNames) {
-      const definition = extractDefinition(name, "model", fullPrismaSchemaText);
-      if (definition) schemaParts.push(definition);
-    }
-
-    for (const name of relevantEnumNames) {
-      const definition = extractDefinition(name, "enum", fullPrismaSchemaText);
-      if (definition) schemaParts.push(definition);
+    const responseSchema: Schema = {
+      type: Type.OBJECT,
+      properties: {
+        summary: {
+          type: Type.STRING,
+          description: "A professional summary customized for the job.",
+        },
+        experiences: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              employmentType: {
+                type: Type.STRING,
+                enum: [
+                  "FULL_TIME",
+                  "PART_TIME",
+                  "CONTRACT",
+                  "INTERNSHIP",
+                  "FREELANCE",
+                  "SELF_EMPLOYED",
+                ],
+              },
+              company: { type: Type.STRING },
+              location: { type: Type.STRING },
+              locationType: {
+                type: Type.STRING,
+                enum: ["ON_SITE", "REMOTE", "HYBRID"],
+              },
+              startDate: {
+                type: Type.STRING,
+                description:
+                  "Date in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)",
+              },
+              endDate: {
+                type: Type.STRING,
+                nullable: true,
+                description:
+                  "Date in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)",
+              },
+              description: {
+                type: Type.STRING,
+                description:
+                  "Customized bullet points for this experience, in HTML format.",
+              },
+            },
+            required: [
+              "title",
+              "employmentType",
+              "company",
+              "location",
+              "locationType",
+              "startDate",
+              "description",
+            ],
+          },
+        },
+        educations: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              school: { type: Type.STRING },
+              degree: { type: Type.STRING },
+              fieldOfStudy: { type: Type.STRING },
+              startDate: {
+                type: Type.STRING,
+                description:
+                  "Date in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)",
+              },
+              endDate: {
+                type: Type.STRING,
+                nullable: true,
+                description:
+                  "Date in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)",
+              },
+              gpa: { type: Type.NUMBER, nullable: true },
+              description: {
+                type: Type.STRING,
+                nullable: true,
+                description:
+                  "Customized description for this education, in HTML format.",
+              },
+            },
+            required: ["school", "degree", "fieldOfStudy", "startDate"],
+          },
+        },
+        skills: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+            },
+            required: ["name"],
+          },
+        },
+        projects: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              startDate: {
+                type: Type.STRING,
+                description:
+                  "Date in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)",
+              },
+              endDate: {
+                type: Type.STRING,
+                nullable: true,
+                description:
+                  "Date in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)",
+              },
+              description: {
+                type: Type.STRING,
+                nullable: true,
+                description:
+                  "Customized description for this project, in HTML format.",
+              },
+            },
+            required: ["title", "startDate"],
+          },
+        },
+        awards: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              title: { type: Type.STRING },
+              issuer: { type: Type.STRING },
+              date: {
+                type: Type.STRING,
+                nullable: true,
+                description:
+                  "Date in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)",
+              },
+              description: { type: Type.STRING, nullable: true },
+            },
+            required: ["title", "issuer"],
+          },
+        },
+        certifications: {
+          type: Type.ARRAY,
+          items: {
+            type: Type.OBJECT,
+            properties: {
+              name: { type: Type.STRING },
+              issuer: { type: Type.STRING },
+              issueDate: {
+                type: Type.STRING,
+                description:
+                  "Date in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ)",
+              },
+            },
+            required: ["name", "issuer", "issueDate"],
+          },
+        },
+      },
+      required: [
+        "summary",
+        "experiences",
+        "educations",
+        "skills",
+        "projects",
+        "awards",
+        "certifications",
+      ],
     };
-
-    const filteredPrismaSchema = schemaParts.join("\n\n");
 
     const prompt = `
     You are a professional resume generator. Given the following information (job title, job description, master resume), tailor the following master resume for the job into a resume of approximately 1-2 pages, in JSON format.
     You may re-word and re-phrase the content to make it more suitable for the job title and description.
-    The output JSON structure should closely match the structure of the provided prisma schema example below. There are only <schema><job-title><job-description><master-resume> brackets containing the information you need, ignore all other angled brackets. Some description fields such as experience description have HTML markup, please return the same HTML markup format, while making changes to content as necessary.
+    The output must be a valid JSON object that conforms to the provided schema. Some description fields such as experience description have HTML markup, please return the same HTML markup format, while making changes to content as necessary.
     Please ensure the resume is professional, highlights relevant skills and experiences, and is suitable for the specified job title.
-    Please ensure the output is a single, valid JSON object with no syntax errors. Pay close attention to commas required between elements in arrays and properties in objects.
 
-    <schema>
-${filteredPrismaSchema}
-</schema>\n
-    <job-title>${title}</job-title>\n-
-    <job-description>${jobDescription}</job-description>\n-
-    <master-resume>${JSON.stringify(resume, null, 2)}</master-resume>/n
+    Job Title: ${title}
+    Job Description: ${jobDescription}
+    Master Resume: ${JSON.stringify(resume, null, 2)}
 
     Please approach this step-by-step:
     1. Find key words and phrases from the job title and description.
@@ -124,29 +222,29 @@ ${filteredPrismaSchema}
     * Do NOT change the company names, job titles, or the dates of employment. These details are factual and must remain 100% accurate for legal reasons, but modify everything else in the resume to match the job post's requested skills and qualifications. 
     `;
 
-    let text = "";
     try {
       console.log(`Calling Gemini API (Attempt ${attempt + 1}/${MAX_RETRIES})`);
-      const response = await ai.models.generateContent({
-        model: "gemini-2.0-flash",
+      const result = await genAI.models.generateContent({
+        model: "gemini-1.5-flash",
         contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: responseSchema,
+        },
       });
+      const rawResponseText = result.text;
 
-      text = response.text || "";
+      if (!rawResponseText)
+        throw new Error(
+          "generateResumeWithGemini() nothing returned from GenAI"
+        );
 
-      let jsonString = text.trim();
-      const codeBlockMatch = jsonString.match(
-        /^```(?:json)?\s*([\s\S]*?)\s*```$/i,
-      );
-      if (codeBlockMatch) {
-        jsonString = codeBlockMatch[1].trim();
-      }
-
-      const resumeJson = JSON.parse(jsonString);
+      // The response text is already a JSON string because of responseMimeType.
+      const resumeJson = JSON.parse(rawResponseText);
 
       console.log(
         "generateResumeWithGemini() resume parsed successfully: ",
-        resumeJson,
+        resumeJson
       );
 
       return {
@@ -156,7 +254,7 @@ ${filteredPrismaSchema}
     } catch (e: any) {
       console.error(`Attempt ${attempt + 1} failed:`, e.message);
       lastError = new Error(
-        `Failed to parse AI response as JSON: ${e.message}\nRaw response: ${text}`,
+        `Failed to parse AI response as JSON: ${e.message}`
       );
       attempt++;
       if (attempt < MAX_RETRIES) {

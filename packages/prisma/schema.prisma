@@ -32,34 +32,33 @@ model Resume {
   title          String  @default("Resume")
   userId         String
   summary        String  @default("")
-  contactId      String  @unique
   isMaster       Boolean @default(false)
-
   experiences    Experience[]
   educations     Education[]
   skills         Skill[]
   awards         Award[]
   certifications Certification[]
   projects       Project[]
-
-  contact      Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   
+  contact        Contact? 
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
   jobApplications JobApplication[]
 }
 
 model Contact {
   id          String        @id @default(cuid())
-  fullName    String        @default("")
-  email       String        @default("")
-  phone       String        @default("")
+  fullName    String?       @default("")
+  email       String?       @default("")
+  phone       String?       @default("")
   address     String?       @default("")
   city        String?       @default("")
   country     String?       @default("")
   linkedin    String?       @default("")
   github      String?       @default("")
   portfolio   String?       @default("")
-  Resume      Resume?
+  resumeId    String?       @unique
+
+  resume      Resume?       @relation(fields: [resumeId], references: [id], onDelete: Cascade)
   CoverLetter CoverLetter[]
 }
 
@@ -216,6 +215,7 @@ model JobApplication {
   status        JobApplicationStatus @default(APPLIED)
   jobLink       String?
   salary        String?
+  jobDescription String?
   remarks       String?
 
   resumeId      String?

@@ -1,6 +1,6 @@
 import { trpc } from '@project/trpc/client';
 import { useMutation } from '@tanstack/react-query';
-import type { ZGenerateResumeInput, GenerateCoverLetterInput } from '@project/trpc/server/ai-router/schema';
+import type { ZGenerateResumeInput } from '@project/trpc/server/ai-router/schema';
 
 export function useGenerateResume() {
   return useMutation({

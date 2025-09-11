@@ -1,0 +1,311 @@
+{
+  "type": "AI router input",
+  "timestamp": "2025-09-10T13:51:23.144Z",
+  "resume": {
+    "isMaster": true,
+    "userId": "ee434a62-6aab-4303-82cd-9e2b8365573f",
+    "title": "Master Resume",
+    "summary": "",
+    "contact": {
+      "fullName": "",
+      "email": "",
+      "phone": "",
+      "address": "",
+      "city": "",
+      "country": "",
+      "linkedin": "",
+      "github": "",
+      "portfolio": ""
+    },
+    "awards": [
+      {
+        "title": "Country Champion (Singapore)",
+        "issuer": "The 3M Inspire Challenge 2021",
+        "date": "2021-08-01T00:00:00.000Z",
+        "description": "<ul><li><p>Participants could choose to propose solutions for one of the three themes: (1) Sustainable Materials, (2) The New Paradigm (a pandemic aware world), and (3) Equity (through science and technology).</p></li><li><p>The 3M Inspire Challenge took place across two stages. The first stage, known as the Country-Level Semi-Finals, saw students face-off against their local peers in a live judging panel on October 21, 26 &amp; 27, 2022. The winners of this stage were crowned the title of “Country Champion”, awarded a cash prize of USD$2,000, and internships at local 3M offices.</p></li></ul>"
+      }
+    ],
+    "certifications": [
+      {
+        "name": "Microsoft Certified Azure Developer Associate – Microsoft",
+        "issuer": "Microsoft",
+        "issueDate": "2025-06-21T00:00:00.000Z",
+        "expiryDate": "2026-06-21T00:00:00.000Z",
+        "credentialId": "",
+        "credentialUrl": ""
+      },
+      {
+        "name": "ICT Assessment Certification for Software Developer (GovTech)",
+        "issuer": "NUS-ISS",
+        "issueDate": "2024-11-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": "",
+        "credentialUrl": ""
+      },
+      {
+        "name": "Career Essentials in Generative AI by Microsoft and LinkedIn",
+        "issuer": "LinkedIn",
+        "issueDate": "2024-10-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": "c8ecec3f8583e4e743b82fc8c1d841fc1ae8640d44a20ad7c8a696d533a01136",
+        "credentialUrl": ""
+      },
+      {
+        "name": "Managing Digital Products",
+        "issuer": "NUS-ISS",
+        "issueDate": "2024-10-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": "",
+        "credentialUrl": ""
+      },
+      {
+        "name": "Architecting Scalable Systems (Graduate Certificate)",
+        "issuer": "NUS-ISS",
+        "issueDate": "2024-02-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": "",
+        "credentialUrl": ""
+      },
+      {
+        "name": "Microsoft Azure Fundamentals (AZ-900)",
+        "issuer": "Microsoft",
+        "issueDate": "2023-12-02T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": "",
+        "credentialUrl": ""
+      },
+      {
+        "name": "Professional Scrum Master™ I (PSM I)",
+        "issuer": "scrum.org",
+        "issueDate": "2022-09-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": "",
+        "credentialUrl": ""
+      }
+    ],
+    "educations": [
+      {
+        "school": "Bachelor of Business Management",
+        "degree": "Singapore Management University",
+        "fieldOfStudy": "Businses Management",
+        "startDate": "2018-08-01T00:00:00.000Z",
+        "endDate": "2022-05-01T00:00:00.000Z",
+        "gpa": 3.72,
+        "location": "Singapore",
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Placed on Dean's List for AY 2018/2019 &amp; 2019/2020</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Major in operations management</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Relevant coursework: Spreadsheet Modelling &amp; Analysis, Project Management</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Relevant coursework: Spreadsheet Modelling &amp; Analysis, Supply Chain Management, Global Supply Chains</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Member of Beta Gamma Sigma international business honour society</p>"
+      },
+      {
+        "school": "Singapore Polytechnic",
+        "degree": "Diploma in Business Innovation & Design",
+        "fieldOfStudy": "Business Administration",
+        "startDate": "2013-04-01T00:00:00.000Z",
+        "endDate": "2016-03-01T00:00:00.000Z",
+        "gpa": 0,
+        "location": null,
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Projects involving design thinking, from conducting user interviews to developing prototypes</p>"
+      }
+    ],
+    "experiences": [
+      {
+        "title": "Apps Software Engineer",
+        "employmentType": "FULL_TIME",
+        "company": "NCS",
+        "location": "Singapore",
+        "locationType": "ON_SITE",
+        "startDate": "2022-09-06T00:00:00.000Z",
+        "endDate": null,
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Successfully programmed, tested, and assessed 5+ API endpoints, meeting client requirements.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Programmed backend business logic for API with Java and Spring Boot according to client’s requirements</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Orchestrated testing using Swagger UI and Postman, ensuring API functionality and reliability.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Engineered frontend of a dashboard with Angular</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Led documentation of application functional specifications, detailing use cases, actors, and exceptions.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Reviewed security audits with Fortify Application Security and engineered fixes</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Contributed to a collaborative team environment, working closely with technical architects and development teams.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Utilised Agile methodologies to facilitate efficient project management and iterative development.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Led development on unit testing suite using Jest and React-Testing-Library which led to increased stability for code releases and a 50% decrease in bugs</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Assessed and implemented suggestions by Fortify Security and SonarQube, ensuring high quality code.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Designed API endpoints with interactions with Oracle SQL database.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Refined a client-facing web application through a cloud migration project, implementing React and Typescript.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Conducted integration testing with payment and data flows, ensuring end-to-end functionality.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Leveraged Linux and Microsoft SQL Server to troubleshoot and resolve user enquiries as application support.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Leveraged webpack to customise development and production builds for frontend application.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Collaborated with teammates effectively with Git versioning.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Conducted User Acceptance Testing, ensuring that software quality meets client requirements.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Utilised various application scan tools to identify and apply security enhancements.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Leveraged GitLab’s CI/CD pipeline to monitor and deploy Microservice applications.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Led UAT processes by documenting test cases, tracking bugs, and assisting with troubleshooting.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Developed internal system that integrated Jira with big data system, enhancing issue tracking and resolution.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Reviewed and diagnosed existing Spring Batch jobs in a team.</p>"
+      },
+      {
+        "title": "Intern",
+        "employmentType": "FULL_TIME",
+        "company": "Jolly Companion",
+        "location": "Singapore",
+        "locationType": "HYBRID",
+        "startDate": "2020-06-01T00:00:00.000Z",
+        "endDate": "2020-08-01T00:00:00.000Z",
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Discovered and unified past marketing strategies, reducing costs by S$30+/month</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Formulated a comprehensive business strategy for a new social enterprise within a 2-month period.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Designed and developed 10 web pages using WordPress, enhancing online presence.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Collaborated with a diverse team to brainstorm and implement effective business strategies.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Leveraged Yoast SEO to improve search performance.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Conceptualised UI design of webpage, landing page and theming.</p>"
+      },
+      {
+        "title": "Sales and Marketing Intern",
+        "employmentType": "FULL_TIME",
+        "company": "Calibrate",
+        "location": "Singapore",
+        "locationType": "ON_SITE",
+        "startDate": "2021-06-01T00:00:00.000Z",
+        "endDate": "2021-08-01T00:00:00.000Z",
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Drove usage of customer relationship management system used by marketing team</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Developed system for capturing 800+ sales data points across stages of marketing funnel</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Accelerated data ETL process by integrating Excel Power Query with file downloaded from Saleshandy, reducing time taken by 50%</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Designed a simplified organisational process flowchart with Figma and aligned staff to desired process</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Orchestrated a strong SEO foothold while closely with technical team.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Participated in User Acceptance Testing to refine key features before rollout.</p>"
+      },
+      {
+        "title": "Content Population Intern",
+        "employmentType": "FULL_TIME",
+        "company": "Accenture",
+        "location": "Singapore",
+        "locationType": "REMOTE",
+        "startDate": "2021-01-01T00:00:00.000Z",
+        "endDate": "2022-05-01T00:00:00.000Z",
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Collaborated across 3+ functional groups to author and standardize over 300 web pages and 2000+ FAQ pages.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Developed an internal bug-raising process, improving bug-related efficiency by 50%.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Trained 2 interns and 3+ employees on content authoring using Adobe Experience Manager.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Communicated and resolved queries raised through 1000+ bugs with relevant stakeholders.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Initiated change processes to further standardize web pages using inputs from various functional groups.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Managed project tasks and bug-tracking deliverables efficiently in an Agile Scrum team with Azure DevOps.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Facilitated communication with pertinent internal and external stakeholders, adeptly navigating towards mutually agreeable solutions.</p>"
+      }
+    ],
+    "projects": [
+      {
+        "title": "Inventory Management Project – Cloud Native Solution on AWS",
+        "startDate": "2023-08-01T00:00:00.000Z",
+        "endDate": "2023-11-01T00:00:00.000Z",
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Architected an inventory management system for a nonprofit organisation specialising in food donations.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Developed useful functions for public, staff and manager with loosely coupled microservices architecture.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Secure authentication empowers staff to perform CRUD (Create, Read, Update, Delete) operations with ease.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; DevOps and CI/ CD with Jenkins work seamlessly in the cloud to ensure maintainability.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Prepared test scripts for load testing using JMeter.</p>"
+      },
+      {
+        "title": "Side Project – Hyqueue on Github, fork of QueueSG",
+        "startDate": "2025-08-31T12:44:05.198Z",
+        "endDate": null,
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Integrated a user-friendly dashboard for administrators and staff to manage queues in real-time.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Utilised modern full-stack web technology Next.js and Typescript, ensuring a scalable application.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Optimised user experience by ensuring the system is intuitive and easy to navigate.</p>"
+      },
+      {
+        "title": "Portfolio Project - Weather App",
+        "startDate": "2025-01-01T00:00:00.000Z",
+        "endDate": "2025-01-01T00:00:00.000Z",
+        "description": "<p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Translated Figma wireframes to working, maintainable React, implementing CRUD.</p><p>·&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Tech stack: React, Typescript, Vite, Shadcn</p>"
+      }
+    ],
+    "skills": [
+      {
+        "name": "HTML"
+      },
+      {
+        "name": "CSS"
+      },
+      {
+        "name": "Javascript"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "Express"
+      },
+      {
+        "name": "Python"
+      },
+      {
+        "name": "SQL"
+      },
+      {
+        "name": "R"
+      },
+      {
+        "name": "RStudio"
+      },
+      {
+        "name": "SQLite"
+      },
+      {
+        "name": "MongoDB"
+      },
+      {
+        "name": "Bootstrap"
+      },
+      {
+        "name": "Chakra UI"
+      },
+      {
+        "name": "Tailwind CSS"
+      },
+      {
+        "name": "Java"
+      },
+      {
+        "name": "Spring Boot"
+      },
+      {
+        "name": "Angular"
+      },
+      {
+        "name": "Jenkins"
+      },
+      {
+        "name": "Docker"
+      },
+      {
+        "name": "Excel"
+      },
+      {
+        "name": "Excel Power Query"
+      },
+      {
+        "name": "Tableau"
+      },
+      {
+        "name": "Relational Database"
+      },
+      {
+        "name": "Database Design"
+      },
+      {
+        "name": "TIBCO Spotfire"
+      },
+      {
+        "name": "SPSS Statistics"
+      },
+      {
+        "name": "Photoshop"
+      },
+      {
+        "name": "Illustrator"
+      },
+      {
+        "name": "Premiere Pro"
+      },
+      {
+        "name": "After Effects"
+      },
+      {
+        "name": "Experience Manager"
+      },
+      {
+        "name": "Salesforce"
+      },
+      {
+        "name": "Project Management"
+      },
+      {
+        "name": "Slack"
+      },
+      {
+        "name": "ProjectLibre"
+      },
+      {
+        "name": "Content Management"
+      },
+      {
+        "name": "Design Thinking"
+      },
+      {
+        "name": "Lean Six Sigma"
+      },
+      {
+        "name": "Azure DevOps"
+      },
+      {
+        "name": "Marketing Analytics"
+      },
+      {
+        "name": "Figma"
+      },
+      {
+        "name": "Firebase"
+      },
+      {
+        "name": "Videography"
+      },
+      {
+        "name": "English"
+      },
+      {
+        "name": "Mandarin"
+      },
+      {
+        "name": "Thai"
+      }
+    ]
+  }
+}

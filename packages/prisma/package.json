@@ -17,6 +17,7 @@
     "prisma:migrate-dev": "prisma migrate dev --skip-seed",
     "prisma:migrate-deploy": "prisma migrate deploy",
     "prisma:migrate-reset": "prisma migrate reset",
+    "prisma:migrate-resolve": "prisma migrate resolve --applied ",
     "prisma:studio": "prisma studio"
   },
   "dependencies": {

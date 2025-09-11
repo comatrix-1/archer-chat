@@ -23,6 +23,7 @@ const JobApplicationSchema = z.object({
 	resumeId: z.string().cuid().nullable().optional(),
 	coverLetterId: z.string().cuid().nullable().optional(),
 	salary: z.string().nullable().optional(),
+	jobDescription: z.string().nullable().optional(),
 	remarks: z.string().nullable().optional(),
 	createdAt: z.date().optional(),
 	updatedAt: z.date().optional(),

@@ -1,0 +1,141 @@
+{
+  "timestamp": "2025-09-09T12:37:58.910Z",
+  "resume": {
+    "summary": "mockGeneratedResume3",
+    "experiences": [
+      {
+        "title": "Apps Software Engineer",
+        "employmentType": "FULL_TIME",
+        "company": "NCS",
+        "location": "Singapore",
+        "locationType": "ON_SITE",
+        "startDate": "2022-09-06T00:00:00.000Z",
+        "endDate": null,
+        "description": "<ul><li>Developed and maintained 5+ API endpoints using Java and Spring Boot, ensuring high performance and reliability.</li><li>Engineered frontend components using Angular, focusing on creating user-friendly and responsive interfaces.</li><li>Implemented comprehensive unit testing suites using Jest and React-Testing-Library, resulting in a 50% decrease in bugs and increased code stability.</li><li>Conducted security audits using Fortify Application Security and SonarQube, implementing necessary fixes to ensure code quality and security.</li><li>Designed and implemented API endpoints with interactions with Oracle SQL database.</li><li>Utilised Agile methodologies to facilitate efficient project management and iterative development.</li></ul>"
+      },
+      {
+        "title": "Content Population Intern",
+        "employmentType": "FULL_TIME",
+        "company": "Accenture",
+        "location": "Singapore",
+        "locationType": "REMOTE",
+        "startDate": "2021-01-01T00:00:00.000Z",
+        "endDate": "2022-05-01T00:00:00.000Z",
+        "description": "<ul><li>Collaborated across 3+ functional groups to author and standardize over 300 web pages and 2000+ FAQ pages.</li><li>Developed an internal bug-raising process, improving bug-related efficiency by 50%.</li><li>Trained 2 interns and 3+ employees on content authoring using Adobe Experience Manager.</li><li>Communicated and resolved queries raised through 1000+ bugs with relevant stakeholders.</li><li>Managed project tasks and bug-tracking deliverables efficiently in an Agile Scrum team with Azure DevOps.</li></ul>"
+      }
+    ],
+    "educations": [
+      {
+        "school": "Bachelor of Business Management",
+        "degree": "Singapore Management University",
+        "fieldOfStudy": "Businses Management",
+        "startDate": "2018-08-01T00:00:00.000Z",
+        "endDate": "2022-05-01T00:00:00.000Z",
+        "gpa": 3.72,
+        "location": null,
+        "description": null
+      }
+    ],
+    "skills": [
+      {
+        "name": "HTML"
+      },
+      {
+        "name": "CSS"
+      },
+      {
+        "name": "Javascript"
+      },
+      {
+        "name": "React"
+      },
+      {
+        "name": "Java"
+      },
+      {
+        "name": "Spring Boot"
+      },
+      {
+        "name": "Angular"
+      },
+      {
+        "name": "Jenkins"
+      },
+      {
+        "name": "Docker"
+      },
+      {
+        "name": "SQL"
+      },
+      {
+        "name": "Azure DevOps"
+      },
+      {
+        "name": "Agile Methodologies"
+      }
+    ],
+    "projects": [
+      {
+        "title": "Inventory Management Project – Cloud Native Solution on AWS",
+        "startDate": "2023-08-01T00:00:00.000Z",
+        "endDate": "2023-11-01T00:00:00.000Z"
+      },
+      {
+        "title": "Portfolio Project - Weather App",
+        "startDate": "2025-01-01T00:00:00.000Z",
+        "endDate": "2025-01-01T00:00:00.000Z"
+      },
+      {
+        "title": "Side Project – Hyqueue on Github, fork of QueueSG",
+        "startDate": "2025-08-31T12:44:05.198Z",
+        "endDate": null
+      }
+    ],
+    "awards": [
+      {
+        "title": "Country Champion (Singapore)",
+        "issuer": "The 3M Inspire Challenge 2021",
+        "date": "2021-08-01T00:00:00.000Z"
+      }
+    ],
+    "certifications": [
+      {
+        "name": "Microsoft Certified Azure Developer Associate – Microsoft",
+        "issuer": "Microsoft",
+        "issueDate": "2025-06-21T00:00:00.000Z",
+        "expiryDate": "2026-06-21T00:00:00.000Z",
+        "credentialId": null,
+        "credentialUrl": null
+      },
+      {
+        "name": "Microsoft Azure Fundamentals (AZ-900)",
+        "issuer": "Microsoft",
+        "issueDate": "2023-12-02T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": null,
+        "credentialUrl": null
+      },
+      {
+        "name": "Professional Scrum Master™ I (PSM I)",
+        "issuer": "scrum.org",
+        "issueDate": "2022-09-01T00:00:00.000Z",
+        "expiryDate": null,
+        "credentialId": null,
+        "credentialUrl": null
+      }
+    ],
+    "contact": {
+      "fullName": "fullName1",
+      "email": "",
+      "phone": "test1",
+      "address": "",
+      "city": "",
+      "country": "",
+      "linkedin": "",
+      "github": "",
+      "portfolio": ""
+    },
+    "isMaster": false,
+    "userId": "ee434a62-6aab-4303-82cd-9e2b8365573f"
+  }
+}
