@@ -263,15 +263,6 @@ export const resumeService = {
 				});
 			}
 
-			// Update contact if provided
-			if (input.contact) {
-				// Update existing contact
-				await tx.contact.update({
-					where: { id: input.contact.id },
-					data: input.contact,
-				});
-			}
-
 			// Update the resume
 			const updatedResume = await tx.resume.update({
 				where: { id: input.id },
@@ -293,6 +284,27 @@ export const resumeService = {
 					code: "INTERNAL_SERVER_ERROR",
 					message: "Failed to fetch existing resume data",
 				});
+			}
+
+			// Update contact if provided
+			if (input.contact) {
+				const contactData = {
+					...input.contact,
+					resumeId: existingResume.id,
+				};
+
+				if (existing.contact) {
+					// Update existing contact
+					await tx.contact.update({
+						where: { id: existing.contact.id },
+						data: contactData,
+					});
+				} else {
+					// Create new contact if none exists
+					await tx.contact.create({
+						data: contactData,
+					});
+				}
 			}
 
 			// Update all related entities

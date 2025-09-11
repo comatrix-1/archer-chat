@@ -15,7 +15,7 @@ import { supabase } from "~/utils/supabaseClient";
 export default function ResumeBuilder() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const id = searchParams.get('id') || undefined;
+  const id = searchParams.get('id') ?? "";
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [user, setUser] = useState<{ id: string; email: string }>();
@@ -97,6 +97,7 @@ export default function ResumeBuilder() {
     try {
       const resumeData = {
         ...formData,
+        id: id,
         userId: user.id,
         isMaster: false,
         awards: formData.awards || [],
@@ -107,7 +108,7 @@ export default function ResumeBuilder() {
         skills: formData.skills || [],
         contact: formData.contact || {},
       };
-      if (formData.id) {
+      if (id) {
         await trpc.resume.update.mutate(resumeData);
       } else {
         const newResume = await trpc.resume.create.mutate(resumeData);
