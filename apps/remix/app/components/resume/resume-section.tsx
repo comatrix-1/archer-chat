@@ -1,27 +1,21 @@
 import { Button } from "@project/remix/app/components/ui/button";
-import {
-  EResumeSteps,
-  type ResumeFormData,
-} from "@project/remix/app/types/resume";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft,
   Award,
   BadgeCheck,
   Briefcase,
-  FileText,
   FolderOpen,
   GraduationCap,
-  Save,
   Star,
-  User as UserIcon,
+  User as UserIcon
 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { useFormContext } from "react-hook-form";
 import { useNavigate } from "react-router";
-import { Form } from "~/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
-import { createPageUrl } from "~/utils/create-page-url";
+import { exportResumeToDocx } from "~/utils/docx-exporter";
+
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { AwardsSection } from "./awards-section";
 import CertificationSection from "./certification-section";
 import { BasicsSection } from "./contact-section";
@@ -29,7 +23,6 @@ import { EducationSection } from "./education-section";
 import ExperienceSection from "./experience-section";
 import ProjectSection from "./project-section";
 import { SkillsSection } from "./skills-section";
-import { SummarySection } from "./summary-section";
 
 type TUser = {
   id: string;
@@ -50,9 +43,24 @@ const ResumeSection = () => {
     { id: "awards", label: "Awards", icon: Award },
   ];
 
+  const form = useFormContext<ZResumeWithRelations>();
+
+  const exportToDocx = () => {
+    try {
+      exportResumeToDocx(form.getValues());
+      // toast.success("Resume exported successfully!"); // TODO: implement toast
+    } catch (error) {
+      console.error("Error exporting resume:", error);
+      // toast.error("Failed to export resume. Please try again."); // TODO: implement toast
+    }
+  };
+
   return (
     <div className="min-h-screen">
       <div className="mx-auto p-4 md:p-8">
+        <div className="flex justify-end mb-2">
+          <Button onClick={() => exportToDocx()}>Export to DOCX</Button>
+        </div>
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}

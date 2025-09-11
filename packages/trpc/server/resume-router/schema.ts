@@ -82,6 +82,7 @@ export const ZEducationSchema = z.object({
 	startDate: ZNullableDate.optional(),
 	endDate: ZNullableDate.optional(),
 	gpa: z.number().nullable().optional(),
+	gpaMax: z.number().nullable().optional(),
 	location: z.string().nullable().optional(),
 	description: z.string().nullable().optional(),
 	resumeId: z.string().cuid().optional(),
