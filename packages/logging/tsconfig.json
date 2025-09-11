@@ -1,0 +1,27 @@
+{
+	"$schema": "https://json.schemastore.org/tsconfig",
+	"display": "React Library",
+	"include": ["."],
+	"exclude": ["dist", "build", "node_modules"],
+	"compilerOptions": {
+		"alwaysStrict": true,
+		"strict": true,
+		"jsx": "preserve",
+		"lib": ["dom", "dom.iterable", "esnext"],
+		"module": "esnext",
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"forceConsistentCasingInFileNames": true,
+		"resolveJsonModule": true,
+		"baseUrl": ".",
+		"paths": {
+			"@project/lib/*": ["../../lib/*"],
+			"@project/lib/server-only/*": ["../../lib/server-only/*"],
+			"@project/prisma/*": ["../../prisma/*"]
+		},
+		"noEmit": true,
+		"declaration": false,
+		"declarationMap": false
+	}
+}

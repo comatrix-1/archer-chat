@@ -1,0 +1,27 @@
+{
+  "name": "@project/logging",
+  "version": "1.0.0",
+  "description": "Centralized logging package for the application",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch --preserveWatchOutput",
+    "clean": "rimraf dist",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "pino": "^8.18.0",
+    "pino-pretty": "^10.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "typescript": "^5.3.3",
+    "rimraf": "^5.0.5"
+  }
+}

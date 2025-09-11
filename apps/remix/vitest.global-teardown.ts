@@ -1,30 +1,30 @@
 // vitest.global-teardown.ts
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
+import { logger } from '@project/logging/src/index';
 
 export default async function teardown() {
-  console.log("\n🧹 Starting Vitest global teardown...");
+  logger.info("Starting Vitest global teardown");
   try {
-    console.log("🐳 Stopping test database container...");
+    logger.info("Stopping test database container...");
     execSync(
       "docker-compose -f docker-compose.test.yml down -v --remove-orphans",
       {
         stdio: "inherit", // Show command output
       },
     );
-    console.log("✅ Test database container stopped and cleaned up.");
-    console.log("🎉 Vitest global teardown complete.\n");
+    logger.info("Test database container stopped and cleaned up");
+    logger.info("Vitest global teardown complete");
   } catch (error) {
-    console.error("❌ Error during Vitest global teardown:");
+    logger.error({ error }, "Error during Vitest global teardown");
     if (error instanceof Error) {
-      console.error(error.message);
+      const errorInfo: Record<string, unknown> = { message: error.message };
       if ("stderr" in error && error.stderr) {
-        console.error("Stderr:", error.stderr.toString());
+        errorInfo.stderr = error.stderr.toString();
       }
       if ("stdout" in error && error.stdout) {
-        console.error("Stdout:", error.stdout.toString());
+        errorInfo.stdout = error.stdout.toString();
       }
-    } else {
-      console.error(error);
+      logger.error(errorInfo, "Error details");
     }
     // You might choose to exit with an error code here as well,
     // though teardown failures are often less critical than setup failures.

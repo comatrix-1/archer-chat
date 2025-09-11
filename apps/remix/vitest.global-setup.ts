@@ -1,39 +1,39 @@
 // vitest.global-setup.ts
-import { execSync } from "child_process";
+import { execSync } from "node:child_process";
+import { logger } from '@project/logging/src/index';
 
 export default async function setup() {
-  console.log("\n🚀 Starting Vitest global setup...");
+  logger.info("Starting Vitest global setup");
 
   try {
-    console.log("🐳 Starting test database container...");
+    logger.info("Starting test database container...");
     execSync("docker-compose -f docker-compose.test.yml up -d postgres_test", {
       stdio: "inherit", // Show command output in the console
     });
-    console.log("✅ Test database container started.");
+    logger.info("Test database container started");
 
-    console.log("🔄 Resetting test database (prisma migrate reset)...");
+    logger.info("Resetting test database (prisma migrate reset)...");
     // Note: Your package.json had "prismamigrate", assuming it's "prisma migrate"
     // Using npx to ensure the prisma CLI from your devDependencies is used.
     // The NODE_ENV=test should be set by your main test script,
-    // ensuring Prisma targets the correct database if configured via environment variables.
+    // but we're being explicit here for clarity.
     execSync("npx prisma migrate reset --force", {
       stdio: "inherit",
     });
-    console.log("✅ Test database reset and migrated.");
+    logger.info("Test database reset and migrated");
 
-    console.log("🎉 Vitest global setup complete.\n");
+    logger.info("Vitest global setup complete");
   } catch (error) {
-    console.error("❌ Error during Vitest global setup:");
+    logger.fatal("Error during Vitest global setup", { error });
     if (error instanceof Error) {
-      console.error(error.message);
+      const errorInfo: Record<string, unknown> = { message: error.message };
       if ("stderr" in error && error.stderr) {
-        console.error("Stderr:", error.stderr.toString());
+        errorInfo.stderr = error.stderr.toString();
       }
       if ("stdout" in error && error.stdout) {
-        console.error("Stdout:", error.stdout.toString());
+        errorInfo.stdout = error.stdout.toString();
       }
-    } else {
-      console.error(error);
+      logger.error(`Error details: ${JSON.stringify(errorInfo)}`);
     }
     // Critical: Exit if setup fails to prevent tests from running in a bad state.
     process.exit(1);

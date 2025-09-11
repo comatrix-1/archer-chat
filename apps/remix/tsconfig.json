@@ -17,6 +17,7 @@
     "paths": {
       "~/*": ["./app/*"],
       "@project/prisma": ["../../packages/prisma"],
+      "@project/logging": ["../../packages/logging"]
     },
     "esModuleInterop": true,
     "verbatimModuleSyntax": true,

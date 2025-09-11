@@ -9,6 +9,7 @@ import type {
 } from "./schema";
 import { includeAllRelations, ZSafeResumeWithRelationsSchema } from "./schema";
 import { logToFile } from "server/ai-router/router";
+import { logger } from "@project/logging/src";
 
 // Helper function to handle creation of related entities
 const createRelatedEntities = async <T>(
@@ -250,6 +251,11 @@ export const resumeService = {
 		userId: string,
 	): Promise<ResumeWithRelations> {
 		return await prisma.$transaction(async (tx) => {
+			logger.info({
+				type: "update",
+				resume: input,
+				userId,
+			}, "Updating resume");
 			// Verify the resume exists and belongs to the user
 			const existingResume = await tx.resume.findUnique({
 				where: { id: input.id },

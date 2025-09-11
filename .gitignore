@@ -55,6 +55,7 @@ yarn-error.log*
 
 # logs
 logs.json
+app.log
 
 # claude
 .claude

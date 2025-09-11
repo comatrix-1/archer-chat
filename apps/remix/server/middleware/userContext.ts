@@ -1,7 +1,16 @@
-import type { Context, Next } from "hono";
-import prisma from "@project/remix/app/utils/prisma";
+import type { Context } from 'hono';
 
-export async function userContextMiddleware(c: Context, next: Next) {
+import prisma from "@project/remix/app/utils/prisma";
+import { logger } from '@project/logging/src/index';
+
+type UserWithPassword = {
+  id: string;
+  email: string;
+  name: string | null;
+  password: string;
+};
+
+export async function userContextMiddleware(c: Context, next: () => Promise<void>) {
   const payload = c.get("jwtPayload") as
     | { userId: string; iat?: number; exp?: number }
     | undefined;
@@ -10,19 +19,19 @@ export async function userContextMiddleware(c: Context, next: Next) {
     try {
       const user = await prisma.user.findUnique({
         where: { id: payload.userId },
-      });
+      }) as UserWithPassword | null;
 
       if (user) {
-        const { password, ...userWithoutPassword } = user;
+        const { password: _, ...userWithoutPassword } = user;
         c.set("user", userWithoutPassword);
       } else {
-        console.warn(`User not found for userId in JWT: ${payload.userId}`);
+        logger.warn({ userId: payload.userId }, 'User not found for userId in JWT');
       }
     } catch (error) {
-      console.error("Error fetching user in userContextMiddleware:", error);
+      logger.error({ error }, 'Error fetching user in userContextMiddleware');
     }
   } else {
-    console.warn("No userId found in JWT payload");
+    logger.warn('No userId found in JWT payload');
   }
   await next();
 }
