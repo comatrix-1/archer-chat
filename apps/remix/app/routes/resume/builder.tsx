@@ -1,15 +1,16 @@
+import { trpc } from "@project/trpc/client";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
+import { ArrowLeft, FileText, Save } from "lucide-react"; // Added Pencil and Check icons
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate, useSearchParams } from "react-router";
+import ResumeSection from "~/components/resume/resume-section";
 import { Button } from "~/components/ui/button";
 import { Form } from "~/components/ui/form";
-import { trpc } from "@project/trpc/client";
-import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
-import { supabase } from "~/utils/supabaseClient";
-import { createPageUrl } from "~/utils/create-page-url";
+import { Input } from "~/components/ui/input"; // Make sure to import this
 import { useResume } from "~/hooks/useResume";
-import ResumeSection from "~/components/resume/resume-section";
-import { ArrowLeft, FileText, Save } from "lucide-react";
+import { createPageUrl } from "~/utils/create-page-url";
+import { supabase } from "~/utils/supabaseClient";
 
 export default function ResumeBuilder() {
   const navigate = useNavigate();
@@ -54,18 +55,15 @@ export default function ResumeBuilder() {
       console.log('loadResumeData()')
       try {
         const { data } = await supabase.auth.getSession();
-
         if (!data.session) {
           navigate(createPageUrl("login"));
           return;
         }
-
         const userData = {
           id: data.session.user.id,
           email: data.session.user.email || ''
         };
         setUser(userData);
-
         // If no ID, we're creating a new resume
         if (!id) {
           console.log('no id, setting default values: ', defaultValues)
@@ -78,7 +76,6 @@ export default function ResumeBuilder() {
           });
           return;
         }
-
         if (resume) {
           console.log('resume exists, setting resume in form: ', resume)
           form.reset({ ...defaultValues, ...resume });
@@ -91,13 +88,11 @@ export default function ResumeBuilder() {
         setIsLoading(false);
       }
     };
-
     loadResumeData();
   }, [form, navigate, resume, isResumeLoading, id]);
 
   const handleSave = async (formData: ZResumeWithRelations) => {
     if (!formData || !user) return;
-
     setIsSaving(true);
     try {
       const resumeData = {
@@ -112,7 +107,6 @@ export default function ResumeBuilder() {
         skills: formData.skills || [],
         contact: formData.contact || {},
       };
-
       if (formData.id) {
         await trpc.resume.update.mutate(resumeData);
       } else {
@@ -152,9 +146,14 @@ export default function ResumeBuilder() {
                   <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
                     <FileText className="w-5 h-5 text-blue-600" />
                   </div>
-                  <h1 className="text-xl font-semibold text-slate-900">
-                    {resume?.title || "New Resume"}
-                  </h1>
+
+                  <div className="flex items-center gap-2">
+                    <Input
+                      className="text-2xl font-semibold text-slate-900"
+                      aria-label="Resume Title"
+                      {...form.register("title")}
+                    />
+                  </div>
                 </div>
               </div>
               <Button
@@ -168,7 +167,6 @@ export default function ResumeBuilder() {
             </div>
           </div>
         </div>
-
         <div className="max-w-7xl mx-auto p-4 md:p-8">
           <ResumeSection />
         </div>
