@@ -11,27 +11,19 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { useNavigate } from "react-router";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "~/components/ui/tabs";
 import { exportResumeToDocx } from "~/utils/docx-exporter";
 
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
-import { AwardsSection } from "./awards-section";
-import CertificationSection from "./certification-section";
-import { BasicsSection } from "./contact-section";
-import { EducationSection } from "./education-section";
-import ExperienceSection from "./experience-section";
-import ProjectSection from "./project-section";
-import { SkillsSection } from "./skills-section";
-import { toast } from "sonner";
-
-type TUser = {
-  id: string;
-  email: string;
-};
+import { AwardsSection } from "./sections/awards-section";
+import { BasicsSection } from "./sections/basics-section";
+import CertificationSection from "./sections/certification-section";
+import { EducationSection } from "./sections/education-section";
+import ExperienceSection from "./sections/experience-section";
+import ProjectSection from "./sections/project-section";
+import { SkillsSection } from "./sections/skills-section";
 
 const ResumeSection = () => {
-  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("basics");
 
   const tabs = [
@@ -61,7 +53,6 @@ const ResumeSection = () => {
           onValueChange={setActiveTab}
           className="space-y-6"
         >
-          {/* Tab Navigation */}
           <div className="rounded-xl shadow-sm border border-slate-200 p-2">
             <TabsList className="grid grid-cols-3 md:grid-cols-7 gap-1 bg-transparent h-auto w-full">
               {tabs.map((tab) => (
@@ -77,7 +68,6 @@ const ResumeSection = () => {
             </TabsList>
           </div>
 
-          {/* Tab Content */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -114,26 +104,6 @@ const ResumeSection = () => {
         </Tabs>
       </div>
     </div>
-
-    // TODO: remove if not needed
-    // return (
-    //   <div className="flex min-h-screen">
-    //     <main className="flex-1 p-8">
-    //       <Form {...form}>
-    //         <Card className="p-6">
-    //           <Button onClick={() => console.log("form: ", form.getValues())}>
-    //             Check form
-    //           </Button>
-    //           <ResumeNav
-    //             currentStep={currentStep}
-    //             setCurrentStep={setCurrentStep}
-    //           />
-    //         </Card>
-    //         {renderStep()}
-    //       </Form>
-    //     </main>
-    //   </div>
-    // );
   );
 };
 

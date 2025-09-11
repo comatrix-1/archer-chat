@@ -9,9 +9,9 @@ import { generateUUID } from "@project/remix/app/utils/security";
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { Plus } from "lucide-react";
 import { useFieldArray, useFormContext } from "react-hook-form";
-import { SortableItem } from "../ui/sortable-item";
+import { SortableItem } from "../../ui/sortable-item";
 import { EducationItem } from "./education-item";
-import { SectionCard } from "./section-card";
+import { SectionCard } from "../section-card";
 
 export function EducationSection() {
   const form = useFormContext<ZResumeWithRelations>();

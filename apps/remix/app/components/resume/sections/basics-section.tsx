@@ -1,6 +1,4 @@
-import { Input } from "@project/remix/app/components/ui/input";
-import { useFormContext } from "react-hook-form";
-import type { ResumeFormData } from "@project/remix/app/types/resume";
+import { SectionCard } from "@project/remix/app/components/resume/section-card";
 import {
   FormControl,
   FormField,
@@ -8,11 +6,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@project/remix/app/components/ui/form";
-import { SectionCard } from "@project/remix/app/components/resume/section-card";
-import { Textarea } from "../ui/textarea";
+import { Input } from "@project/remix/app/components/ui/input";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
+import { useFormContext } from "react-hook-form";
+import { Textarea } from "../../ui/textarea";
 
 export const BasicsSection = () => {
-  const form = useFormContext<ResumeFormData>();
+  const form = useFormContext<ZResumeWithRelations>();
 
   return (
     <SectionCard

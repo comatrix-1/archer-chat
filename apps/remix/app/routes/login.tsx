@@ -1,8 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { Link, useNavigate } from "react-router";
-import { z } from "zod";
 import {
   Alert,
   AlertDescription,
@@ -23,9 +19,10 @@ import {
   FormMessage,
 } from "@project/remix/app/components/ui/form";
 import { Input } from "@project/remix/app/components/ui/input";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router";
+import { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
-import { trpc } from "@project/trpc/client";
-import { supabase } from "~/utils/supabaseClient";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address").min(1, "Email is required"),
@@ -50,26 +47,15 @@ export default function Login() {
       email: formData.email,
       password: formData.password,
     });
-    console.log("login result: ", data);
 
     if (error) {
-      console.log("onSubmit error: ", error);
       return;
     }
 
     if (data?.user) {
-      console.log("Logged in successfully!");
       navigate("/");
     }
   };
-
-  useEffect(() => {
-    console.log("Fetching tokens...");
-    (async () => {
-      const tokens = await trpc.apiToken.getTokens.query();
-      console.log("Tokens fetched:", tokens);
-    })();
-  }, []);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh]">

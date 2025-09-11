@@ -2,26 +2,18 @@
 
 import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Plus } from "lucide-react";
-import { useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@project/remix/app/components/ui/button";
 import { Form } from "@project/remix/app/components/ui/form";
 import { cn } from "@project/remix/app/lib/utils";
-import type { ResumeFormData } from "@project/remix/app/types/resume";
-import { generateUUID } from "@project/remix/app/utils/security";
-import { SortableItem } from "../ui/sortable-item";
-import { AwardsItem } from "./awards-item";
-import { SectionCard } from "./section-card";
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
+import { Plus } from "lucide-react";
+import { useFieldArray, useFormContext } from "react-hook-form";
+import { SortableItem } from "../../ui/sortable-item";
+import { ProjectItem } from "./project-item";
+import { SectionCard } from "../section-card";
 
-export function AwardsSection() {
+export function ProjectSection() {
   const form = useFormContext<ZResumeWithRelations>();
-
-  const { fields, move, remove, append } = useFieldArray({
-    control: form.control,
-    name: 'awards',
-    keyName: 'formId',
-  });
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -42,6 +34,12 @@ export function AwardsSection() {
     })
   );
 
+  const { fields, move, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'projects',
+    keyName: 'formId',
+  });
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     console.log('handleDragEnd() active: ', active, ' over: ', over)
@@ -55,31 +53,38 @@ export function AwardsSection() {
     }
   };
 
-  const addHonorsAward = () => {
+  const addProject = () => {
     append({
       title: "",
-      issuer: "",
-      date: new Date(),
       description: "",
+      startDate: new Date(),
+      endDate: new Date(),
     });
   };
 
   return (
-    <SectionCard title="Honors & Awards" description="Add your honors and awards.">
+    <SectionCard title="Projects" description="Add your projects.">
       <div className="space-y-4">
         <Form {...form}>
-          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-            <SortableContext items={fields.map(field => field.formId)} strategy={verticalListSortingStrategy}>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={fields.map(field => field.formId)}
+              strategy={verticalListSortingStrategy}
+            >
               {fields.map((field, index) => (
                 <SortableItem
                   key={field.formId}
                   id={field.formId}
                   onRemove={() => remove(index)}
                   className="mb-4"
-                  dragHandleAriaLabel="Drag to reorder honor/award"
-                  removeButtonAriaLabel="Remove honor/award"
+                  dragHandleAriaLabel="Drag to reorder project"
+                  removeButtonAriaLabel="Remove project"
                 >
-                  <AwardsItem index={index} />
+                  <ProjectItem index={index} />
                 </SortableItem>
               ))}
             </SortableContext>
@@ -87,19 +92,18 @@ export function AwardsSection() {
           <Button
             type="button"
             className={cn("w-full max-w-md my-2 mx-auto flex items-center gap-2 justify-center")}
-            onClick={addHonorsAward}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.stopPropagation();
-                addHonorsAward();
-              }
+            onClick={(e) => {
+              e.stopPropagation();
+              addProject();
             }}
           >
-            <Plus className="h-4 w-4" />
-            Add Honor or Award
+            <Plus size={16} />
+            <span>Add Project</span>
           </Button>
         </Form>
       </div>
     </SectionCard>
   );
-};
+}
+
+export default ProjectSection;

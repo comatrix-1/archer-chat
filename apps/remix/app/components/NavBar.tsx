@@ -23,7 +23,6 @@ import {
 
 export function NavBar() {
   const { user, signOut, loading } = useAuth();
-  console.log("NavBar auth state:", { user, loading });
 
   return (
     <nav className="sticky top-0 z-50 transition-all duration-300 bg-background/80 backdrop-blur-xl border-b border-border/60">

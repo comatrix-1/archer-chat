@@ -1,9 +1,8 @@
-import { useFormContext } from "react-hook-form";
-import type { ResumeFormData } from "@project/remix/app/types/resume";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../ui/form";
-import { Input } from "../ui/input";
-import { DatePicker } from "../ui/date-picker";
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
+import { useFormContext } from "react-hook-form";
+import { DatePicker } from "../../ui/date-picker";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "../../ui/form";
+import { Input } from "../../ui/input";
 
 interface CertificationItemProps {
     index: number;

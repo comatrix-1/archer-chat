@@ -2,16 +2,14 @@
 
 import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
-import { Plus } from "lucide-react";
-import { Form, useFieldArray, useFormContext } from "react-hook-form";
 import { Button } from "@project/remix/app/components/ui/button";
 import { cn } from "@project/remix/app/lib/utils";
-import type { ResumeFormData } from "@project/remix/app/types/resume";
-import { generateUUID } from "@project/remix/app/utils/security";
-import { SortableItem } from "../ui/sortable-item";
-import { CertificationItem } from "./certification-item";
-import { SectionCard } from "./section-card";
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
+import { Plus } from "lucide-react";
+import { Form, useFieldArray, useFormContext } from "react-hook-form";
+import { SortableItem } from "../../ui/sortable-item";
+import { CertificationItem } from "./certification-item";
+import { SectionCard } from "../section-card";
 
 export function CertificationSection() {
   const form = useFormContext<ZResumeWithRelations>();

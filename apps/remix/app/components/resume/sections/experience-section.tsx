@@ -8,11 +8,10 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { Button } from "@project/remix/app/components/ui/button";
 import { Form } from "@project/remix/app/components/ui/form";
 import { cn } from "@project/remix/app/lib/utils";
-import { EEmploymentType, ELocationType } from "@project/remix/app/types/resume";
-import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
-import { SortableItem } from "../ui/sortable-item";
+import { ZEmploymentType, ZLocationType, type ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
+import { SortableItem } from "../../ui/sortable-item";
 import ExperienceItem from "./experience-item";
-import { SectionCard } from "./section-card";
+import { SectionCard } from "../section-card";
 
 const ExperienceSection = () => {
   const form = useFormContext<ZResumeWithRelations>();
@@ -58,8 +57,8 @@ const ExperienceSection = () => {
   const addExperience = () => {
     append({
       title: "",
-      employmentType: EEmploymentType.FULL_TIME,
-      locationType: ELocationType.ON_SITE,
+      employmentType: ZEmploymentType.enum.FULL_TIME,
+      locationType: ZLocationType.enum.ON_SITE,
       company: "",
       location: "",
       startDate: new Date(),

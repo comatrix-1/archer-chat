@@ -1,1 +1,0 @@
-export const NO_ITEMS_DESCRIPTION = "No items to display";

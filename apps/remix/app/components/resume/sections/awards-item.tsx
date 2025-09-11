@@ -4,8 +4,8 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@proje
 import { Input } from "@project/remix/app/components/ui/input";
 import { useFormContext, useWatch } from "react-hook-form";
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
-import { RichTextEditor } from "../rich-text-editor";
-import { DatePicker } from "../ui/date-picker";
+import { RichTextEditor } from "../../rich-text-editor";
+import { DatePicker } from "../../ui/date-picker";
 
 interface HonorsAwardsItemProps {
     index: number;

@@ -1,12 +1,11 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@project/remix/app/components/ui/form";
 import { Input } from "@project/remix/app/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@project/remix/app/components/ui/select";
-import { EEmploymentType, ELocationType } from "@project/remix/app/types/resume";
 import { memo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { RichTextEditor } from "../rich-text-editor";
-import { DatePicker } from "../ui/date-picker";
-import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
+import { RichTextEditor } from "../../rich-text-editor";
+import { DatePicker } from "../../ui/date-picker";
+import { ZEmploymentType, ZLocationType, type ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 
 interface ExperienceItemProps {
     index: number;
@@ -81,7 +80,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                {Object.values(EEmploymentType).map((type) => (
+                                {Object.values(ZEmploymentType.enum).map((type) => (
                                     <SelectItem key={type} value={type}>
                                         {type.replace("_", " ").charAt(0).toUpperCase() +
                                             type.replace("_", " ").slice(1).toLowerCase()}
@@ -127,7 +126,7 @@ const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
                                 </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                                {Object.values(ELocationType).map((type) => (
+                                {Object.values(ZLocationType.enum).map((type) => (
                                     <SelectItem key={type} value={type}>
                                         {type.replace("_", " ").charAt(0).toUpperCase() +
                                             type.replace("_", " ").slice(1).toLowerCase()}
