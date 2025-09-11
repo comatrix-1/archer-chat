@@ -3,15 +3,13 @@
 import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Button } from "@project/remix/app/components/ui/button";
-import { Form } from "@project/remix/app/components/ui/form";
 import { cn } from "@project/remix/app/lib/utils";
-import { generateUUID } from "@project/remix/app/utils/security";
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { Plus } from "lucide-react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { SortableItem } from "../../ui/sortable-item";
-import { EducationItem } from "./education-item";
 import { SectionCard } from "../section-card";
+import { EducationItem } from "./education-item";
 
 export function EducationSection() {
   const form = useFormContext<ZResumeWithRelations>();
@@ -71,7 +69,6 @@ export function EducationSection() {
   return (
     <SectionCard title="Education" description="Add your educational background.">
       <div className="space-y-4">
-        <Form {...form}>
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={fields.map(field => field.formId)} strategy={verticalListSortingStrategy}>
               {fields.map((field, index) => (
@@ -104,7 +101,6 @@ export function EducationSection() {
             <Plus size={16} />
             <span>Add Education</span>
           </Button>
-        </Form>
       </div>
     </SectionCard>
   );

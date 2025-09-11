@@ -6,12 +6,11 @@ import { useFieldArray, useFormContext } from "react-hook-form";
 import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Button } from "@project/remix/app/components/ui/button";
-import { Form } from "@project/remix/app/components/ui/form";
 import { cn } from "@project/remix/app/lib/utils";
 import { ZEmploymentType, ZLocationType, type ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { SortableItem } from "../../ui/sortable-item";
-import ExperienceItem from "./experience-item";
 import { SectionCard } from "../section-card";
+import ExperienceItem from "./experience-item";
 
 const ExperienceSection = () => {
   const form = useFormContext<ZResumeWithRelations>();
@@ -71,7 +70,6 @@ const ExperienceSection = () => {
   return (
     <SectionCard title="Experience" description="Add your work experience.">
       <div className="space-y-4">
-        <Form {...form}>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -112,7 +110,6 @@ const ExperienceSection = () => {
             <Plus size={16} />
             <span>Add Experience</span>
           </Button>
-        </Form>
       </div>
     </SectionCard>
   );

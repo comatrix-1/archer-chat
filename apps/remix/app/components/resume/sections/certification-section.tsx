@@ -6,10 +6,10 @@ import { Button } from "@project/remix/app/components/ui/button";
 import { cn } from "@project/remix/app/lib/utils";
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { Plus } from "lucide-react";
-import { Form, useFieldArray, useFormContext } from "react-hook-form";
+import { useFieldArray, useFormContext } from "react-hook-form";
 import { SortableItem } from "../../ui/sortable-item";
-import { CertificationItem } from "./certification-item";
 import { SectionCard } from "../section-card";
+import { CertificationItem } from "./certification-item";
 
 export function CertificationSection() {
   const form = useFormContext<ZResumeWithRelations>();
@@ -65,7 +65,6 @@ export function CertificationSection() {
   return (
     <SectionCard title="Certifications" description="Add your certifications.">
       <div className="space-y-4">
-        <Form {...form}>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -112,7 +111,6 @@ export function CertificationSection() {
             <Plus size={16} />
             <span>Add Certification</span>
           </Button>
-        </Form>
       </div>
     </SectionCard>
   )

@@ -3,14 +3,13 @@
 import { DndContext, type DragEndEvent, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { Button } from "@project/remix/app/components/ui/button";
-import { Form } from "@project/remix/app/components/ui/form";
 import { cn } from "@project/remix/app/lib/utils";
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { Plus } from "lucide-react";
 import { useFieldArray, useFormContext } from "react-hook-form";
 import { SortableItem } from "../../ui/sortable-item";
-import { ProjectItem } from "./project-item";
 import { SectionCard } from "../section-card";
+import { ProjectItem } from "./project-item";
 
 export function ProjectSection() {
   const form = useFormContext<ZResumeWithRelations>();
@@ -65,7 +64,6 @@ export function ProjectSection() {
   return (
     <SectionCard title="Projects" description="Add your projects.">
       <div className="space-y-4">
-        <Form {...form}>
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -100,7 +98,6 @@ export function ProjectSection() {
             <Plus size={16} />
             <span>Add Project</span>
           </Button>
-        </Form>
       </div>
     </SectionCard>
   );
