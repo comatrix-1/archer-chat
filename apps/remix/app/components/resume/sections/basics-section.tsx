@@ -111,20 +111,6 @@ export const BasicsSection = () => {
 
         <FormField
           control={form.control}
-          name="contact.address"
-          render={({ field: formField }) => (
-            <FormItem>
-              <FormLabel>Address</FormLabel>
-              <FormControl>
-                <Input placeholder="Address" {...formField} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="contact.linkedin"
           render={({ field: formField }) => (
             <FormItem>
@@ -155,7 +141,7 @@ export const BasicsSection = () => {
           control={form.control}
           name="contact.portfolio"
           render={({ field: formField }) => (
-            <FormItem className="md:col-span-2">
+            <FormItem>
               <FormLabel>Portfolio</FormLabel>
               <FormControl>
                 <Input placeholder="Portfolio" {...formField} />

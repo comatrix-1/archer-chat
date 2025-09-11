@@ -43,7 +43,6 @@ export default function MasterResume() {
       phone: "",
       city: "",
       country: "",
-      address: "",
       linkedin: "",
       github: "",
       portfolio: "",

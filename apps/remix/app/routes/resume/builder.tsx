@@ -29,7 +29,6 @@ export default function ResumeBuilder() {
       phone: "",
       city: "",
       country: "",
-      address: "",
       linkedin: "",
       github: "",
       portfolio: "",

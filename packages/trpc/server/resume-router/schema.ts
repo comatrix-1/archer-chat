@@ -121,7 +121,6 @@ export const ZContactSchema = z.object({
 	fullName: z.string().nullable().default(""),
 	email: z.string().email().or(z.literal("")).nullable().default(""),
 	phone: z.string().nullable().default(""),
-	address: z.string().nullable().default(""),
 	city: z.string().nullable().default(""),
 	country: z.string().nullable().default(""),
 	linkedin: z.string().nullable().default(""),

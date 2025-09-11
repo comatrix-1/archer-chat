@@ -50,7 +50,6 @@ model Contact {
   fullName    String?       @default("")
   email       String?       @default("")
   phone       String?       @default("")
-  address     String?       @default("")
   city        String?       @default("")
   country     String?       @default("")
   linkedin    String?       @default("")
