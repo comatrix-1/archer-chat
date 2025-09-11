@@ -196,3 +196,8 @@
 {"level":"info","time":"2025-09-11T07:35:09.978Z","pid":21864,"hostname":"DESKTOP-5382DGQ","type":"response","method":"GET","path":"/resume/builder","status":200,"responseTime":"105ms","requestId":"uevgmqsx","msg":"Request completed"}
 {"level":"info","time":"2025-09-11T07:35:10.756Z","pid":21864,"hostname":"DESKTOP-5382DGQ","type":"request","method":"GET","path":"/api/trpc/resume.getById","requestId":"6n381oq5","msg":"Request received"}
 {"level":"info","time":"2025-09-11T07:35:10.778Z","pid":21864,"hostname":"DESKTOP-5382DGQ","type":"response","method":"GET","path":"/api/trpc/resume.getById","status":200,"responseTime":"22ms","requestId":"6n381oq5","msg":"Request completed"}
+{"level":"info","time":"2025-09-11T08:57:19.849Z","pid":21864,"hostname":"DESKTOP-5382DGQ","type":"request","method":"GET","path":"/resume/builder","requestId":"4sthr5xl","msg":"Request received"}
+{"level":"info","time":"2025-09-11T08:57:20.349Z","pid":21864,"hostname":"DESKTOP-5382DGQ","type":"response","method":"GET","path":"/resume/builder","status":200,"responseTime":"500ms","requestId":"4sthr5xl","msg":"Request completed"}
+{"level":"info","time":"2025-09-11T09:17:22.561Z","pid":4124,"hostname":"DESKTOP-5382DGQ","msg":"Logging to file: C:\\Users\\user\\Documents\\Projects\\archer-chat-react-router\\apps\\remix\\logs\\app.log"}
+{"level":"info","time":"2025-09-11T09:17:22.708Z","pid":4124,"hostname":"DESKTOP-5382DGQ","type":"request","method":"GET","path":"/resume/builder","requestId":"5t4le4r8","msg":"Request received"}
+{"level":"info","time":"2025-09-11T09:17:27.240Z","pid":4124,"hostname":"DESKTOP-5382DGQ","type":"response","method":"GET","path":"/resume/builder","status":200,"responseTime":"4531ms","requestId":"5t4le4r8","msg":"Request completed"}
