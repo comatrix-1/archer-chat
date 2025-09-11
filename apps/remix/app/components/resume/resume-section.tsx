@@ -23,6 +23,7 @@ import { EducationSection } from "./education-section";
 import ExperienceSection from "./experience-section";
 import ProjectSection from "./project-section";
 import { SkillsSection } from "./skills-section";
+import { toast } from "sonner";
 
 type TUser = {
   id: string;
@@ -48,10 +49,10 @@ const ResumeSection = () => {
   const exportToDocx = () => {
     try {
       exportResumeToDocx(form.getValues());
-      // toast.success("Resume exported successfully!"); // TODO: implement toast
+      toast.success("Resume exported successfully!");
     } catch (error) {
       console.error("Error exporting resume:", error);
-      // toast.error("Failed to export resume. Please try again."); // TODO: implement toast
+      toast.error("Failed to export resume. Please try again.");
     }
   };
 

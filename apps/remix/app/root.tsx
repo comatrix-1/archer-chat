@@ -18,8 +18,8 @@ import { SidebarProvider } from "./components/ui/sidebar";
 import {
   QueryClient,
   QueryClientProvider,
-  useQuery,
 } from '@tanstack/react-query'
+import { Toaster } from "sonner"
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -69,6 +69,7 @@ function AppContent() {
   return (
     <SidebarProvider>
       <QueryClientProvider client={queryClient}>
+        <Toaster position="top-center" />
         <div className="flex flex-col min-h-screen bg-background text-foreground w-full">
           <NavBar />
           <div className="flex flex-1 overflow-hidden">
