@@ -452,21 +452,23 @@ export const resumeService = {
 
 			// Update contact if provided
 			if (input.contact) {
-				// Update existing contact
-				await tx.contact.update({
-					where: { id: input.contact.id },
-					data: {
-						fullName: input.contact.fullName,
-						email: input.contact.email,
-						phone: input.contact.phone,
-						address: input.contact.address,
-						city: input.contact.city,
-						country: input.contact.country,
-						linkedin: input.contact.linkedin,
-						github: input.contact.github,
-						portfolio: input.contact.portfolio,
-					},
-				});
+				const contactData = {
+					...input.contact,
+					resumeId: existing.id,
+				};
+
+				if (existing.contact) {
+					// Update existing contact
+					await tx.contact.update({
+						where: { id: existing.contact.id },
+						data: contactData,
+					});
+				} else {
+					// Create new contact if none exists
+					await tx.contact.create({
+						data: contactData,
+					});
+				}
 			}
 
 			// Update the resume

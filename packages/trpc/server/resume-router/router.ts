@@ -20,7 +20,7 @@ export const resumeRouter = router({
     }),
 
   // Update master resume
-  updateMaster: protectedProcedure
+  updateMasterResume: protectedProcedure
     .input(updateMasterResumeSchema)
     .mutation(async ({ input, ctx }) => {
       if (input.userId !== ctx.user.id) {

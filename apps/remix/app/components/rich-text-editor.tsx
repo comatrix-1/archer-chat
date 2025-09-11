@@ -14,8 +14,8 @@ import { Toggle } from "@project/remix/app/components/ui/toggle";
 const extensions = [Document, Paragraph, Text, BulletList, ListItem];
 
 interface RichTextEditorProps {
-  content: string | undefined | null;
-  onChange: (htmlContent: string) => void;
+  content: object | undefined | null;
+  onChange: (jsonContent: object) => void;
   placeholder?: string;
 }
 
@@ -34,7 +34,7 @@ export const RichTextEditor: React.FC<RichTextEditorProps> = ({
       },
     },
     onUpdate({ editor }) {
-      onChange(editor.getHTML());
+      onChange(editor.getJSON());
     },
   });
 

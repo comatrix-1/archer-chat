@@ -1,5 +1,5 @@
 import { trpc } from "@project/trpc/client";
-import type { ZCreateResumeInput } from "@project/trpc/server/resume-router/schema";
+import type { ZCreateResumeInput, ZUpdateMasterResumeInput } from "@project/trpc/server/resume-router/schema";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 export function useResumes(userId: string) {
@@ -26,15 +26,14 @@ export function useMasterResume() {
 	});
 }
 
-export function useCreateResume() {
+export function useUpdateMasterResume() {
 	const queryClient = useQueryClient();
 
 	return useMutation({
-		mutationFn: (data: ZCreateResumeInput) => trpc.resume.create.mutate(data),
-		onSuccess: (_, variables) => {
-			// Invalidate the resumes query to refetch the list
+		mutationFn: (data: ZUpdateMasterResumeInput) => trpc.resume.updateMasterResume.mutate(data),
+		onSuccess: () => {
 			queryClient.invalidateQueries({
-				queryKey: ["resumes", variables.userId],
+				queryKey: ["master-resume"],
 			});
 		},
 	});

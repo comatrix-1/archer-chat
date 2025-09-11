@@ -31,7 +31,7 @@ export const ResumeSchema = z.object({
 	isMaster: z.boolean().default(false),
 	userId: z.string().uuid().optional(),
 	title: z.string(),
-	summary: z.string().nullable().optional(),
+	summary: z.any().nullable().optional(), // Changed to any() for JSON
 	contactId: z.string().cuid().optional(),
 	createdAt: ZDate.optional(),
 	updatedAt: ZDate.optional(),
@@ -59,7 +59,7 @@ export const ZAwardSchema = z.object({
 	title: z.string(),
 	issuer: z.string(),
 	date: ZNullableDate.optional(),
-	description: z.string().optional(),
+	description: z.any().nullable().optional(), // Changed to any() for JSON
 	resumeId: z.string().cuid().optional(),
 });
 
@@ -84,7 +84,7 @@ export const ZEducationSchema = z.object({
 	gpa: z.number().nullable().optional(),
 	gpaMax: z.number().nullable().optional(),
 	location: z.string().nullable().optional(),
-	description: z.string().nullable().optional(),
+	description: z.any().nullable().optional(), // Changed to any() for JSON
 	resumeId: z.string().cuid().optional(),
 });
 
@@ -97,7 +97,7 @@ export const ZExperienceSchema = z.object({
 	locationType: ZLocationType,
 	startDate: ZNullableDate.optional(),
 	endDate: ZNullableDate.optional(),
-	description: z.string().nullable().optional(),
+	description: z.any().nullable().optional(), // Changed to any() for JSON
 	resumeId: z.string().cuid().optional(),
 });
 
@@ -106,7 +106,7 @@ export const ZProjectSchema = z.object({
 	title: z.string(),
 	startDate: ZNullableDate.optional(),
 	endDate: ZNullableDate.optional(),
-	description: z.string().nullable().optional(),
+	description: z.any().nullable().optional(), // Changed to any() for JSON
 	resumeId: z.string().cuid().optional(),
 });
 
@@ -170,7 +170,7 @@ export const updateResumeSchema = ResumeSchema.pick({
 	summary: true,
 }).extend({
 	title: z.string().min(1, "Title is required").optional(),
-	summary: z.string().nullable().optional(),
+	summary: z.any().nullable().optional(), // Changed to any() for JSON
 	awards: z.array(ZAwardSchema).optional(),
 	certifications: z.array(ZCertificationSchema).optional(),
 	educations: z.array(ZEducationSchema).optional(),

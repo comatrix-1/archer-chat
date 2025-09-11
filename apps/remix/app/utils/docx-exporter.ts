@@ -1,4 +1,5 @@
 import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
+import { format } from "date-fns";
 import {
 	AlignmentType,
 	BorderStyle,
@@ -10,7 +11,15 @@ import {
 	TextRun,
 } from "docx";
 import pkg from "file-saver";
+import { toast } from "sonner";
+import { toSentenceCase } from "./to-sentence-case";
 const { saveAs } = pkg;
+
+const NAME_FONT_SIZE = 32;
+const TAB_STOP_POSITION = 11520;
+const FIRST_PARAGRAPH_BEFORE_SPACING = 12;
+const AFTER_SPACING = 0;
+const MARGIN = 720;
 
 const createSectionHeading = (text: string) => {
 	return new Paragraph({
@@ -36,31 +45,82 @@ const createParagraph = (text: string | (TextRun | string)[], options = {}) => {
 	return new Paragraph({ children, ...options });
 };
 
-const createBullet = (text: string) => {
+const createBullet = (children: (TextRun | string)[]) => {
 	return new Paragraph({
-		text: text,
+		children: children.map(t => (typeof t === "string" ? new TextRun(t) : t)),
 		bullet: { level: 0 },
 		spacing: { after: 0 },
 	});
 };
 
-const NAME_FONT_SIZE = 32;
-const TAB_STOP_POSITION = 11520;
-const FIRST_PARAGRAPH_BEFORE_SPACING = 12;
-const AFTER_SPACING = 0;
-const MARGIN = 720;
+const parseTiptapJson = (jsonContent: any): Paragraph[] => {
+	if (!jsonContent || !jsonContent.content) {
+		return [];
+	}
 
-const toSentenceCase = (value: string): string => {
-	if (value === "FULL_TIME") return "Full-time";
-	if (value === "PART_TIME") return "Part-time";
-	if (value === "CONTRACT") return "Contract";
-	if (value === "TEMPORARY") return "Temporary";
-	if (value === "INTERNSHIP") return "Internship";
-	if (value === "REMOTE") return "Remote";
-	if (value === "HYBRID") return "Hybrid";
-	if (value === "ON_SITE") return "On-site";
+	const paragraphs: Paragraph[] = [];
+	const parseNode = (node: any) => {
+		const textRuns: TextRun[] = [];
 
-	return value.toLowerCase().replace(/\b./g, (match) => match.toUpperCase());
+		if (node.content) {
+			for (const childNode of node.content) {
+				if (childNode.type === 'text') {
+					const runOptions: any = {};
+					if (childNode.marks) {
+						for (const mark of childNode.marks) {
+							if (mark.type === 'bold') {
+								runOptions.bold = true;
+							}
+							if (mark.type === 'italic') {
+								runOptions.italic = true;
+							}
+						}
+					}
+					textRuns.push(new TextRun({ text: childNode.text, ...runOptions }));
+				} else if (childNode.type === 'bulletList') {
+					paragraphs.push(...parseTiptapJson(childNode));
+				} else if (childNode.type === 'listItem') {
+
+					if (childNode.content && childNode.content[0].type === 'paragraph') {
+						const listTextRuns: TextRun[] = [];
+						for (const subNode of childNode.content[0].content || []) {
+							const subRunOptions: any = {};
+							if (subNode.marks) {
+								for (const subMark of subNode.marks) {
+									if (subMark.type === 'bold') { subRunOptions.bold = true; }
+									if (subMark.type === 'italic') { subRunOptions.italic = true; }
+								}
+							}
+							listTextRuns.push(new TextRun({ text: subNode.text, ...subRunOptions }));
+						}
+						paragraphs.push(createBullet(listTextRuns));
+					}
+				}
+			}
+		}
+
+		return textRuns;
+	};
+
+	for (const node of jsonContent.content) {
+		if (node.type === 'paragraph') {
+			const children = parseNode(node);
+			if (children.length > 0) {
+				paragraphs.push(new Paragraph({ children }));
+			}
+		} else if (node.type === 'bulletList') {
+
+			parseNode(node);
+		} else if (node.type === 'listItem') {
+
+			const children = parseNode(node);
+			if (children.length > 0) {
+				paragraphs.push(createBullet(children));
+			}
+		}
+	}
+
+	return paragraphs;
 };
 
 export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
@@ -130,7 +190,7 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 
 	if (resumeData.summary) {
 		sections.push(createSectionHeading("Summary"));
-		sections.push(createParagraph(resumeData.summary));
+		sections.push(...parseTiptapJson(resumeData.summary));
 	}
 
 	if (resumeData.experiences?.length) {
@@ -138,15 +198,15 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 		for (const exp of resumeData.experiences) {
 			const startDate = exp.startDate
 				? new Date(exp.startDate).toLocaleDateString("en-US", {
-						year: "numeric",
-						month: "short",
-					})
+					year: "numeric",
+					month: "short",
+				})
 				: "N/A";
 			const endDate = exp.endDate
 				? new Date(exp.endDate).toLocaleDateString("en-US", {
-						year: "numeric",
-						month: "short",
-					})
+					year: "numeric",
+					month: "short",
+				})
 				: "Present";
 			sections.push(
 				createParagraph(
@@ -185,31 +245,7 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 				),
 			);
 			if (exp.description) {
-				try {
-					const parser = new DOMParser();
-					const doc = parser.parseFromString(exp.description, "text/html");
-
-					for (const node of doc.body.childNodes) {
-						if (node.nodeName === "P") {
-							const text = node.textContent || "";
-							if (text.trim()) {
-								sections.push(createParagraph(text));
-							}
-						} else if (node.nodeName === "UL") {
-							for (const listItem of node.childNodes) {
-								if (listItem.nodeName === "LI") {
-									const text = listItem.textContent || "";
-									if (text.trim()) {
-										sections.push(createBullet(text.trim()));
-									}
-								}
-							}
-						}
-					}
-				} catch (e) {
-					console.error("Error parsing experience description HTML:", e);
-					sections.push(createParagraph(exp.description));
-				}
+				sections.push(...parseTiptapJson(exp.description));
 			}
 		}
 	}
@@ -219,15 +255,15 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 		for (const edu of resumeData.educations) {
 			const startDate = edu.startDate
 				? new Date(edu.startDate).toLocaleDateString("en-US", {
-						year: "numeric",
-						month: "short",
-					})
+					year: "numeric",
+					month: "short",
+				})
 				: "N/A";
 			const endDate = edu.endDate
 				? new Date(edu.endDate).toLocaleDateString("en-US", {
-						year: "numeric",
-						month: "short",
-					})
+					year: "numeric",
+					month: "short",
+				})
 				: "Present";
 			let gpaString = "";
 			if (edu.gpa) {
@@ -271,32 +307,7 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 				),
 			);
 			if (edu.description) {
-				try {
-					const parser = new DOMParser();
-					const doc = parser.parseFromString(edu.description, "text/html");
-
-					for (const node of doc.body.childNodes) {
-						if (node.nodeName === "P") {
-							const text = node.textContent || "";
-							if (text.trim()) {
-								sections.push(createParagraph(text));
-							}
-						} else if (node.nodeName === "UL") {
-							for (const listItem of node.childNodes) {
-								if (listItem.nodeName === "LI") {
-									const text = listItem.textContent || "";
-									if (text.trim()) {
-										sections.push(createBullet(text.trim()));
-									}
-								}
-							}
-						}
-					}
-				} catch (e) {
-					console.error("Error parsing education description HTML:", e);
-
-					sections.push(createParagraph(edu.description));
-				}
+				sections.push(...parseTiptapJson(edu.description));
 			}
 		}
 	}
@@ -306,15 +317,15 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 		for (const project of resumeData.projects) {
 			const startDate = project.startDate
 				? new Date(project.startDate).toLocaleDateString("en-US", {
-						year: "numeric",
-						month: "short",
-					})
+					year: "numeric",
+					month: "short",
+				})
 				: "N/A";
 			const endDate = project.endDate
 				? new Date(project.endDate).toLocaleDateString("en-US", {
-						year: "numeric",
-						month: "short",
-					})
+					year: "numeric",
+					month: "short",
+				})
 				: "Present";
 			sections.push(
 				createParagraph(
@@ -337,32 +348,7 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 				),
 			);
 			if (project.description) {
-				try {
-					const parser = new DOMParser();
-					const doc = parser.parseFromString(project.description, "text/html");
-
-					for (const node of doc.body.childNodes) {
-						if (node.nodeName === "P") {
-							const text = node.textContent || "";
-							if (text.trim()) {
-								sections.push(createParagraph(text));
-							}
-						} else if (node.nodeName === "UL") {
-							for (const listItem of node.childNodes) {
-								if (listItem.nodeName === "LI") {
-									const text = listItem.textContent || "";
-									if (text.trim()) {
-										sections.push(createBullet(text.trim()));
-									}
-								}
-							}
-						}
-					}
-				} catch (e) {
-					console.error("Error parsing project description HTML:", e);
-
-					sections.push(createParagraph(project.description));
-				}
+				sections.push(...parseTiptapJson(project.description));
 			}
 		}
 	}
@@ -384,15 +370,15 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 		for (const cert of resumeData.certifications) {
 			const issueDate = cert.issueDate
 				? new Date(cert.issueDate).toLocaleDateString("en-US", {
-						year: "numeric",
-						month: "short",
-					})
+					year: "numeric",
+					month: "short",
+				})
 				: "N/A";
 			const expiryDate = cert.expiryDate
 				? `${new Date(cert.expiryDate).toLocaleDateString("en-US", {
-						year: "numeric",
-						month: "short",
-					})}`
+					year: "numeric",
+					month: "short",
+				})}`
 				: "";
 			sections.push(
 				createParagraph(
@@ -425,9 +411,9 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 		for (const award of resumeData.awards) {
 			const awardDate = award.date
 				? new Date(award.date).toLocaleDateString("en-US", {
-						year: "numeric",
-						month: "short",
-					})
+					year: "numeric",
+					month: "short",
+				})
 				: "";
 			sections.push(
 				createParagraph([new TextRun({ text: award.title, bold: true })], {
@@ -440,8 +426,10 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 					new TextRun(`Issued by: ${award.issuer || ""}`),
 					new TextRun(awardDate ? `\t${awardDate}` : ""),
 				]),
-				...(award.description ? [createParagraph(award.description)] : []),
 			);
+			if (award.description) {
+				sections.push(...parseTiptapJson(award.description));
+			}
 		}
 	}
 
@@ -491,13 +479,12 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 
 	try {
 		const blob = await Packer.toBlob(doc);
-		const filename = `Resume - ${
-			resumeData.contact.fullName ?? "User"
-		} - ${new Date().toLocaleString().replace(/[/,:]/g, "-").replace(/\s/g, "_")}.docx`;
+		const timestamp = format(new Date(), 'yyyy-MM-dd_HH-mm-ss');
+		const filename = `Resume - ${timestamp}.docx`;
 		saveAs(blob, filename);
-		console.log("Document generated and download initiated.");
+		toast.success("Word document generated successfully.");
 	} catch (error) {
 		console.error("Error generating DOCX:", error);
-		alert("Failed to generate Word document.");
+		toast.error("Failed to generate Word document.");
 	}
 };

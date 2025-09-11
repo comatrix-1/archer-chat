@@ -22,7 +22,7 @@ import ResumeSection from "~/components/resume/resume-section";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent } from "~/components/ui/card";
 import { Form } from "~/components/ui/form";
-import { useMasterResume, useResume } from "~/hooks/useResume";
+import { useMasterResume, useResume, useUpdateMasterResume } from "~/hooks/useResume";
 import type { TUser } from "~/types";
 import { createPageUrl } from "~/utils/create-page-url";
 import { supabase } from "~/utils/supabaseClient";
@@ -61,6 +61,7 @@ export default function MasterResume() {
   });
 
   const { data: masterResume } = useMasterResume();
+  const { mutateAsync: updateMasterResume } = useUpdateMasterResume();
 
   useEffect(() => {
     const validateAuth = async () => {
@@ -99,8 +100,7 @@ export default function MasterResume() {
         skills: formData.skills || [],
         contact: formData.contact || {},
       };
-      
-      await trpc.resume.updateMaster.mutate(resumeData);
+      await updateMasterResume(resumeData);
 
       console.log("Master resume saved successfully!");
     } catch (error) {

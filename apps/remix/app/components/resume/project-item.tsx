@@ -10,15 +10,15 @@ import {
   FormMessage,
 } from "@project/remix/app/components/ui/form";
 import { Input } from "@project/remix/app/components/ui/input";
-import type { ResumeFormData } from "@project/remix/app/types/resume";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { useFormContext, useWatch } from "react-hook-form";
 
 interface ProjectItemProps {
   index: number;
 }
 
-export function ProjectItem({ index }: ProjectItemProps) {
-  const form = useFormContext<ResumeFormData>();
+export function ProjectItem({ index }: Readonly<ProjectItemProps>) {
+  const form = useFormContext<ZResumeWithRelations>();
 
   const startDateValue = useWatch({
     control: form.control,

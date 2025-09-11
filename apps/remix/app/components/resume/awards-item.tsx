@@ -3,7 +3,7 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@project/remix/app/components/ui/form";
 import { Input } from "@project/remix/app/components/ui/input";
 import { useFormContext, useWatch } from "react-hook-form";
-import type { ResumeFormData } from "@project/remix/app/types/resume";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 import { RichTextEditor } from "../rich-text-editor";
 import { DatePicker } from "../ui/date-picker";
 
@@ -12,7 +12,7 @@ interface HonorsAwardsItemProps {
 }
 
 export function AwardsItem({ index }: Readonly<HonorsAwardsItemProps>) {
-    const form = useFormContext<ResumeFormData>();
+    const form = useFormContext<ZResumeWithRelations>();
 
     const dateValue = useWatch({
         control: form.control,

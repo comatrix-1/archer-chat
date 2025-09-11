@@ -71,7 +71,7 @@ model Experience {
   locationType   LocationType
   startDate      DateTime
   endDate        DateTime?
-  description    String?
+  description    Json?
 
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
@@ -87,7 +87,7 @@ model Education {
   gpa          Float?
   gpaMax       Float?
   location     String?
-  description  String?
+  description  Json?
   resumeId     String
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
@@ -108,7 +108,7 @@ model Project {
   title       String
   startDate   DateTime
   endDate     DateTime?
-  description String? // For Rich Text Editor HTML
+  description Json?
 
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)
@@ -132,7 +132,7 @@ model Award {
   title       String
   issuer      String
   date        DateTime?
-  description String    @default("")
+  description Json?
 
   resumeId String
   resume   Resume @relation(fields: [resumeId], references: [id], onDelete: Cascade)

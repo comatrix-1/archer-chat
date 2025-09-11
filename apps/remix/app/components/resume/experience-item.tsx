@@ -1,11 +1,12 @@
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@project/remix/app/components/ui/form";
 import { Input } from "@project/remix/app/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@project/remix/app/components/ui/select";
-import { EEmploymentType, ELocationType, type ResumeFormData } from "@project/remix/app/types/resume";
+import { EEmploymentType, ELocationType } from "@project/remix/app/types/resume";
 import { memo } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { RichTextEditor } from "../rich-text-editor";
 import { DatePicker } from "../ui/date-picker";
+import type { ZResumeWithRelations } from "@project/trpc/server/resume-router/schema";
 
 interface ExperienceItemProps {
     index: number;
@@ -14,7 +15,7 @@ interface ExperienceItemProps {
 const ExperienceItem: React.FC<ExperienceItemProps> = memo(({
     index,
 }) => {
-    const form = useFormContext<ResumeFormData>();
+    const form = useFormContext<ZResumeWithRelations>();
 
     const startDateValue = useWatch({
         control: form.control,

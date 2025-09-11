@@ -65,3 +65,7 @@ Remix/ReactRouter Usage
 - Use (loaderData: Route.LoaderData) to get the loader data from the route
 - When using loaderdata, deconstruct the data you need from the loader data inside the function body
 - Do not use json() to return data, directly return the data
+
+Architecture
+
+- Refer to ./windsurf/architecture.md
