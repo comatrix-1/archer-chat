@@ -1,9 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router";
-import { Link } from "react-router";
-import { z } from "zod";
 import {
   Alert,
   AlertDescription,
@@ -24,8 +19,10 @@ import {
   FormMessage,
 } from "@project/remix/app/components/ui/form";
 import { Input } from "@project/remix/app/components/ui/input";
+import { useForm } from "react-hook-form";
+import { Link, useNavigate } from "react-router";
+import { z } from "zod";
 import { useAuth } from "../contexts/AuthContext";
-import { supabase } from "~/utils/supabaseClient";
 
 const registerSchema = z
   .object({
