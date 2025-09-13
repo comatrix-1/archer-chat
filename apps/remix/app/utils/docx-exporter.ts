@@ -165,8 +165,7 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 				if (contactDetails.length > 0) contactDetails.push(new TextRun(" • "));
 				contactDetails.push(
 					new TextRun({
-						text: resumeData.contact.portfolio,
-						style: "Hyperlink",
+						text: resumeData.contact.portfolio
 					}),
 				);
 			}
@@ -175,8 +174,7 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 				if (contactDetails.length > 0) contactDetails.push(new TextRun(" • "));
 				contactDetails.push(
 					new TextRun({
-						text: resumeData.contact.linkedin,
-						style: "Hyperlink",
+						text: resumeData.contact.linkedin
 					}),
 				);
 			}
@@ -399,9 +397,6 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 						],
 					},
 				),
-				...(cert.credentialId
-					? [createParagraph(`Credential ID: ${cert.credentialId}`)]
-					: []),
 			);
 		}
 	}
@@ -423,9 +418,18 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 					},
 				}),
 				createParagraph([
-					new TextRun(`Issued by: ${award.issuer || ""}`),
+					new TextRun(`${award.issuer || ""}`),
 					new TextRun(awardDate ? `\t${awardDate}` : ""),
-				]),
+				],
+					{
+						spacing: {
+							before: FIRST_PARAGRAPH_BEFORE_SPACING,
+							after: AFTER_SPACING,
+						},
+						tabStops: [
+							{ type: TabStopType.RIGHT, position: TAB_STOP_POSITION },
+						],
+					},),
 			);
 			if (award.description) {
 				sections.push(...parseTiptapJson(award.description));

@@ -1,5 +1,5 @@
 import { Outlet } from "react-router";
-import { ProtectedRoute } from "@project/remix/app/components/ProtectedRoute";
+import { ProtectedRoute } from "@project/remix/app/components/general/protected-route";
 
 export default function ProtectedLayout() {
   return (
@@ -13,4 +13,4 @@ export const handle = {
   protected: true,
 };
 
-export { default as ErrorBoundary } from "@project/remix/app/components/ErrorBoundary";
+export { default as ErrorBoundary } from "@project/remix/app/components/general/error-boundary";

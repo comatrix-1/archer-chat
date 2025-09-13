@@ -1,52 +1,46 @@
-import { useNavigate, useSearchParams } from 'react-router';
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
-import { Label } from '~/components/ui/label';
-import { Textarea } from '~/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select';
+import type { ZJobApplicationInput } from '@project/trpc/server/job-application-router/schema';
 import { ArrowLeft, FileText } from 'lucide-react';
+import { useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router';
+import { CreateUpdateJob } from '~/components/job-tracker/create-update-job';
+import { Button } from '~/components/ui/button';
+import { useJobApplication, useUpdateJobApplication } from '~/hooks/useJobApplications';
 import { createPageUrl } from '~/utils/create-page-url';
-import { useJobApplication } from '~/hooks/useJobApplications';
-import { useAuth } from '../../contexts/AuthContext'
-
-type Status = {
-    id: string;
-    name: string;
-    color: string;
-};
-
-type JobApplication = {
-    id?: string;
-    companyName: string;
-    jobTitle: string;
-    status: string;
-    jobLink?: string | null;
-    resumeId?: string | null;
-    coverLetterId?: string | null;
-    salary?: string | null;
-    remarks?: string | null;
-    createdAt?: Date;
-    updatedAt?: Date;
-};
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function JobDetailPage() {
-    console.log('JobDetailPage()')
     const [searchParams] = useSearchParams();
     const id = searchParams.get('id');
     const navigate = useNavigate();
     const { user } = useAuth();
     const { data: job, isLoading, error } = useJobApplication(id || '', user?.id || '');
 
-    const statuses = [
-        { id: 'APPLIED', name: 'Applied', color: 'bg-blue-500' },
-        { id: 'SCREENING', name: 'Screening', color: 'bg-yellow-500' },
-        { id: 'INTERVIEW', name: 'Interview', color: 'bg-purple-500' },
-        { id: 'OFFER', name: 'Offer', color: 'bg-green-500' },
-        { id: 'REJECTED', name: 'Rejected', color: 'bg-red-500' },
-        { id: 'CLOSED', name: 'Closed', color: 'bg-gray-500' },
-    ] as const;
+    const updateJobApplication = useUpdateJobApplication();
 
-    const defaultStatus = statuses[0];
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (data: ZJobApplicationInput) => {
+        console.log('handleSubmit data: ', data);
+        if (!id) return;
+
+        try {
+            setIsSubmitting(true);
+            await updateJobApplication.mutateAsync({
+                id,
+                ...data,
+                jobLink: data.jobLink || null,
+                resumeId: data.resumeId || null,
+                coverLetterId: data.coverLetterId || null,
+                salary: data.salary || null,
+                remarks: data.remarks || null,
+            });
+        } catch (error) {
+            console.error('Error updating job application:', error);
+            throw error; // This will be caught by the form's error handling
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     if (isLoading) {
         return <div className="flex items-center justify-center min-h-[200px]">Loading job application...</div>;
@@ -59,16 +53,6 @@ export default function JobDetailPage() {
     if (!job) {
         return <div className="p-4">Job application not found</div>;
     }
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            // TODO: Implement update functionality using trpc.jobApplication.update.mutate
-            console.log('Updating job application:', job);
-        } catch (error) {
-            console.error('Error updating job application:', error);
-        }
-    };
 
     return (
         <div className="container mx-auto px-4 py-8">
@@ -97,156 +81,14 @@ export default function JobDetailPage() {
                 </div>
             </div>
 
-            <div className="max-w-2xl mx-auto">
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="space-y-2">
-                            <Label htmlFor="companyName">Company Name</Label>
-                            <Input
-                                id="companyName"
-                                name="companyName"
-                                defaultValue={job.companyName}
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="jobTitle">Job Title</Label>
-                            <Input
-                                id="jobTitle"
-                                name="jobTitle"
-                                defaultValue={job.jobTitle}
-                                required
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="status">Status</Label>
-                            <Select
-                                value={job?.status || 'APPLIED'}
-                                onValueChange={(value) => {
-                                    // Handle status change
-                                    const newStatus = statuses.find(s => s.id === value) || defaultStatus;
-                                    // TODO: Update job status
-                                    console.log('Status changed to:', newStatus);
-                                }}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Select status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {statuses.map((status) => (
-                                        <SelectItem key={status.id} value={status.id}>
-                                            <div className="flex items-center gap-2">
-                                                <span className={`w-2 h-2 rounded-full ${status.color}`} />
-                                                {status.name}
-                                            </div>
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="salary">Salary</Label>
-                            <Input
-                                id="salary"
-                                name="salary"
-                                defaultValue={job?.salary || ''}
-                                placeholder="e.g. $100,000 - $120,000"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="resume">Resume</Label>
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    id="resume"
-                                    value={job?.resumeId || ''}
-                                    placeholder="Resume file name"
-                                    disabled
-                                />
-                                {job?.resumeId && (
-                                    <a
-                                        href={`/api/files/${job.resumeId}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-sm text-blue-600 hover:underline mt-1 block"
-                                    >
-                                        View Resume
-                                    </a>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="coverLetter">Cover Letter</Label>
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    id="coverLetter"
-                                    value={job?.coverLetterId || ''}
-                                    placeholder="Cover letter file name"
-                                    disabled
-                                />
-                                {job?.coverLetterId && (
-                                    <a
-                                        href={`/api/files/${job.coverLetterId}`}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-sm text-blue-600 hover:underline mt-1 block"
-                                    >
-                                        View Cover Letter
-                                    </a>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label htmlFor="jobLink">Job Posting URL</Label>
-                            <div className="flex items-center gap-2">
-                                <Input
-                                    id="jobLink"
-                                    type="url"
-                                    value={job?.jobLink || ''}
-                                    placeholder="https://example.com/job/123"
-                                />
-                                {job?.jobLink && (
-                                    <a
-                                        href={job.jobLink}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-sm text-blue-600 hover:underline mt-1 block"
-                                    >
-                                        View Job Posting
-                                    </a>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="space-y-2">
-                        <Label htmlFor="remarks">Remarks</Label>
-                        <Textarea
-                            id="remarks"
-                            name="remarks"
-                            defaultValue={job?.remarks || ''}
-                            placeholder="Add any additional notes or remarks"
-                            className="min-h-[100px]"
-                        />
-                    </div>
-
-                    <div className="flex justify-end gap-4 pt-4">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            onClick={() => navigate(-1)}
-                        >
-                            Cancel
-                        </Button>
-                        <Button type="submit">Save Changes</Button>
-                    </div>
-                </form>
-            </div>
+            {job && (
+                <CreateUpdateJob
+                    initialData={job}
+                    onSubmit={handleSubmit}
+                    isSubmitting={isSubmitting}
+                    isEditMode={true}
+                />
+            )}
         </div>
     );
 }

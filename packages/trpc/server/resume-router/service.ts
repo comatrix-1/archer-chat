@@ -240,6 +240,37 @@ export const resumeService = {
 			throw new TRPCError({ code: "NOT_FOUND", message: "Resume not found" });
 		}
 
+
+		resume.experiences = resume.experiences.map(experience => ({
+			...experience,
+			description: typeof experience.description === "string" ? JSON.parse(experience.description) : experience.description,
+		}));
+
+		resume.educations = resume.educations.map(education => ({
+			...education,
+			description: typeof education.description === "string" ? JSON.parse(education.description) : education.description,
+		}));
+
+		resume.projects = resume.projects.map(project => ({
+			...project,
+			description: typeof project.description === "string" ? JSON.parse(project.description) : project.description,
+		}));
+
+		resume.awards = resume.awards.map(award => ({
+			...award,
+			description: typeof award.description === "string" ? JSON.parse(award.description) : award.description,
+		}));
+
+		if (!resume) {
+			throw new TRPCError({ code: "NOT_FOUND", message: "Resume not found" });
+		}
+
+		logger.info({
+			type: "get",
+			resume: resume,
+			userId,
+		}, "Getting resume");
+
 		return ZSafeResumeWithRelationsSchema.parse(resume);
 	},
 
@@ -423,6 +454,27 @@ export const resumeService = {
 				message: "Master resume not found",
 			});
 		}
+
+
+		resume.experiences = resume.experiences.map(experience => ({
+			...experience,
+			description: typeof experience.description === "string" ? JSON.parse(experience.description) : experience.description,
+		}));
+
+		resume.educations = resume.educations.map(education => ({
+			...education,
+			description: typeof education.description === "string" ? JSON.parse(education.description) : education.description,
+		}));
+
+		resume.projects = resume.projects.map(project => ({
+			...project,
+			description: typeof project.description === "string" ? JSON.parse(project.description) : project.description,
+		}));
+
+		resume.awards = resume.awards.map(award => ({
+			...award,
+			description: typeof award.description === "string" ? JSON.parse(award.description) : award.description,
+		}));
 
 		return ZSafeResumeWithRelationsSchema.parse(resume);
 	},

@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from "framer-motion";
 
-export default function LoadingSpinner({ isLoading }: { isLoading: boolean }) {
+export default function LoadingSpinner({ isLoading }: { readonly isLoading: boolean }) {
   return (
     <AnimatePresence>
       {isLoading && (
@@ -11,7 +11,7 @@ export default function LoadingSpinner({ isLoading }: { isLoading: boolean }) {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
         >
-          <div className="w-10 h-10 border-4 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+          <div className="w-10 h-10 border-4 border-gray-500 border-t-transparent rounded-full animate-spin" />
         </motion.div>
       )}
     </AnimatePresence>

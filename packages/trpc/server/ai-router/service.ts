@@ -1,153 +1,18 @@
-import type { GenerateContentResponse, Schema } from "@google/genai";
-import { GoogleGenAI, Type } from "@google/genai";
+import type { GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI } from "@google/genai";
 import { PrismaClient } from "@prisma/client";
+import { logger } from "@project/logging/src";
 import { jobApplicationService } from "server/job-application-router/service";
 import type {
-	ZCreateResumeInput,
-	ZResumeWithRelations,
-	ZSafeResumeWithRelations,
+	ZSafeResumeWithRelations
 } from "server/resume-router/schema";
-import {
-	createResumeSchema,
-	resumeWithRelationsSchema,
-} from "server/resume-router/schema";
-import {
-	ZAwardSchema,
-	ZCertificationSchema,
-	ZEducationSchema,
-	ZExperienceSchema,
-	ZProjectSchema,
-	ZSkillSchema,
-} from "server/resume-router/schema";
-import { z } from "zod";
-import {
-	generatedResumeSchema,
-	type ZGeneratedResume,
-	type ZGenerateResumeInput,
-} from "./schema";
 import { resumeService } from "server/resume-router/service";
 import { logToFile } from "./router";
-
-const responseSchema: Schema = {
-	type: Type.OBJECT,
-	properties: {
-		summary: { type: Type.STRING },
-		experiences: {
-			type: Type.ARRAY,
-			items: {
-				type: Type.OBJECT,
-				properties: {
-					title: { type: Type.STRING },
-					employmentType: {
-						type: Type.STRING,
-						enum: [
-							"FULL_TIME",
-							"PART_TIME",
-							"CONTRACT",
-							"INTERNSHIP",
-							"FREELANCE",
-							"SELF_EMPLOYED",
-						],
-					},
-					company: { type: Type.STRING },
-					location: { type: Type.STRING },
-					locationType: {
-						type: Type.STRING,
-						enum: ["ON_SITE", "REMOTE", "HYBRID"],
-					},
-					startDate: { type: Type.STRING },
-					endDate: { type: Type.STRING, nullable: true },
-					description: { type: Type.STRING, nullable: true }, // fixed
-				},
-				required: [
-					"title",
-					"employmentType",
-					"company",
-					"location",
-					"locationType",
-					"startDate",
-				],
-			},
-		},
-		educations: {
-			type: Type.ARRAY,
-			items: {
-				type: Type.OBJECT,
-				properties: {
-					school: { type: Type.STRING },
-					degree: { type: Type.STRING },
-					fieldOfStudy: { type: Type.STRING },
-					startDate: { type: Type.STRING },
-					endDate: { type: Type.STRING, nullable: true },
-					gpa: { type: Type.NUMBER, nullable: true },
-					gpaMax: { type: Type.NUMBER, nullable: true },
-					location: { type: Type.STRING, nullable: true },
-					description: { type: Type.STRING },
-				},
-				required: ["school", "degree", "fieldOfStudy", "startDate", "description"],
-				description: "Education description is required and should include details about coursework, achievements, and relevant projects",
-			},
-		},
-		skills: {
-			type: Type.ARRAY,
-			items: {
-				type: Type.OBJECT,
-				properties: { name: { type: Type.STRING } },
-				required: ["name"],
-			},
-		},
-		projects: {
-			type: Type.ARRAY,
-			items: {
-				type: Type.OBJECT,
-				properties: {
-					title: { type: Type.STRING },
-					startDate: { type: Type.STRING },
-					endDate: { type: Type.STRING, nullable: true },
-					description: { type: Type.STRING, nullable: true },
-				},
-				required: ["title", "startDate"],
-			},
-		},
-		awards: {
-			type: Type.ARRAY,
-			items: {
-				type: Type.OBJECT,
-				properties: {
-					title: { type: Type.STRING },
-					issuer: { type: Type.STRING },
-					date: { type: Type.STRING, nullable: true },
-					description: { type: Type.STRING },
-				},
-				required: ["title", "issuer"],
-			},
-		},
-		certifications: {
-			type: Type.ARRAY,
-			items: {
-				type: Type.OBJECT,
-				properties: {
-					name: { type: Type.STRING },
-					issuer: { type: Type.STRING },
-					issueDate: { type: Type.STRING },
-					expiryDate: { type: Type.STRING, nullable: true },
-					credentialId: { type: Type.STRING, nullable: true },
-					credentialUrl: { type: Type.STRING, nullable: true },
-				},
-				required: ["name", "issuer", "issueDate"],
-			},
-		},
-	},
-	required: [
-		"summary",
-		"experiences",
-		"educations",
-		"skills",
-		"projects",
-		"awards",
-		"certifications",
-	],
-};
+import {
+	type ZGenerateResumeInput,
+	type ZGeneratedResume,
+	generatedResumeSchema,
+} from "./schema";
 
 const parseDate = (date: Date | string | null | undefined): Date | null => {
 	if (!date) return null;
@@ -235,7 +100,7 @@ const transformGeneratedResume = (
 };
 
 const prisma = new PrismaClient();
-const MAX_RETRIES = 2;
+const MAX_RETRIES = 1;
 
 export class AIService {
 	private readonly genAI: GoogleGenAI;
@@ -282,15 +147,13 @@ export class AIService {
 				const prompt = this.createResumePrompt(
 					jobDescription ?? "",
 					baseResume,
-					input.customInstructions ?? "",
 				);
 
-				logToFile({ type: "AI router service baseResume", resume: baseResume })
-
+				logToFile({ type: "info", resume: baseResume });
 				const generatedResume =
 					await this.promptGenerativeAi<ZGeneratedResume>(prompt);
 
-				logToFile({ type: "AI router service generated output", resume: generatedResume });
+				logToFile({ type: "info", resume: `AI router service generated output: ${JSON.stringify(generatedResume)}` });
 
 				const transformedResume = transformGeneratedResume(
 					baseResume,
@@ -299,10 +162,7 @@ export class AIService {
 
 				const zodParsedResume = generatedResumeSchema.parse(transformedResume);
 
-				console.log(
-					"generateResumeContent() - Successfully generated resume: ",
-					zodParsedResume,
-				);
+				logger.info(`AI router service zod parsed output: ${JSON.stringify(zodParsedResume)}`);
 
 				return zodParsedResume;
 			} catch (error) {
@@ -328,28 +188,79 @@ export class AIService {
 		customInstructions?: string,
 	): string {
 		return `
-    You are a professional resume generator. Given the following information (job description, master resume), tailor the following master resume for the job into a resume of approximately 1-2 pages, in JSON format.
-    You may re-word and re-phrase the content to make it more suitable for the job description.
-    The output must be a valid JSON object that conforms to the provided schema. Some description fields such as experience description have HTML markup, please return the same HTML markup format, while making changes to content as necessary.
-    Please ensure the resume is professional, highlights relevant skills and experiences, and is suitable for the specified job title.
-    Job Description: ${jobDescription}
-    Master Resume: ${JSON.stringify(resume, null, 2)}
-    Please approach this step-by-step:
-    1. Find key words and phrases from the job description.
-    2. Pick the most relevant pieces of content from the master resume, there is no need to include all items.
-    3. Tailor the content to make it more suitable for the job description, ensuring keywords are included.
-    4. Return the content in JSON format.
-    Here are some guidelines for the resume:
-    * The resume should be professional and highlight relevant skills and experiences.
-    * Each experience item should have between 3-6 bullet points.
-    * FOR EDUCATION SECTIONS: You MUST include the description field for each education entry. The description should include details about coursework, achievements, and relevant projects. Maintain the original HTML formatting from the master resume.
-    * The resume should be between 1-2 pages long.
-    * Make the output as human as possible and Applicant Tracking System (ATS) friendly.
-    * Customize the resume to the job post.
-    * Use the keywords mentioned in the job post. 
-    * IMPORTANT: Do NOT change the company names, job titles, school names, or the dates of employment/education. These details are factual and must remain 100% accurate for legal reasons. For education sections, also preserve the original description content while making it relevant to the job.
-    * The education description field is REQUIRED and must be included for each education entry. If the original description is missing, create a detailed one based on the degree and field of study.
-    `;
+	You are a professional resume generator. Given a master resume and a job description, return a tailored, ATS-friendly resume as a valid JSON object. 
+
+	Constraints:
+	- Do NOT change company names, job titles, schools, or dates.
+	- Keep descriptions as valid JSON (TipTap format).
+	- Return ONLY JSON, no extra text.
+	- Each section must exist. If information is missing, fill it with empty strings or default TipTap JSON.
+	- For experience, education, award, project sections, the description field should be TipTap JSON format containing a list of bulletList points. These bullet points may be removed, re-ordered, re-phrased or re-organized to tailor to the job description but do not make up facts.
+	- For all sections that have array fields, the array may be empty or contain one or more items. These items may be removed, re-ordered, re-phrased or re-organized to tailor to the job description but do not make up facts. Order list items by chronological order.
+	- The response will be parsed with a JSON.parse() Javascript function and anything other than a json value will get rejected. 
+
+	Input:
+	- Job Description: ${jobDescription}
+	- Master Resume: 
+		\`\`\`json
+		${JSON.stringify(resume, null, 2)}
+		\`\`\`
+
+	Output example (strict JSON):
+
+	{
+	"summary": "string",
+	"experiences": [{"title":"string","company":"string","employmentType":"FULL_TIME","location":"string","locationType":"ON_SITE","startDate":"YYYY-MM-DD","endDate":null,"description":"TipTap JSON string"}],
+	"educations": [{"school":"string","degree":"string","fieldOfStudy":"string","startDate":"YYYY-MM-DD","endDate":null,"gpa":0,"gpaMax":null,"location":null,"description":"TipTap JSON string"}],
+	"skills": [{"name":"string"}],
+	"projects": [{"title":"string","startDate":"YYYY-MM-DD","endDate":null,"description":"TipTap JSON string"}],
+	"awards": [{"title":"string","issuer":"string","date":"YYYY-MM-DD","description":"TipTap JSON string"}],
+	"certifications": [{"name":"string","issuer":"string","issueDate":"YYYY-MM-DD","expiryDate":null,"credentialId":null,"credentialUrl":null}]
+	}
+
+	where TipTap JSON string is a valid TipTap JSON object containing a list of bulletList points, such as:
+	{
+	"description": {
+		"type": "doc",
+		"content": [
+			{
+				"type": "bulletList",
+				"content": [
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"text": "Architected an inventory management system for a nonprofit organisation specialising in food donations.",
+										"type": "text"
+									}
+								]
+							}
+						]
+					},
+					{
+						"type": "listItem",
+						"content": [
+							{
+								"type": "paragraph",
+								"content": [
+									{
+										"text": "Developed useful functions for public, staff and manager with loosely coupled microservices architecture.",
+										"type": "text"
+									}
+								]
+							}
+						]
+					}
+				]
+			}
+		]
+	}
+}
+		`;
+
 	}
 
 	private async promptGenerativeAi<T>(prompt: string): Promise<T> {
@@ -360,12 +271,12 @@ export class AIService {
 				model: "gemini-2.0-flash",
 				contents: prompt,
 				config: {
-					temperature: 0.7,
+					temperature: 0.2,
 					topP: 0.8,
 					topK: 40,
-					maxOutputTokens: 2048,
+					maxOutputTokens: 10000,
 					responseMimeType: "application/json",
-					responseSchema,
+					// responseSchema,
 				},
 			});
 
@@ -391,155 +302,42 @@ export class AIService {
 		}
 
 		try {
-			// Try to extract JSON from markdown code block if present
+			// Step 1: Extract JSON from code block if present
 			const jsonMatch = text.match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
 			const jsonString = jsonMatch ? jsonMatch[1].trim() : text;
 
-			// Parse the JSON string
-			const parsedData = JSON.parse(jsonString);
+			// Step 2: Unescape any escaped quotes / newlines
+			const cleaned = this.cleanGeminiJsonString(jsonString);
 
-			// Validate with the generatedResumeSchema
+			// Step 3: Parse JSON
+			const parsedData = JSON.parse(cleaned);
+
+			// Step 4: Validate with Zod schema
 			const validatedData = generatedResumeSchema.parse(parsedData);
 
-			console.log(
-				"parseGeminiContentResponseAsJson() parsed and validated: ",
-				validatedData,
+			logger.info(
+				`parseGeminiContentResponseAsJson() parsed and validated: ${JSON.stringify(validatedData)}`,
 			);
 
 			return validatedData as T;
 		} catch (error: unknown) {
-			const errorMessage =
-				error instanceof Error ? error.message : String(error);
-			console.error("Failed to parse AI response:", errorMessage);
+			const errorMessage = error instanceof Error ? error.message : String(error);
+			logger.error("Failed to parse AI response message:", errorMessage);
+			logger.error(`Failed to parse AI response:${JSON.stringify(response.text)}`);
 			throw new Error(`Failed to parse AI response as JSON: ${errorMessage}`);
 		}
 	}
-}
 
-const mockGeneratedResume = {
-	summary: "mockGeneratedResume2",
-	experiences: [
-		{
-			title: "Apps Software Engineer",
-			employmentType: "FULL_TIME",
-			company: "NCS",
-			location: "Singapore",
-			locationType: "ON_SITE",
-			startDate: "2022-09-06T00:00:00.000Z",
-			endDate: null,
-			description:
-				"<ul><li>Developed and maintained 5+ API endpoints using Java and Spring Boot, ensuring high performance and reliability.</li><li>Engineered frontend components using Angular, focusing on creating user-friendly and responsive interfaces.</li><li>Implemented comprehensive unit testing suites using Jest and React-Testing-Library, resulting in a 50% decrease in bugs and increased code stability.</li><li>Conducted security audits using Fortify Application Security and SonarQube, implementing necessary fixes to ensure code quality and security.</li><li>Designed and implemented API endpoints with interactions with Oracle SQL database.</li><li>Utilised Agile methodologies to facilitate efficient project management and iterative development.</li></ul>",
-		},
-		{
-			title: "Content Population Intern",
-			employmentType: "FULL_TIME",
-			company: "Accenture",
-			location: "Singapore",
-			locationType: "REMOTE",
-			startDate: "2021-01-01T00:00:00.000Z",
-			endDate: "2022-05-01T00:00:00.000Z",
-			description:
-				"<ul><li>Collaborated across 3+ functional groups to author and standardize over 300 web pages and 2000+ FAQ pages.</li><li>Developed an internal bug-raising process, improving bug-related efficiency by 50%.</li><li>Trained 2 interns and 3+ employees on content authoring using Adobe Experience Manager.</li><li>Communicated and resolved queries raised through 1000+ bugs with relevant stakeholders.</li><li>Managed project tasks and bug-tracking deliverables efficiently in an Agile Scrum team with Azure DevOps.</li></ul>",
-		},
-	],
-	educations: [
-		{
-			school: "Bachelor of Business Management",
-			degree: "Singapore Management University",
-			fieldOfStudy: "Businses Management",
-			startDate: "2018-08-01T00:00:00.000Z",
-			endDate: "2022-05-01T00:00:00.000Z",
-			gpa: 3.72,
-			location: null,
-			description: null,
-		},
-	],
-	skills: [
-		{
-			name: "HTML",
-		},
-		{
-			name: "CSS",
-		},
-		{
-			name: "Javascript",
-		},
-		{
-			name: "React",
-		},
-		{
-			name: "Java",
-		},
-		{
-			name: "Spring Boot",
-		},
-		{
-			name: "Angular",
-		},
-		{
-			name: "Jenkins",
-		},
-		{
-			name: "Docker",
-		},
-		{
-			name: "SQL",
-		},
-		{
-			name: "Azure DevOps",
-		},
-		{
-			name: "Agile Methodologies",
-		},
-	],
-	projects: [
-		{
-			title: "Inventory Management Project – Cloud Native Solution on AWS",
-			startDate: "2023-08-01T00:00:00.000Z",
-			endDate: "2023-11-01T00:00:00.000Z",
-		},
-		{
-			title: "Portfolio Project - Weather App",
-			startDate: "2025-01-01T00:00:00.000Z",
-			endDate: "2025-01-01T00:00:00.000Z",
-		},
-		{
-			title: "Side Project – Hyqueue on Github, fork of QueueSG",
-			startDate: "2025-08-31T12:44:05.198Z",
-			endDate: null,
-		},
-	],
-	awards: [
-		{
-			title: "Country Champion (Singapore)",
-			issuer: "The 3M Inspire Challenge 2021",
-			date: "2021-08-01T00:00:00.000Z",
-		},
-	],
-	certifications: [
-		{
-			name: "Microsoft Certified Azure Developer Associate – Microsoft",
-			issuer: "Microsoft",
-			issueDate: "2025-06-21T00:00:00.000Z",
-			expiryDate: "2026-06-21T00:00:00.000Z",
-			credentialId: null,
-			credentialUrl: null,
-		},
-		{
-			name: "Microsoft Azure Fundamentals (AZ-900)",
-			issuer: "Microsoft",
-			issueDate: "2023-12-02T00:00:00.000Z",
-			expiryDate: null,
-			credentialId: null,
-			credentialUrl: null,
-		},
-		{
-			name: "Professional Scrum Master™ I (PSM I)",
-			issuer: "scrum.org",
-			issueDate: "2022-09-01T00:00:00.000Z",
-			expiryDate: null,
-			credentialId: null,
-			credentialUrl: null,
-		},
-	],
-};
+	private cleanGeminiJsonString(geminiString: string): string {
+		// Remove escaped quotes and unnecessary newlines
+		let s = geminiString.trim();
+		if (s.startsWith('"') && s.endsWith('"')) {
+			s = s.slice(1, -1); // Remove wrapping quotes
+		}
+		s = s.replace(/\\"/g, '"') // Convert \" -> "
+			.replace(/\\n/g, '')  // Remove newlines
+			.replace(/\\t/g, '')  // Remove tabs
+			.replace(/\\\\/g, '\\'); // Convert double backslashes to single
+		return s;
+	}
+}

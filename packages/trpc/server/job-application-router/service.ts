@@ -6,6 +6,7 @@ import type {
 	ZJobApplicationWithRelations,
 	JobApplicationStatus,
 } from "./schema";
+import { logger } from "@project/logging/src";
 
 // Helper to remove undefined values for Prisma
 type PrismaInput<T> = {
@@ -74,7 +75,7 @@ export const jobApplicationService = {
 		input: ZUpdateJobApplicationInput,
 		userId: string,
 	): Promise<ZJobApplicationWithRelations> {
-		// First verify the job application exists and belongs to the user
+		logger.info(`Updating job application ${JSON.stringify(input)}`);
 		const existing = await prisma.jobApplication.findUnique({
 			where: { id: input.id },
 		});

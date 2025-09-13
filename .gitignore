@@ -56,6 +56,7 @@ yarn-error.log*
 # logs
 logs.json
 app.log
+apps/remix/logs
 
 # claude
 .claude

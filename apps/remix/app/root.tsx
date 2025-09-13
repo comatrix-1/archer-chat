@@ -10,10 +10,10 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
-import LoadingSpinner from "./components/LoadingSpinner";
-import { NavBar } from "./components/NavBar";
+import LoadingSpinner from "./components/general/loading-spinner";
+import { NavBar } from "./components/general/nav-bar";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { AppSidebar } from "./components/app-sidebar";
+import { AppSidebar } from "./components/general/app-sidebar";
 import { SidebarProvider } from "./components/ui/sidebar";
 import {
   QueryClient,

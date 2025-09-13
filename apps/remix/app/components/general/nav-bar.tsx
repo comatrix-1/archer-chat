@@ -6,7 +6,7 @@ import {
 } from "react-icons/fa";
 import { Link } from "react-router";
 import { Button } from "@project/remix/app/components/ui/button";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import {
   DropdownMenu,
   DropdownMenuContent,
