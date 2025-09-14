@@ -9,6 +9,7 @@ import type {
 import { resumeService } from "server/resume-router/service";
 import { logToFile } from "./router";
 import {
+	type ZAIGeneratedContent,
 	type ZGenerateResumeInput,
 	type ZGeneratedResume,
 	generatedResumeSchema,
@@ -77,11 +78,11 @@ const transformProject = (project: any) => ({
 });
 
 const transformGeneratedResume = (
-	baseResume: Awaited<ReturnType<AIService["getBaseResume"]>>,
+	masterResume: ZSafeResumeWithRelations,
 	generatedResume: ZGeneratedResume,
 ): ZSafeResumeWithRelations => {
 	return {
-		...baseResume,
+		...masterResume,
 		experiences: generatedResume.experiences.map((exp) =>
 			transformExperience({ ...exp }),
 		),
@@ -111,33 +112,45 @@ export class AIService {
 	async generateResume(
 		userId: string,
 		input: ZGenerateResumeInput,
-	): Promise<ZGeneratedResume> {
+	): Promise<ZAIGeneratedContent> {
 		try {
-			const baseResume = await this.getBaseResume(userId);
-			return await this.generateResumeContent(userId, baseResume, input);
+			const masterResume = await resumeService.getMasterResume(userId);
+			if (!masterResume) {
+				throw new Error("Master resume not found");
+			}
+
+			const jobDescription = await jobApplicationService.getJobDescription(
+				input.jobApplicationId,
+				userId,
+			);
+			if (!jobDescription) {
+				throw new Error("Job description not found in job application");
+			}
+
+			const generatedResume = await this.generateResumeContent(jobDescription, masterResume);
+
+			const fullResume = {
+				...generatedResume,
+				contact: masterResume.contact,
+				isMaster: false,
+				userId: userId,
+			};
+
+			await resumeService.createResume(fullResume);
+
+			return {
+				status: "success",
+			};
 		} catch (error) {
 			console.error("Error generating resume:", error);
 			throw error;
 		}
 	}
 
-	private async getBaseResume(userId: string) {
-		const resume = await resumeService.getMasterResume(userId);
-		if (!resume) {
-			throw new Error("Base resume not found");
-		}
-		return resume;
-	}
-
 	private async generateResumeContent(
-		userId: string,
-		baseResume: Awaited<ReturnType<AIService["getBaseResume"]>>,
-		input: ZGenerateResumeInput,
+		jobDescription: string,
+		masterResume: ZSafeResumeWithRelations,
 	): Promise<ZGeneratedResume> {
-		const jobDescription = await jobApplicationService.getJobDescription(
-			input.jobApplicationId,
-			userId,
-		);
 
 		let attempt = 0;
 		let lastError: Error | null = null;
@@ -146,17 +159,17 @@ export class AIService {
 			try {
 				const prompt = this.createResumePrompt(
 					jobDescription ?? "",
-					baseResume,
+					masterResume,
 				);
 
-				logToFile({ type: "info", resume: baseResume });
+				logToFile({ type: "info", resume: masterResume });
 				const generatedResume =
 					await this.promptGenerativeAi<ZGeneratedResume>(prompt);
 
 				logToFile({ type: "info", resume: `AI router service generated output: ${JSON.stringify(generatedResume)}` });
 
 				const transformedResume = transformGeneratedResume(
-					baseResume,
+					masterResume,
 					generatedResume,
 				);
 

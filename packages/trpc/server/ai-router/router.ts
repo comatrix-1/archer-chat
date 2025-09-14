@@ -16,21 +16,7 @@ export const aiRouter = router({
 			if (input.jobApplicationId.length === 0) {
 				throw new Error("Job application ID is required");
 			}
-
-			const resume = await aiService.generateResume(ctx.user.id, input);
-			const masterResume = await resumeService.getMasterResume(ctx.user.id);
-
-			const fullResume = {
-				...resume,
-				contact: masterResume.contact,
-				isMaster: false,
-				userId: ctx.user.id,
-			};
-
-			await resumeService.createResume(fullResume);
-			return {
-				status: "success",
-			};
+			return aiService.generateResume(ctx.user.id, input);
 		}),
 
 	// TODO: implement

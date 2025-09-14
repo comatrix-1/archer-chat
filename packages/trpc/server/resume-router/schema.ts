@@ -53,13 +53,24 @@ export type ResumeInput = z.infer<typeof ResumeSchema>;
 export type ResumeIdInput = z.infer<typeof resumeIdSchema>;
 export type ResumeListInput = z.infer<typeof resumeListSchema>;
 
+const ZJsonValue: z.ZodType<unknown> = z.lazy(() =>
+	z.union([
+	  z.string(),
+	  z.number(),
+	  z.boolean(),
+	  z.null(),
+	  z.array(ZJsonValue),
+	  z.record(ZJsonValue),
+	])
+  );
+
 // Base schemas for related models
 export const ZAwardSchema = z.object({
 	id: z.string().cuid().optional(),
 	title: z.string(),
 	issuer: z.string(),
 	date: ZNullableDate.optional(),
-	description: z.record(z.any()).or(z.string()).nullish(),
+	description: ZJsonValue.optional(),
 	resumeId: z.string().cuid().optional(),
 });
 
@@ -84,7 +95,7 @@ export const ZEducationSchema = z.object({
 	gpa: z.number().nullable().optional(),
 	gpaMax: z.number().nullable().optional(),
 	location: z.string().nullable().optional(),
-	description: z.record(z.any()).or(z.string()).nullish(),
+	description: ZJsonValue.optional(),
 	resumeId: z.string().cuid().optional(),
 });
 
@@ -97,7 +108,7 @@ export const ZExperienceSchema = z.object({
 	locationType: ZLocationType,
 	startDate: ZNullableDate.optional(),
 	endDate: ZNullableDate.optional(),
-	description: z.record(z.any()).or(z.string()).nullish(),
+	description: ZJsonValue.optional(),
 	resumeId: z.string().cuid().optional(),
 });
 
@@ -106,7 +117,7 @@ export const ZProjectSchema = z.object({
 	title: z.string(),
 	startDate: ZNullableDate.optional(),
 	endDate: ZNullableDate.optional(),
-	description: z.record(z.any()).or(z.string()).nullish(),
+	description: ZJsonValue.optional(),
 	resumeId: z.string().cuid().optional(),
 });
 
