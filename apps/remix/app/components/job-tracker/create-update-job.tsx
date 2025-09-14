@@ -62,7 +62,7 @@ export function CreateUpdateJob({
     defaultValues: {
       companyName: initialData?.companyName || '',
       jobTitle: initialData?.jobTitle || '',
-      status: (initialData?.status as JobApplicationStatus) || 'APPLIED',
+      status: (initialData?.status as JobApplicationStatus) || 'OPEN',
       jobLink: initialData?.jobLink || '',
       resumeId: initialData?.resumeId || '',
       coverLetterId: initialData?.coverLetterId || '',

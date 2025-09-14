@@ -411,14 +411,8 @@ export const exportResumeToDocx = async (resumeData: ZResumeWithRelations) => {
 				})
 				: "";
 			sections.push(
-				createParagraph([new TextRun({ text: award.title, bold: true })], {
-					spacing: {
-						before: FIRST_PARAGRAPH_BEFORE_SPACING,
-						after: AFTER_SPACING,
-					},
-				}),
 				createParagraph([
-					new TextRun(`${award.issuer || ""}`),
+					new TextRun({ text: `${award.title} – ${award.issuer} || ""}`, bold: true }),
 					new TextRun(awardDate ? `\t${awardDate}` : ""),
 				],
 					{
